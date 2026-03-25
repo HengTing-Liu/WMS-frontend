@@ -1,3 +1,5 @@
+import type { Recordable } from '@vben/types';
+
 import { requestClient } from '#/api/request';
 
 /**
@@ -5,10 +7,10 @@ import { requestClient } from '#/api/request';
  */
 
 /**
- * 获取权限树（过滤 menu_type IN ('C','M','F')）
+ * 获取权限树
  */
-export function getPermissionTree() {
-  return requestClient.get('/permission/tree');
+export function getPermissionTree(params?: Recordable<any>) {
+  return requestClient.get('/permission/tree', { params });
 }
 
 /**
@@ -40,8 +42,40 @@ export function updatePermission(data: any) {
 }
 
 /**
- * 删除权限点（仅 F 类允许）
+ * 删除权限点
  */
 export function deletePermission(menuId: number | string) {
   return requestClient.delete(`/permission/${menuId}`);
+}
+
+/**
+ * 修改权限状态
+ */
+export function changePermissionStatus(data: { permissionId: number | string; status: number }) {
+  return requestClient.put('/permission/changeStatus', data);
+}
+
+/**
+ * 导出权限
+ */
+export function exportPermission(params?: Recordable<any>) {
+  return requestClient.download('/permission/export', params);
+}
+
+/**
+ * 获取角色菜单树（用于分配权限）
+ */
+export function getPermissionMenuTree(permissionId: number | string) {
+  return requestClient.get(`/permission/menuTree/${permissionId}`);
+}
+
+/**
+ * 分配角色菜单（权限分配）
+ */
+export function assignPermissionMenu(data: {
+  permissionId: number | string;
+  menuIds: number[];
+  checkStrictly: boolean;
+}) {
+  return requestClient.put('/permission/menu', data);
 }

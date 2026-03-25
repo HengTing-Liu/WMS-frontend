@@ -11,11 +11,11 @@
       ref="formRef"
       :model="formData"
       :rules="rules"
-      :label-col="{ span: 4 }"
-      :wrapper-col="{ span: 20 }"
+      :label-col="{ span: 5 }"
+      :wrapper-col="{ span: 18 }"
     >
       <!-- 菜单类型 -->
-      <FormItem :label="$t('page.system.menu.menuType')" name="menuType">
+      <FormItem :label="$t('page.system.permission.permissionType')" name="menuType">
         <RadioGroup v-model:value="formData.menuType" @change="handleTypeChange">
           <Radio value="C">{{ $t('page.system.permission.typeCatalog') }}</Radio>
           <Radio value="M">{{ $t('page.system.permission.typeMenu') }}</Radio>
@@ -91,6 +91,14 @@
         />
       </FormItem>
 
+      <!-- 状态 -->
+      <FormItem :label="$t('page.common.status')" name="isEnabled">
+        <RadioGroup v-model:value="formData.isEnabled">
+          <Radio :value="1">{{ $t('page.common.enabled') }}</Radio>
+          <Radio :value="0">{{ $t('page.common.disabled') }}</Radio>
+        </RadioGroup>
+      </FormItem>
+
       <!-- 备注 -->
       <FormItem :label="$t('page.common.remark')" name="remark">
         <Textarea v-model:value="formData.remark" :rows="3" :max-length="500" show-count />
@@ -137,13 +145,14 @@ const formData = reactive({
   menuType: 'C',
   perms: '',
   icon: '',
+  isEnabled: 1,
   remark: '',
 });
 
 // 转换树数据，添加根节点选项
 const permissionTreeSelectData = computed(() => {
   return [
-    { menuId: 0, menuName: $t('page.system.menu.root'), children: props.permissionTree },
+    { menuId: 0, menuName: $t('page.system.menu.root'), children: props.permissionTree || [] },
   ];
 });
 
@@ -153,20 +162,29 @@ const rules = computed(() => ({
     { min: 1, max: 50, message: $t('page.system.menu.menuNameLength'), trigger: 'blur' },
   ],
   orderNum: [{ required: true, message: $t('page.system.menu.orderNumRequired'), trigger: 'blur' }],
-  path: formData.menuType === 'M' ? [
-    { required: true, message: $t('page.system.menu.pathRequired'), trigger: 'blur' },
-  ] : [],
-  component: formData.menuType === 'M' ? [
-    { required: true, message: $t('page.system.menu.componentRequired'), trigger: 'blur' },
-  ] : [],
-  perms: formData.menuType === 'F' ? [
-    { required: true, message: $t('page.system.permission.permsRequired'), trigger: 'blur' },
-  ] : [],
+  path:
+    formData.menuType === 'M'
+      ? [{ required: true, message: $t('page.system.menu.pathRequired'), trigger: 'blur' }]
+      : [],
+  component:
+    formData.menuType === 'M'
+      ? [{ required: true, message: $t('page.system.menu.componentRequired'), trigger: 'blur' }]
+      : [],
+  perms:
+    formData.menuType === 'F'
+      ? [{ required: true, message: $t('page.system.permission.permsRequired'), trigger: 'blur' }]
+      : [],
 }));
 
 const emit = defineEmits<{
   (e: 'success'): void;
 }>();
+
+const handleTypeChange = () => {
+  if (formData.menuType === 'F') {
+    formData.icon = '';
+  }
+};
 
 const open = async (row?: any) => {
   visible.value = true;
@@ -183,6 +201,7 @@ const open = async (row?: any) => {
     menuType: 'C',
     perms: '',
     icon: '',
+    isEnabled: 1,
     remark: '',
   });
 
@@ -193,7 +212,6 @@ const open = async (row?: any) => {
       if (res?.data) {
         Object.assign(formData, res.data);
       } else if (res) {
-        // 直接返回数据的情况
         Object.assign(formData, res);
       }
     } catch (error) {
@@ -210,13 +228,6 @@ const open = async (row?: any) => {
   setTimeout(() => {
     formRef.value?.clearValidate();
   }, 0);
-};
-
-const handleTypeChange = () => {
-  // 切换类型时重置一些字段
-  if (formData.menuType === 'F') {
-    formData.icon = '';
-  }
 };
 
 const handleSubmit = async () => {

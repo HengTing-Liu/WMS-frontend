@@ -1,219 +1,208 @@
 <template>
-  <div class="sys-permission-page">
-    <!-- 搜索栏 -->
-    <LcSearchBar
-      ref="searchBarRef"
-      :fields="searchFields"
-      :columns="4"
-      @search="handleSearch"
-      @reset="handleReset"
-    />
-
-    <!-- 表格 -->
-    <LcTable
-      ref="tableRef"
-      :columns="tableColumns"
-      :api="permissionApi"
-      :actions="tableActions"
-      :query-params="queryParams"
-      perm-prefix="wms:base:permission"
-      @edit="handleEdit"
-      @delete="handleDelete"
-      @selection-change="handleSelectionChange"
-    >
+  <Page auto-content-height>
+    <Grid>
       <template #toolbar-tools>
+        <Button
+          v-access:code="'wms:base:permission:add'"
+          type="primary"
+          class="mr-2"
+          @click="handleAdd"
+        >
+          <IconifyIcon icon="material-symbols:add" class="size-5" />
+          {{ $t('page.common.add') }}
+        </Button>
         <Button
           v-access:code="'wms:base:permission:export'"
           @click="handleExport"
         >
+          <IconifyIcon icon="material-symbols:download" class="size-5" />
           {{ $t('page.common.export') }}
         </Button>
       </template>
-    </LcTable>
 
-    <!-- 表单弹窗 -->
-    <LcForm
-      ref="formRef"
-      :fields="formFields"
-      :api="permissionApi"
-      mode="modal"
-      @success="handleFormSuccess"
-    />
-  </div>
+      <template #status="{ row }">
+        <Switch
+          :checked="row.isEnabled === 1"
+          :checkedValue="1"
+          :unCheckedValue="0"
+          @change="() => handleChangeStatus(row)"
+        />
+      </template>
+
+      <template #menuType="{ row }">
+        <Tag :color="NODE_TYPE_CONFIG[row.menuType]?.tagColor || 'default'">
+          {{ $t(NODE_TYPE_CONFIG[row.menuType]?.label || 'page.system.permission.typeCatalog') }}
+        </Tag>
+      </template>
+
+      <template #action="{ row }">
+        <Button v-access:code="'wms:base:permission:edit'" type="link" @click="handleEdit(row)">
+          {{ $t('page.common.edit') }}
+        </Button>
+        <Button v-access:code="'wms:base:permission:assign'" type="link" @click="handleAssign(row)">
+          {{ $t('page.system.permission.assignPerm') }}
+        </Button>
+        <Button v-access:code="'wms:base:permission:delete'" type="link" danger @click="handleDelete(row)">
+          {{ $t('page.common.delete') }}
+        </Button>
+      </template>
+    </Grid>
+
+    <!-- 新增/编辑弹窗 -->
+    <PermissionModal ref="modalRef" @success="handleReload" />
+
+    <!-- 分配权限抽屉 -->
+    <PermissionDrawer ref="drawerRef" @success="handleReload" />
+  </Page>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { message, Button } from 'ant-design-vue';
-import { LcTable, LcForm, LcSearchBar } from '#/components/lc';
+import { Page } from '@vben/common-ui';
+import { message, Button, Switch, Tag, Modal } from 'ant-design-vue';
+import { IconifyIcon } from '@vben/icons';
+import { $t } from '@vben/locales';
+import type { VbenFormProps } from '#/adapter/form';
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   getPermissionTree,
-  getPermissionById,
-  addPermission,
-  updatePermission,
   deletePermission,
+  changePermissionStatus,
 } from '#/api/sys/permission';
-import type { LcTableColumn, LcTableAction, LcFormField, LcSearchField } from '#/components/lc';
-import type { LcCrudApi } from '#/components/lc/types';
+import { exportPermission } from '#/api/sys/permission';
+import PermissionModal from './modules/permission-modal.vue';
+import PermissionDrawer from './modules/permission-drawer.vue';
+import { NODE_TYPE_CONFIG } from './types/permission';
 
-/**
- * 权限数据类型
- */
-export interface PermissionResult {
-  permission_id?: number;
-  permission_code: string;
-  permission_name: string;
-  permission_type?: string;
-  parent_id?: number;
-  sort?: number;
-  is_enabled?: number;
-  remark?: string;
-  create_by?: string;
-  create_time?: string;
-  update_by?: string;
-  update_time?: string;
-}
+const modalRef = ref();
+const drawerRef = ref();
 
-// Refs
-const tableRef = ref();
-const formRef = ref();
-const searchBarRef = ref();
+const formOptions: VbenFormProps = {
+  collapsed: false,
+  showCollapseButton: false,
+  submitOnChange: false,
+  submitOnEnter: true,
+  schema: [
+    {
+      component: 'Input',
+      fieldName: 'permissionCode',
+      label: $t('page.system.permission.permissionCode'),
+    },
+    {
+      component: 'Input',
+      fieldName: 'permissionName',
+      label: $t('page.system.permission.permissionName'),
+    },
+    {
+      component: 'Select',
+      fieldName: 'menuType',
+      label: $t('page.system.permission.permissionType'),
+      componentProps: {
+        allowClear: true,
+        options: [
+          { label: $t('page.system.permission.typeCatalog'), value: 'C' },
+          { label: $t('page.system.permission.typeMenu'), value: 'M' },
+          { label: $t('page.system.permission.typeButton'), value: 'F' },
+        ],
+      },
+    },
+    {
+      component: 'Select',
+      fieldName: 'isEnabled',
+      label: $t('page.common.status'),
+      componentProps: {
+        allowClear: true,
+        options: [
+          { label: $t('page.common.enabled'), value: 1 },
+          { label: $t('page.common.disabled'), value: 0 },
+        ],
+      },
+    },
+  ],
+};
 
-// 查询参数
-const queryParams = ref<Record<string, any>>({});
-
-// 构建 CRUD API
-const permissionApi: LcCrudApi<PermissionResult> = {
-  page: async (params: any) => {
-    const res = await getPermissionTree(params);
-    return {
-      rows: res.rows || res.list || [],
-      total: res.total || 0,
-    };
-  },
-  get: async (id: any) => {
-    return await getPermissionById(id);
-  },
-  add: async (data: any) => {
-    return await addPermission(data);
-  },
-  edit: async (data: any) => {
-    return await updatePermission(data);
-  },
-  delete: async (id: any) => {
-    return await deletePermission(id);
-  },
-  export: async (params: any) => {
-    return await exportPermission(params);
+const gridOptions = {
+  columns: [
+    { type: 'seq', width: 60, title: $t('page.common.seq') },
+    { field: 'permissionCode', title: $t('page.system.permission.permissionCode'), minWidth: 150 },
+    { field: 'permissionName', title: $t('page.system.permission.permissionName'), minWidth: 150 },
+    { field: 'menuType', title: $t('page.system.permission.permissionType'), width: 120, slots: { default: 'menuType' } },
+    { field: 'sort', title: $t('page.system.permission.sort'), width: 80, align: 'center' },
+    { field: 'isEnabled', title: $t('page.common.status'), width: 100, slots: { default: 'status' } },
+    { field: 'remark', title: $t('page.common.remark'), minWidth: 150 },
+    { field: 'createTime', title: $t('page.system.permission.createTime'), width: 180, formatter: 'formatDateTime' },
+    { field: 'action', title: $t('page.common.operation'), fixed: 'right', slots: { default: 'action' }, width: 250 },
+  ],
+  height: 'auto',
+  pagerConfig: {},
+  proxyConfig: {
+    response: {
+      total: 'total',
+      result: 'rows',
+    },
+    ajax: {
+      query: async ({ page }: any, formValues: any) => {
+        const res = await getPermissionTree({
+          pageNum: page.currentPage,
+          pageSize: page.pageSize,
+          ...formValues,
+        });
+        return res;
+      },
+    },
   },
 };
 
-// 表格列配置
-const tableColumns: LcTableColumn[] = [
-  { field: 'permission_code', title: $t('page.system.permission.permissionCode'), minWidth: 150 },
-  { field: 'permission_name', title: $t('page.system.permission.permissionName'), minWidth: 150 },
-  { field: 'permission_type', title: $t('page.system.permission.permissionType'), width: 120 },
-  { field: 'sort', title: $t('page.system.permission.sort'), width: 80, align: 'center' },
-  {
-    field: 'is_enabled',
-    title: $t('page.common.status'),
-    width: 100,
-    formatter: (row: PermissionResult) => {
-      return row.is_enabled === 1
-        ? `<span style="color: green">${$t('page.common.enabled')}</span>`
-        : `<span style="color: red">${$t('page.common.disabled')}</span>`;
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+
+const handleAdd = () => modalRef.value?.open();
+const handleEdit = (row: any) => modalRef.value?.open(row);
+const handleReload = () => gridApi.reload();
+
+// 修改状态
+const handleChangeStatus = async (row: any) => {
+  const nextStatus = row.isEnabled === 1 ? 0 : 1;
+  Modal.confirm({
+    title: $t('page.common.confirm'),
+    content: $t(
+      nextStatus === 1 ? 'page.system.permission.confirmEnable' : 'page.system.permission.confirmDisable',
+      { name: row.permissionName }
+    ),
+    async onOk() {
+      try {
+        await changePermissionStatus({ permissionId: row.permissionId || row.menuId, status: nextStatus });
+        message.success($t('page.message.operationSuccess'));
+        gridApi.reload();
+      } catch (error) {
+        message.error($t('page.message.operationFail'));
+      }
     },
-  },
-  { field: 'remark', title: $t('page.common.remark'), minWidth: 150 },
-  { field: 'create_by', title: $t('page.system.permission.createBy'), minWidth: 100 },
-  { field: 'create_time', title: $t('page.system.permission.createTime'), minWidth: 180 },
-];
+  });
+};
 
-// 表格操作按钮
-const tableActions: LcTableAction[] = [
-  { key: 'edit', label: $t('page.common.edit'), perm: 'edit' },
-  { key: 'delete', label: $t('page.common.delete'), perm: 'delete', danger: true },
-  {
-    key: 'export',
-    label: $t('page.common.export'),
-    perm: 'export',
-    onClick: () => handleExport(),
-  },
-];
+// 分配权限
+const handleAssign = (row: any) => {
+  drawerRef.value?.open(row);
+};
 
-// 表单字段配置
-const formFields: LcFormField[] = [
-  {
-    fieldCode: 'permission_code',
-    fieldName: $t('page.system.permission.permissionCode'),
-    fieldType: 'string',
-    required: true,
-    maxLength: 50,
-  },
-  {
-    fieldCode: 'permission_name',
-    fieldName: $t('page.system.permission.permissionName'),
-    fieldType: 'string',
-    required: true,
-    maxLength: 100,
-  },
-  {
-    fieldCode: 'permission_type',
-    fieldName: $t('page.system.permission.permissionType'),
-    fieldType: 'string',
-    maxLength: 20,
-  },
-  {
-    fieldCode: 'sort',
-    fieldName: $t('page.system.permission.sort'),
-    fieldType: 'number',
-  },
-  {
-    fieldCode: 'is_enabled',
-    fieldName: $t('page.system.permission.isEnabled'),
-    fieldType: 'boolean',
-    defaultValue: 1,
-  },
-  {
-    fieldCode: 'remark',
-    fieldName: $t('page.common.remark'),
-    fieldType: 'textarea',
-    maxLength: 500,
-  },
-];
-
-// 搜索字段配置
-const searchFields: LcSearchField[] = [
-  {
-    fieldCode: 'permission_code',
-    fieldName: $t('page.system.permission.permissionCode'),
-    fieldType: 'string',
-  },
-  {
-    fieldCode: 'permission_name',
-    fieldName: $t('page.system.permission.permissionName'),
-    fieldType: 'string',
-  },
-];
-
-// 查询
-function handleSearch(values: Record<string, any>) {
-  queryParams.value = { ...values };
-  tableRef.value?.query();
-}
-
-// 重置
-function handleReset() {
-  queryParams.value = {};
-  tableRef.value?.query();
-}
+// 删除
+const handleDelete = async (row: any) => {
+  Modal.confirm({
+    title: $t('page.common.confirmDelete'),
+    content: $t('page.system.permission.confirmDelete', { name: row.permissionName }),
+    async onOk() {
+      await deletePermission(String(row.permissionId || row.menuId));
+      message.success($t('page.message.deleteSuccess'));
+      gridApi.reload();
+    },
+  });
+};
 
 // 导出
 async function handleExport() {
   try {
-    const blob = await permissionApi.export!(queryParams.value);
-
-    // 下载文件
+    const formValues = gridApi.formValues || {};
+    const blob = await exportPermission(formValues);
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -222,38 +211,10 @@ async function handleExport() {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-
     message.success($t('page.message.exportSuccess'));
   } catch (error) {
     console.error('Export failed:', error);
     message.error($t('page.message.exportFail'));
   }
 }
-
-// 编辑
-function handleEdit(row: PermissionResult) {
-  formRef.value?.openEdit(row);
-}
-
-// 删除
-async function handleDelete(row: PermissionResult) {
-  console.log('删除权限:', row);
-}
-
-// 表单提交成功
-function handleFormSuccess() {
-  message.success($t('page.message.operationSuccess'));
-  tableRef.value?.reload();
-}
-
-// 选中变化
-function handleSelectionChange(rows: PermissionResult[]) {
-  console.log('选中行:', rows);
-}
 </script>
-
-<style scoped>
-.sys-permission-page {
-  padding: 16px;
-}
-</style>
