@@ -200,172 +200,211 @@
         </Table>
       </Card>
 
+      <!-- 仓库编辑弹框 -->
       <Modal
         v-model:open="formVisible"
-        :title="formMode === 'add' ? '新增仓库' : '编辑仓库'"
+        :title="formMode === 'add' ? '新建仓库档案' : '编辑仓库档案'"
         :confirm-loading="submitting"
         :mask-closable="false"
-        width="900px"
+        :width="isEditMode ? '80%' : '900px'"
+        :style="{ maxWidth: isEditMode ? '1200px' : '900px' }"
+        class-name="warehouse-edit-modal"
         @ok="handleSubmit"
         @cancel="handleCancel"
       >
-        <Form ref="formRef" :model="formData" :rules="formRules" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
-          <Row :gutter="16">
-            <Col :span="8">
-              <FormItem label="仓库编码" name="warehouseCode">
-                <Input v-model:value="formData.warehouseCode" :disabled="formMode === 'edit'" maxlength="50" placeholder="请输入仓库编码" />
-              </FormItem>
-            </Col>
-            <Col :span="8">
-              <FormItem label="仓库名称" name="warehouseName">
-                <Input v-model:value="formData.warehouseName" :disabled="formMode === 'edit'" maxlength="100" placeholder="请输入仓库名称" />
-              </FormItem>
-            </Col>
-            <Col :span="8">
-              <FormItem label="温度分区" name="temperatureZone">
-                <Select v-model:value="formData.temperatureZone" :disabled="formMode === 'edit'" :options="temperatureZoneOptions" placeholder="请选择温度分区" />
-              </FormItem>
-            </Col>
-            <Col :span="8">
-              <FormItem label="质量分区" name="qualityZone">
-                <Select v-model:value="formData.qualityZone" :disabled="formMode === 'edit'" :options="qualityZoneOptions" placeholder="请选择质量分区" />
-              </FormItem>
-            </Col>
-            <Col :span="8">
-              <FormItem label="责任人工号" name="employeeCode">
-                <Input v-model:value="formData.employeeCode" maxlength="50" placeholder="请输入责任人工号" />
-              </FormItem>
-            </Col>
-            <Col :span="8">
-              <FormItem label="责任人" name="employeeName">
-                <Input v-model:value="formData.employeeName" maxlength="100" placeholder="请输入责任人" />
-              </FormItem>
-            </Col>
-            <Col :span="8">
-              <FormItem label="责任部门编号" name="deptCode">
-                <Input v-model:value="formData.deptCode" maxlength="50" placeholder="请输入责任部门编号" />
-              </FormItem>
-            </Col>
-            <Col :span="8">
-              <FormItem label="责任部门全路径" name="deptNameFullPath">
-                <Input v-model:value="formData.deptNameFullPath" maxlength="200" placeholder="请输入责任部门全路径" />
-              </FormItem>
-            </Col>
-            <Col :span="8">
-              <FormItem label="所属公司" name="company">
-                <Select v-model:value="formData.company" :disabled="formMode === 'edit'" :options="companyOptions" placeholder="请选择所属公司" />
-              </FormItem>
-            </Col>
-            <Col :span="8">
-              <FormItem label="是否启用" name="isEnabled">
-                <RadioGroup v-model:value="formData.isEnabled">
-                  <Radio :value="1">启用</Radio>
-                  <Radio :value="0">停用</Radio>
-                </RadioGroup>
-              </FormItem>
-            </Col>
-            <Col :span="24">
-              <FormItem label="备注" name="remark" :label-col="{ span: 2 }" :wrapper-col="{ span: 22 }">
-                <Input.TextArea v-model:value="formData.remark" :rows="3" maxlength="500" show-count placeholder="请输入备注" />
-              </FormItem>
-            </Col>
-          </Row>
-        </Form>
-
-        <!-- 收货人信息区块 -->
-        <div v-if="formMode === 'edit'" class="receiver-section">
-          <div class="receiver-section-header">
-            <div class="receiver-section-title">
-              <User class="size-4" />
-              <span>收货人信息</span>
+        <div class="warehouse-form-wrapper">
+          <!-- 仓库基本信息 -->
+          <div class="warehouse-form-section">
+            <div class="section-header">
+              <Building2 class="section-icon" />
+              <span class="section-title">仓库基本信息</span>
             </div>
-            <Button type="primary" size="small" @click="handleOpenReceiverModal">
-              <template #icon><Plus /></template>
-              管理收货人
-            </Button>
+
+            <!-- 编辑提示横幅 -->
+            <Alert
+              v-if="isEditMode"
+              type="warning"
+              show-icon
+              class="edit-warning-alert"
+              message="编辑提示：仓库编码、仓库名称、温度分区、质量分区、所属公司、备注 为系统保护字段，创建后不可修改。可修改字段：责任人工号、责任人、责任部门编号、责任部门全路径、是否启用。"
+            />
+
+            <Form ref="formRef" :model="formData" :rules="formRules" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
+              <Row :gutter="16">
+                <Col :span="8">
+                  <FormItem label="仓库编码" name="warehouseCode">
+                    <Input
+                      v-model:value="formData.warehouseCode"
+                      :disabled="isEditMode"
+                      :class="{ 'ant-input-disabled': isEditMode }"
+                      maxlength="50"
+                      placeholder="请输入仓库编码"
+                    />
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="仓库名称" name="warehouseName">
+                    <Input
+                      v-model:value="formData.warehouseName"
+                      :disabled="isEditMode"
+                      :class="{ 'ant-input-disabled': isEditMode }"
+                      maxlength="100"
+                      placeholder="请输入仓库名称"
+                    />
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="温度分区" name="temperatureZone">
+                    <Select
+                      v-model:value="formData.temperatureZone"
+                      :disabled="isEditMode"
+                      :class="{ 'ant-input-disabled': isEditMode }"
+                      :options="temperatureZoneOptions"
+                      placeholder="请选择温度分区"
+                    />
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="质量分区" name="qualityZone">
+                    <Select
+                      v-model:value="formData.qualityZone"
+                      :disabled="isEditMode"
+                      :class="{ 'ant-input-disabled': isEditMode }"
+                      :options="qualityZoneOptions"
+                      placeholder="请选择质量分区"
+                    />
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="责任人工号" name="employeeCode">
+                    <Input v-model:value="formData.employeeCode" maxlength="50" placeholder="请输入责任人工号" />
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="责任人" name="employeeName">
+                    <Input v-model:value="formData.employeeName" maxlength="100" placeholder="请输入责任人" />
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="责任部门编号" name="deptCode">
+                    <Input v-model:value="formData.deptCode" maxlength="50" placeholder="请输入责任部门编号" />
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="责任部门全路径" name="deptNameFullPath">
+                    <Input v-model:value="formData.deptNameFullPath" maxlength="200" placeholder="请输入责任部门全路径" />
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="所属公司" name="company">
+                    <Select
+                      v-model:value="formData.company"
+                      :disabled="isEditMode"
+                      :class="{ 'ant-input-disabled': isEditMode }"
+                      :options="companyOptions"
+                      placeholder="请选择所属公司"
+                    />
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="是否启用" name="isEnabled">
+                    <RadioGroup v-model:value="formData.isEnabled">
+                      <Radio :value="1">启用</Radio>
+                      <Radio :value="0">停用</Radio>
+                    </RadioGroup>
+                  </FormItem>
+                </Col>
+                <Col :span="24">
+                  <FormItem label="备注" name="remark" :label-col="{ span: 2 }" :wrapper-col="{ span: 22 }">
+                    <Input.TextArea
+                      v-model:value="formData.remark"
+                      :disabled="isEditMode"
+                      :class="{ 'ant-input-disabled': isEditMode }"
+                      :rows="3"
+                      maxlength="500"
+                      show-count
+                      placeholder="请输入备注"
+                    />
+                  </FormItem>
+                </Col>
+              </Row>
+            </Form>
+
+            <!-- 系统信息 -->
+            <div v-if="isEditMode" class="system-info">
+              <div class="system-info-row">
+                <span class="system-info-label">添加人：</span>
+                <span class="system-info-value">{{ formData.createBy || '-' }}</span>
+                <span class="system-info-label ml-6">添加时间：</span>
+                <span class="system-info-value">{{ formData.createTime || '-' }}</span>
+                <span class="system-info-label ml-6">上次修改人：</span>
+                <span class="system-info-value">{{ formData.updateBy || '-' }}</span>
+                <span class="system-info-label ml-6">上次修改时间：</span>
+                <span class="system-info-value">{{ formData.updateTime || '-' }}</span>
+              </div>
+            </div>
           </div>
-          <div v-if="receiverList.length === 0" class="receiver-empty">
-            <span>暂无收货人信息</span>
+
+          <!-- 收货人信息区块（编辑模式下显示） -->
+          <div v-if="isEditMode" class="receiver-section">
+            <div class="receiver-section-header">
+              <div class="receiver-section-title">
+                <User class="section-icon" />
+                <span>收货人信息</span>
+              </div>
+              <Button type="primary" size="small" @click="handleAddReceiver">
+                <template #icon><Plus /></template>
+                添加收货人
+              </Button>
+            </div>
+            <div v-if="receiverList.length === 0" class="receiver-empty">
+              <User class="receiver-empty-icon" />
+              <p>暂无收货人信息</p>
+              <p class="receiver-empty-hint">点击"添加收货人"按钮开始添加</p>
+            </div>
+            <Table
+              v-else
+              :columns="receiverColumns"
+              :data-source="receiverList"
+              :loading="receiverLoading"
+              row-key="id"
+              :pagination="false"
+              :scroll="{ x: 800 }"
+              size="small"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'phoneNumber'">
+                  {{ maskPhone(record.phoneNumber) }}
+                </template>
+                <template v-else-if="column.key === 'address'">
+                  {{ record.country || '' }}{{ record.province || '' }}{{ record.city || '' }}{{ record.district || '' }}{{ record.detailedAddress || '' }}
+                </template>
+                <template v-else-if="column.key === 'isDefault'">
+                  <Tag v-if="record.isDefault === 1" color="success">
+                    <template #icon><Check /></template>
+                    默认
+                  </Tag>
+                  <Button v-else type="link" size="small" @click="handleSetDefaultReceiver(record)">设为默认</Button>
+                </template>
+                <template v-else-if="column.key === 'action'">
+                  <Space>
+                    <Button type="link" size="small" @click="handleEditReceiver(record)">编辑</Button>
+                    <Button type="link" danger size="small" @click="handleDeleteReceiver(record)">删除</Button>
+                  </Space>
+                </template>
+              </template>
+            </Table>
           </div>
-          <Table
-            v-else
-            :columns="receiverColumns"
-            :data-source="receiverList"
-            :loading="receiverLoading"
-            row-key="id"
-            :pagination="false"
-            :scroll="{ x: 700 }"
-            size="small"
-          >
-            <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'phoneNumber'">
-                {{ maskPhone(record.phoneNumber) }}
-              </template>
-              <template v-else-if="column.key === 'address'">
-                {{ record.province }}{{ record.city }}{{ record.district }}{{ record.detailedAddress }}
-              </template>
-              <template v-else-if="column.key === 'isDefault'">
-                <Tag v-if="record.isDefault === 1" color="success">默认</Tag>
-                <Button v-else type="link" size="small" @click="handleSetDefaultReceiver(record)">设为默认</Button>
-              </template>
-              <template v-else-if="column.key === 'action'">
-                <Button type="link" size="small" danger @click="handleDeleteReceiver(record)">删除</Button>
-              </template>
-            </template>
-          </Table>
         </div>
       </Modal>
 
-      <!-- 收货人管理弹框 -->
+      <!-- 收货人编辑弹框 -->
       <Modal
-        v-model:open="receiverModalVisible"
-        :title="`${formData.warehouseCode} - ${formData.warehouseName} 收货人管理`"
-        width="900px"
-        :footer="null"
-        :mask-closable="false"
-      >
-        <div class="receiver-modal-content">
-          <div class="toolbar mb-4">
-            <Button type="primary" @click="() => { editingReceiverId = undefined; receiverFormVisible = true; }">
-              <template #icon><Plus /></template>
-              添加收货人
-            </Button>
-          </div>
-          <Table
-            :columns="receiverColumns"
-            :data-source="receiverList"
-            :loading="receiverLoading"
-            row-key="id"
-            :pagination="false"
-            :scroll="{ x: 700 }"
-          >
-            <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'phoneNumber'">
-                {{ maskPhone(record.phoneNumber) }}
-              </template>
-              <template v-else-if="column.key === 'address'">
-                {{ record.province }}{{ record.city }}{{ record.district }}{{ record.detailedAddress }}
-              </template>
-              <template v-else-if="column.key === 'isDefault'">
-                <Tag v-if="record.isDefault === 1" color="success">默认</Tag>
-                <Button v-else type="link" size="small" @click="handleSetDefaultReceiver(record)">设为默认</Button>
-              </template>
-              <template v-else-if="column.key === 'action'">
-                <Space>
-                  <Button type="link" size="small" @click="() => { editingReceiverId = record.id; receiverFormVisible = true; }">编辑</Button>
-                  <Button type="link" danger size="small" @click="handleDeleteReceiver(record)">删除</Button>
-                </Space>
-              </template>
-            </template>
-          </Table>
-        </div>
-      </Modal>
-
-      <!-- 收货人编辑抽屉 -->
-      <Drawer
         v-model:open="receiverFormVisible"
         :title="editingReceiverId ? '编辑收货人' : '添加收货人'"
-        width="520"
+        width="640px"
+        :footer="null"
+        :mask-closable="false"
         :destroy-on-close="true"
       >
         <Form
@@ -373,44 +412,72 @@
           :model="receiverFormData"
           :rules="receiverFormRules"
           layout="vertical"
+          class="receiver-form"
         >
-          <FormItem label="收货人" name="consignee">
-            <Input v-model:value="receiverFormData.consignee" placeholder="请输入收货人姓名" allow-clear />
-          </FormItem>
-          <FormItem label="手机号码" name="phoneNumber">
-            <Input v-model:value="receiverFormData.phoneNumber" placeholder="请输入手机号码" allow-clear maxlength="11" />
-          </FormItem>
-          <FormItem label="国家" name="country">
-            <Select v-model:value="receiverFormData.country" disabled>
-              <SelectOption value="中国">中国</SelectOption>
-            </Select>
-          </FormItem>
-          <FormItem label="省/市/区" name="province">
-            <Input placeholder="请输入省份" v-model:value="receiverFormData.province" allow-clear />
-          </FormItem>
-          <FormItem label="城市" name="city">
-            <Input placeholder="请输入城市" v-model:value="receiverFormData.city" allow-clear />
-          </FormItem>
-          <FormItem label="区县" name="district">
-            <Input placeholder="请输入区县" v-model:value="receiverFormData.district" allow-clear />
-          </FormItem>
+          <Row :gutter="16">
+            <Col :span="12">
+              <FormItem label="收货人" name="consignee">
+                <Input v-model:value="receiverFormData.consignee" placeholder="请输入收货人姓名" allow-clear />
+              </FormItem>
+            </Col>
+            <Col :span="12">
+              <FormItem label="手机号码" name="phoneNumber">
+                <Input v-model:value="receiverFormData.phoneNumber" placeholder="请输入手机号码" allow-clear maxlength="11" />
+              </FormItem>
+            </Col>
+          </Row>
+          <Row :gutter="16">
+            <Col :span="12">
+              <FormItem label="国家" name="country">
+                <Input v-model:value="receiverFormData.country" placeholder="请输入国家" allow-clear />
+              </FormItem>
+            </Col>
+            <Col :span="12">
+              <FormItem label="省市" name="province">
+                <Input v-model:value="receiverFormData.province" placeholder="请输入省市" allow-clear />
+              </FormItem>
+            </Col>
+          </Row>
+          <Row :gutter="16">
+            <Col :span="12">
+              <FormItem label="区/县" name="district">
+                <Input v-model:value="receiverFormData.district" placeholder="请输入区/县" allow-clear />
+              </FormItem>
+            </Col>
+            <Col :span="12">
+              <FormItem label="邮编" name="postalCode">
+                <Input v-model:value="receiverFormData.postalCode" placeholder="请输入邮编" allow-clear maxlength="10" />
+              </FormItem>
+            </Col>
+          </Row>
           <FormItem label="详细地址" name="detailedAddress">
-            <Input.TextArea v-model:value="receiverFormData.detailedAddress" placeholder="请输入详细地址" :rows="2" allow-clear show-count :maxlength="500" />
+            <Input.TextArea
+              v-model:value="receiverFormData.detailedAddress"
+              placeholder="请输入详细地址"
+              :rows="2"
+              allow-clear
+              show-count
+              :maxlength="500"
+            />
           </FormItem>
-          <FormItem label="邮编" name="postalCode">
-            <Input v-model:value="receiverFormData.postalCode" placeholder="请输入邮编" allow-clear maxlength="6" />
+          <FormItem label="备注" name="note">
+            <Input.TextArea
+              v-model:value="receiverFormData.note"
+              placeholder="请输入备注"
+              :rows="2"
+              allow-clear
+              :maxlength="200"
+            />
           </FormItem>
-          <FormItem name="isDefault">
+          <FormItem>
             <Checkbox v-model:checked="receiverFormIsDefault">设为默认收货人</Checkbox>
           </FormItem>
         </Form>
-        <template #footer>
-          <div class="drawer-footer">
-            <Button @click="receiverFormVisible = false">取消</Button>
-            <Button type="primary" :loading="receiverSubmitting" @click="handleSaveReceiver">保存</Button>
-          </div>
-        </template>
-      </Drawer>
+        <div class="receiver-form-footer">
+          <Button @click="receiverFormVisible = false">取消</Button>
+          <Button type="primary" :loading="receiverSubmitting" @click="handleSaveReceiver">保存</Button>
+        </div>
+      </Modal>
     </div>
   </Page>
 </template>
@@ -429,14 +496,16 @@ import {
   MapPin,
   Thermometer,
   User,
+  Building2,
+  Check,
 } from 'lucide-vue-next';
 import {
+  Alert,
   Button,
   Card,
   Checkbox,
   CheckboxGroup,
   Col,
-  Drawer,
   Form,
   FormItem,
   Input,
@@ -490,10 +559,11 @@ const formRef = ref<FormInstance>();
 const filterPopoverVisible = ref(false);
 const selectedFilters = ref(['warehouseCode', 'warehouseName', 'company']);
 
+const isEditMode = computed(() => formMode.value === 'edit');
+
 const router = useRouter();
 
 // 收货人信息
-const receiverModalVisible = ref(false);
 const receiverList = ref<WarehouseReceiverResult[]>([]);
 const receiverLoading = ref(false);
 const editingReceiverId = ref<number | undefined>(undefined);
@@ -849,13 +919,6 @@ async function loadReceiverList(warehouseCode: string) {
   }
 }
 
-function handleOpenReceiverModal() {
-  if (formData.warehouseCode) {
-    loadReceiverList(formData.warehouseCode);
-    receiverModalVisible.value = true;
-  }
-}
-
 function handleDeleteReceiver(record: WarehouseReceiverResult) {
   Modal.confirm({
     title: '确认删除',
@@ -1155,14 +1218,88 @@ onMounted(() => {
   font-size: 14px;
 }
 
-/* 收货人管理弹框 */
-.receiver-modal-content {
-  padding: 16px 0;
+.receiver-empty-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  color: #d1d5db;
 }
 
-.drawer-footer {
+.receiver-empty-hint {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* 收货人表单 */
+.receiver-form {
+  padding-top: 8px;
+}
+
+.receiver-form-footer {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 8px;
+}
+
+/* 仓库编辑弹框样式 */
+.warehouse-form-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.warehouse-form-section {
+  padding-bottom: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.section-icon {
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.edit-warning-alert {
+  margin-bottom: 16px;
+}
+
+.system-info {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.system-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.system-info-label {
+  color: #9ca3af;
+}
+
+.system-info-value {
+  color: #374151;
+}
+
+.ml-6 {
+  margin-left: 24px;
 }
 </style>
