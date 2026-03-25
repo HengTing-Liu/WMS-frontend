@@ -36,49 +36,56 @@
             :options="statusFilterOptions"
             @change="handleSearch"
           />
-          <Popover v-model:open="filterPopoverVisible" trigger="click" placement="bottomLeft">
-            <template #content>
-              <div class="filter-popover-content">
-                <div class="filter-popover-title">选择筛选字段</div>
-                <CheckboxGroup v-model:value="selectedFilters" class="filter-checkbox-group">
-                  <Row :gutter="[0, 8]">
-                    <Col v-for="item in filterFieldOptions" :key="item.value" :span="12">
-                      <Checkbox :value="item.value">{{ item.label }}</Checkbox>
-                    </Col>
-                  </Row>
-                </CheckboxGroup>
-                <div class="filter-popover-divider" />
-                <div class="filter-dynamic-inputs">
-                  <FormItem v-show="selectedFilters.includes('warehouseCode')" label="仓库编码" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-                    <Input v-model:value="queryForm.warehouseCode" allow-clear placeholder="请输入仓库编码" />
-                  </FormItem>
-                  <FormItem v-show="selectedFilters.includes('warehouseName')" label="仓库名称" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-                    <Input v-model:value="queryForm.warehouseName" allow-clear placeholder="请输入仓库名称" />
-                  </FormItem>
-                  <FormItem v-show="selectedFilters.includes('company')" label="所属公司" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-                    <Input v-model:value="queryForm.company" allow-clear placeholder="请输入所属公司" />
-                  </FormItem>
-                  <FormItem v-show="selectedFilters.includes('temperatureZone')" label="温区" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-                    <Select v-model:value="queryForm.temperatureZone" allow-clear :options="temperatureZoneOptions" placeholder="请选择温区" />
-                  </FormItem>
-                  <FormItem v-show="selectedFilters.includes('qualityZone')" label="质量区" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-                    <Select v-model:value="queryForm.qualityZone" allow-clear :options="qualityZoneOptions" placeholder="请选择质量区" />
-                  </FormItem>
-                  <FormItem v-show="selectedFilters.includes('isEnabled')" label="状态" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-                    <Select v-model:value="queryForm.isEnabled" allow-clear :options="statusValueOptions" placeholder="请选择状态" />
-                  </FormItem>
-                </div>
-                <div class="filter-popover-actions">
-                  <Button type="primary" size="small" @click="handleSearch">查询</Button>
-                  <Button size="small" @click="handleReset">重置</Button>
-                </div>
-              </div>
-            </template>
+          <!-- Persistent filter field tags -->
+          <div class="filter-tags-wrap">
+            <div
+              v-for="field in activeFilterFields"
+              :key="field.key"
+              class="filter-tag"
+            >
+              <span class="filter-tag-label">{{ field.label }}:</span>
+              <Select
+                v-if="field.type === 'select'"
+                v-model:value="queryForm[field.key as keyof WarehouseQuery]"
+                allow-clear
+                :placeholder="`请选择${field.label}`"
+                class="filter-tag-select"
+                :options="field.options"
+                @change="handleSearch"
+              />
+              <Input
+                v-else
+                v-model:value="queryForm[field.key as keyof WarehouseQuery]"
+                allow-clear
+                :placeholder="`请输入${field.label}`"
+                class="filter-tag-input"
+                @press-enter="handleSearch"
+              />
+              <X
+                class="filter-tag-close"
+                @click="removeFilterField(field.key)"
+              />
+            </div>
+          </div>
+          <!-- Add filter dropdown -->
+          <Dropdown v-if="availableFields.length > 0" trigger="click">
             <Button>
-              <template #icon><Filter /></template>
-              更多筛选
+              <template #icon><Plus /></template>
+              添加筛选
+              <ChevronDown />
             </Button>
-          </Popover>
+            <template #overlay>
+              <Menu>
+                <MenuItem
+                  v-for="item in availableFields"
+                  :key="item.key"
+                  @click="addFilterField(item.key)"
+                >
+                  {{ item.label }}
+                </MenuItem>
+              </Menu>
+            </template>
+          </Dropdown>
           <Button v-access:code="'base:warehouse:export'" :loading="exporting" @click="handleExport">
             <template #icon><Download /></template>
             导出
@@ -210,33 +217,26 @@ import { Page } from '@vben/common-ui';
 import {
   Plus,
   Search,
-  Filter,
   Download,
   Warehouse,
   Power,
   MapPin,
   Thermometer,
+  ChevronDown,
+  X,
 } from 'lucide-vue-next';
 import {
   Button,
   Card,
-  Checkbox,
-  CheckboxGroup,
-  Col,
-  Form,
-  FormItem,
+  Dropdown,
   Input,
+  Menu,
+  MenuItem,
   Popconfirm,
-  Popover,
-  Radio,
-  RadioGroup,
-  Row,
   Select,
-  SelectOption,
   Space,
   Switch,
   Table,
-  Tag,
   message,
 } from 'ant-design-vue';
 import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
@@ -249,23 +249,107 @@ import {
   type WarehouseResult,
 } from '#/api/sys/warehouse';
 
+const STORAGE_KEY = 'warehouse_filter_fields';
+
 const loading = ref(false);
 const exporting = ref(false);
 const tableData = ref<WarehouseResult[]>([]);
 const selectedRowKeys = ref<Array<number | string>>([]);
-const filterPopoverVisible = ref(false);
-const selectedFilters = ref(['warehouseCode', 'warehouseName', 'company']);
+
+interface FilterFieldDef {
+  key: string;
+  label: string;
+  type: 'input' | 'select';
+  options?: Array<{ label: string; value: any }>;
+}
+
+const allFieldDefs: FilterFieldDef[] = [
+  { key: 'warehouseCode', label: '仓库编码', type: 'input' },
+  { key: 'warehouseName', label: '仓库名称', type: 'input' },
+  { key: 'company', label: '所属公司', type: 'input' },
+  { key: 'temperatureZone', label: '温区', type: 'select', options: [] },
+  { key: 'qualityZone', label: '质量区', type: 'select', options: [] },
+];
+
+// Active filter fields shown as tags in the search bar
+const activeFilterFields = ref<FilterFieldDef[]>([]);
+
+function loadFilterFields() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const keys: string[] = JSON.parse(saved);
+      activeFilterFields.value = keys
+        .map((key) => allFieldDefs.find((f) => f.key === key))
+        .filter((f): f is FilterFieldDef => !!f)
+        .map((f) => ({
+          ...f,
+          options:
+            f.key === 'temperatureZone'
+              ? temperatureZoneOptions
+              : f.key === 'qualityZone'
+              ? qualityZoneOptions
+              : undefined,
+        }));
+    } else {
+      // Default: show warehouseCode and warehouseName
+      activeFilterFields.value = [
+        { ...allFieldDefs[0], options: undefined },
+        { ...allFieldDefs[1], options: undefined },
+      ];
+    }
+  } catch {
+    activeFilterFields.value = [
+      { ...allFieldDefs[0], options: undefined },
+      { ...allFieldDefs[1], options: undefined },
+    ];
+  }
+}
+
+function saveFilterFields() {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(activeFilterFields.value.map((f) => f.key))
+  );
+}
+
+function isFieldActive(key: string) {
+  return activeFilterFields.value.some((f) => f.key === key);
+}
+
+function addFilterField(key: string) {
+  if (isFieldActive(key)) return;
+  const def = allFieldDefs.find((f) => f.key === key);
+  if (!def) return;
+  const field: FilterFieldDef = {
+    ...def,
+    options:
+      def.key === 'temperatureZone'
+        ? temperatureZoneOptions
+        : def.key === 'qualityZone'
+        ? qualityZoneOptions
+        : undefined,
+  };
+  activeFilterFields.value.push(field);
+  saveFilterFields();
+}
+
+function removeFilterField(key: string) {
+  activeFilterFields.value = activeFilterFields.value.filter(
+    (f) => f.key !== key
+  );
+  // Clear the query form value
+  (queryForm as any)[key] = undefined;
+  saveFilterFields();
+  handleSearch();
+}
+
+// Available fields = not yet added
+const availableFields = computed(() =>
+  allFieldDefs.filter((f) => !isFieldActive(f.key))
+);
 
 const router = useRouter();
-
-const filterFieldOptions = [
-  { label: '仓库编码', value: 'warehouseCode' },
-  { label: '仓库名称', value: 'warehouseName' },
-  { label: '所属公司', value: 'company' },
-  { label: '温区', value: 'temperatureZone' },
-  { label: '质量区', value: 'qualityZone' },
-  { label: '状态', value: 'isEnabled' },
-];
 
 const queryForm = reactive<WarehouseQuery>({
   warehouseCode: '',
@@ -471,6 +555,7 @@ function formatQualityZone(value?: string) {
 }
 
 onMounted(() => {
+  loadFilterFields();
   loadData();
 });
 </script>
@@ -553,43 +638,60 @@ onMounted(() => {
   width: 140px;
 }
 
-.filter-popover-content {
-  width: 360px;
-}
-
-.filter-popover-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1f2937;
-  margin-bottom: 12px;
-}
-
-.filter-checkbox-group {
+.filter-tags-wrap {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.filter-popover-divider {
-  height: 1px;
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
   background-color: #f3f4f6;
-  margin: 12px 0;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
 }
 
-.filter-dynamic-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.filter-tag-label {
+  color: #374151;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
-.filter-dynamic-inputs :deep(.ant-form-item) {
-  margin-bottom: 0;
+.filter-tag-input {
+  width: 120px;
+  height: 26px;
 }
 
-.filter-popover-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
+.filter-tag-select {
+  width: 120px;
+  height: 26px;
+}
+
+.filter-tag-select :deep(.ant-select-selector) {
+  height: 26px !important;
+  padding: 0 8px !important;
+}
+
+.filter-tag-select :deep(.ant-select-selection-search-input) {
+  height: 24px !important;
+}
+
+.filter-tag-close {
+  width: 14px;
+  height: 14px;
+  color: #9ca3af;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.filter-tag-close:hover {
+  color: #ef4444;
 }
 
 /* Stats Row */
