@@ -8,7 +8,7 @@
           <p class="page-desc">管理仓库基本信息、温区、质检分区等</p>
         </div>
         <div class="header-right">
-          <Button v-access:code="'base:warehouse:add'" type="primary" @click="handleAdd">
+          <Button type="primary" @click="handleAdd">
             <template #icon><Plus /></template>
             新建仓库
           </Button>
@@ -185,7 +185,6 @@
             <template v-else-if="column.key === 'action'">
               <Space>
                 <Button
-                  v-access:code="'base:warehouse:edit'"
                   type="link"
                   size="small"
                   @click="handleEdit(record)"
