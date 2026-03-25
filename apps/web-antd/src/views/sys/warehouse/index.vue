@@ -394,11 +394,11 @@ function handleTableChange(page: TablePaginationConfig) {
 }
 
 function handleAdd() {
-  router.push('/sys/warehouse/edit');
+  router.push('/basic/warehouse/edit');
 }
 
 function handleEdit(record: WarehouseResult) {
-  router.push({ path: '/sys/warehouse/edit', query: { id: String(record.id) } });
+  router.push({ path: '/basic/warehouse/edit', query: { id: String(record.id) } });
 }
 
 async function handleDelete(record: WarehouseResult) {
