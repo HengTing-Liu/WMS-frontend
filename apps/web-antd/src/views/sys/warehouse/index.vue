@@ -59,13 +59,13 @@
                     <Input v-model:value="queryForm.company" allow-clear placeholder="请输入所属公司" />
                   </FormItem>
                   <FormItem v-show="selectedFilters.includes('temperatureZone')" label="温区" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-                    <Select v-model:value="queryForm.temperatureZone" allow-clear :options="temperatureOptions" placeholder="请选择温区" />
+                    <Select v-model:value="queryForm.temperatureZone" allow-clear :options="temperatureZoneOptions" placeholder="请选择温区" />
                   </FormItem>
                   <FormItem v-show="selectedFilters.includes('qualityZone')" label="质量区" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-                    <Select v-model:value="queryForm.qualityZone" allow-clear :options="qualityOptions" placeholder="请选择质量区" />
+                    <Select v-model:value="queryForm.qualityZone" allow-clear :options="qualityZoneOptions" placeholder="请选择质量区" />
                   </FormItem>
                   <FormItem v-show="selectedFilters.includes('isEnabled')" label="状态" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-                    <Select v-model:value="queryForm.isEnabled" allow-clear :options="statusOptions" placeholder="请选择状态" />
+                    <Select v-model:value="queryForm.isEnabled" allow-clear :options="statusValueOptions" placeholder="请选择状态" />
                   </FormItem>
                 </div>
                 <div class="filter-popover-actions">
@@ -205,45 +205,68 @@
         :title="formMode === 'add' ? '新增仓库' : '编辑仓库'"
         :confirm-loading="submitting"
         :mask-closable="false"
-        width="720px"
+        width="900px"
         @ok="handleSubmit"
         @cancel="handleCancel"
       >
-        <Form ref="formRef" :model="formData" :rules="formRules" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+        <Form ref="formRef" :model="formData" :rules="formRules" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
           <Row :gutter="16">
-            <Col :span="12">
+            <Col :span="8">
               <FormItem label="仓库编码" name="warehouseCode">
-                <Input v-model:value="formData.warehouseCode" maxlength="50" placeholder="请输入仓库编码" />
+                <Input v-model:value="formData.warehouseCode" :disabled="formMode === 'edit'" maxlength="50" placeholder="请输入仓库编码" />
               </FormItem>
             </Col>
-            <Col :span="12">
+            <Col :span="8">
               <FormItem label="仓库名称" name="warehouseName">
-                <Input v-model:value="formData.warehouseName" maxlength="100" placeholder="请输入仓库名称" />
+                <Input v-model:value="formData.warehouseName" :disabled="formMode === 'edit'" maxlength="100" placeholder="请输入仓库名称" />
               </FormItem>
             </Col>
-            <Col :span="12">
+            <Col :span="8">
+              <FormItem label="温度分区" name="temperatureZone">
+                <Select v-model:value="formData.temperatureZone" :disabled="formMode === 'edit'" :options="temperatureZoneOptions" placeholder="请选择温度分区" />
+              </FormItem>
+            </Col>
+            <Col :span="8">
+              <FormItem label="质量分区" name="qualityZone">
+                <Select v-model:value="formData.qualityZone" :disabled="formMode === 'edit'" :options="qualityZoneOptions" placeholder="请选择质量分区" />
+              </FormItem>
+            </Col>
+            <Col :span="8">
+              <FormItem label="责任人工号" name="employeeCode">
+                <Input v-model:value="formData.employeeCode" maxlength="50" placeholder="请输入责任人工号" />
+              </FormItem>
+            </Col>
+            <Col :span="8">
+              <FormItem label="责任人" name="employeeName">
+                <Input v-model:value="formData.employeeName" maxlength="100" placeholder="请输入责任人" />
+              </FormItem>
+            </Col>
+            <Col :span="8">
+              <FormItem label="责任部门编号" name="deptCode">
+                <Input v-model:value="formData.deptCode" maxlength="50" placeholder="请输入责任部门编号" />
+              </FormItem>
+            </Col>
+            <Col :span="8">
+              <FormItem label="责任部门全路径" name="deptNameFullPath">
+                <Input v-model:value="formData.deptNameFullPath" maxlength="200" placeholder="请输入责任部门全路径" />
+              </FormItem>
+            </Col>
+            <Col :span="8">
               <FormItem label="所属公司" name="company">
-                <Input v-model:value="formData.company" maxlength="100" placeholder="请输入所属公司" />
+                <Select v-model:value="formData.company" :disabled="formMode === 'edit'" :options="companyOptions" placeholder="请选择所属公司" />
               </FormItem>
             </Col>
-            <Col :span="12">
-              <FormItem label="温区" name="temperatureZone">
-                <Select v-model:value="formData.temperatureZone" :options="temperatureOptions" placeholder="请选择温区" />
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="质量区" name="qualityZone">
-                <Select v-model:value="formData.qualityZone" :options="qualityOptions" placeholder="请选择质量区" />
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="状态" name="isEnabled">
-                <Select v-model:value="formData.isEnabled" :options="statusOptions" placeholder="请选择状态" />
+            <Col :span="8">
+              <FormItem label="是否启用" name="isEnabled">
+                <RadioGroup v-model:value="formData.isEnabled">
+                  <Radio :value="1">启用</Radio>
+                  <Radio :value="0">停用</Radio>
+                </RadioGroup>
               </FormItem>
             </Col>
             <Col :span="24">
-              <FormItem label="备注" name="remark" :label-col="{ span: 3 }" :wrapper-col="{ span: 20 }">
-                <Input.TextArea v-model:value="formData.remark" :rows="4" maxlength="500" show-count placeholder="请输入备注" />
+              <FormItem label="备注" name="remark" :label-col="{ span: 2 }" :wrapper-col="{ span: 22 }">
+                <Input.TextArea v-model:value="formData.remark" :rows="3" maxlength="500" show-count placeholder="请输入备注" />
               </FormItem>
             </Col>
           </Row>
@@ -267,6 +290,7 @@ import {
   Thermometer,
   Down,
   Up,
+  User,
 } from 'lucide-vue-next';
 import {
   Button,
@@ -280,11 +304,14 @@ import {
   Modal,
   Popconfirm,
   Popover,
+  Radio,
+  RadioGroup,
   Row,
   Select,
   Space,
   Switch,
   Table,
+  Tag,
   message,
 } from 'ant-design-vue';
 import type { FormInstance, TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
@@ -299,6 +326,12 @@ import {
   type WarehouseQuery,
   type WarehouseResult,
 } from '#/api/sys/warehouse';
+import {
+  getWarehouseReceiverList,
+  deleteWarehouseReceiver,
+  setDefaultWarehouseReceiver,
+  type WarehouseReceiverResult,
+} from '#/api/sys/warehouse-receiver';
 
 interface WarehouseForm extends Partial<WarehouseResult> {
   id?: number;
@@ -314,6 +347,12 @@ const selectedRowKeys = ref<Array<number | string>>([]);
 const formRef = ref<FormInstance>();
 const filterPopoverVisible = ref(false);
 const selectedFilters = ref(['warehouseCode', 'warehouseName', 'company']);
+
+// 收货人信息
+const receiverModalVisible = ref(false);
+const receiverList = ref<WarehouseReceiverResult[]>([]);
+const receiverLoading = ref(false);
+const editingReceiverId = ref<number | undefined>(undefined);
 
 const filterFieldOptions = [
   { label: '仓库编码', value: 'warehouseCode' },
@@ -339,6 +378,12 @@ const statusFilterOptions = [
   { label: '停用', value: 0 },
 ];
 
+// Status options for popover filter (no "全部" option)
+const statusValueOptions = [
+  { label: '启用', value: 1 },
+  { label: '停用', value: 0 },
+];
+
 // Stats computed
 const enabledCount = computed(() => tableData.value.filter((item) => item.isEnabled === 1).length);
 const disabledCount = computed(() => tableData.value.filter((item) => item.isEnabled === 0).length);
@@ -354,29 +399,35 @@ const pagination = reactive<TablePaginationConfig>({
   showTotal: (total) => `共 ${total} 条`,
 });
 
-const temperatureOptions = [
+const temperatureZoneOptions = [
   { label: '常温', value: 'NORMAL' },
-  { label: '冷藏', value: 'COLD' },
-  { label: '冷冻', value: 'FREEZE' },
-  { label: '恒温', value: 'CONSTANT' },
+  { label: '2-8℃', value: 'COLD' },
+  { label: '-20℃', value: 'FREEZE' },
+  { label: '-80℃', value: 'CONSTANT' },
+  { label: '液氮', value: 'LIQUID_NITROGEN' },
 ];
 
-const qualityOptions = [
-  { label: '合格品区', value: 'QUALIFIED' },
-  { label: '不合格品区', value: 'UNQUALIFIED' },
-  { label: '待验区', value: 'PENDING' },
+const qualityZoneOptions = [
+  { label: '合格区', value: 'QUALIFIED' },
+  { label: '待检区', value: 'PENDING' },
+  { label: '不合格区', value: 'UNQUALIFIED' },
+  { label: '隔离区', value: 'ISOLATION' },
   { label: '退货区', value: 'RETURN' },
 ];
 
-const statusOptions = [
-  { label: '启用', value: 1 },
-  { label: '停用', value: 0 },
+const companyOptions = [
+  { label: '母公司', value: 'PARENT' },
+  { label: '子公司A', value: 'CHILD_A' },
+  { label: '子公司B', value: 'CHILD_B' },
 ];
 
 const formRules = {
   warehouseCode: [{ required: true, message: '请输入仓库编码', trigger: 'blur' }],
   warehouseName: [{ required: true, message: '请输入仓库名称', trigger: 'blur' }],
-  isEnabled: [{ required: true, message: '请选择状态', trigger: 'change' }],
+  temperatureZone: [{ required: true, message: '请选择温度分区', trigger: 'change' }],
+  qualityZone: [{ required: true, message: '请选择质量分区', trigger: 'change' }],
+  company: [{ required: true, message: '请选择所属公司', trigger: 'change' }],
+  isEnabled: [{ required: true, message: '请选择是否启用', trigger: 'change' }],
 };
 
 const columns = computed<TableColumnsType<WarehouseResult>>(() => [
@@ -402,9 +453,13 @@ function createDefaultForm(): WarehouseForm {
   return {
     warehouseCode: '',
     warehouseName: '',
-    company: '',
     temperatureZone: undefined,
     qualityZone: undefined,
+    company: undefined,
+    employeeCode: '',
+    employeeName: '',
+    deptCode: '',
+    deptNameFullPath: '',
     isEnabled: 1,
     remark: '',
   };
@@ -479,6 +534,10 @@ async function handleEdit(record: WarehouseResult) {
   try {
     const detail = await getWarehouseDetail(record.id!);
     Object.assign(formData, detail || {}, { id: record.id });
+    // 加载收货人列表
+    if (detail?.warehouseCode) {
+      await loadReceiverList(detail.warehouseCode);
+    }
   } catch {
     Object.assign(formData, record || {});
   }
@@ -574,11 +633,77 @@ function handleCancel() {
 }
 
 function formatTemperatureZone(value?: string) {
-  return temperatureOptions.find((item) => item.value === value)?.label || value || '-';
+  return temperatureZoneOptions.find((item) => item.value === value)?.label || value || '-';
 }
 
 function formatQualityZone(value?: string) {
-  return qualityOptions.find((item) => item.value === value)?.label || value || '-';
+  return qualityZoneOptions.find((item) => item.value === value)?.label || value || '-';
+}
+
+// 收货人列表相关
+const receiverColumns = [
+  { title: '收货人', dataIndex: 'consignee', key: 'consignee', width: 100 },
+  { title: '手机号码', dataIndex: 'phoneNumber', key: 'phoneNumber', width: 130 },
+  { title: '地址', key: 'address', width: 200 },
+  { title: '邮编', dataIndex: 'postalCode', key: 'postalCode', width: 100 },
+  { title: '默认', key: 'isDefault', width: 90, align: 'center' as const },
+  { title: '备注', dataIndex: 'note', key: 'note', width: 120, ellipsis: true },
+  { title: '操作', key: 'action', width: 120, fixed: 'right' as const },
+];
+
+async function loadReceiverList(warehouseCode: string) {
+  receiverLoading.value = true;
+  try {
+    const res = await getWarehouseReceiverList({ warehouseCode });
+    receiverList.value = res.data?.list || res.rows || res.data?.rows || [];
+  } catch {
+    receiverList.value = [];
+  } finally {
+    receiverLoading.value = false;
+  }
+}
+
+function handleOpenReceiverModal() {
+  if (formData.warehouseCode) {
+    loadReceiverList(formData.warehouseCode);
+    receiverModalVisible.value = true;
+  }
+}
+
+function handleDeleteReceiver(record: WarehouseReceiverResult) {
+  Modal.confirm({
+    title: '确认删除',
+    content: `确认删除收货人"${record.consignee}"吗？`,
+    onOk: async () => {
+      try {
+        await deleteWarehouseReceiver(record.id);
+        message.success('删除成功');
+        if (formData.warehouseCode) {
+          await loadReceiverList(formData.warehouseCode);
+        }
+      } catch (error: any) {
+        message.error(error?.message || '删除失败');
+      }
+    },
+  });
+}
+
+function handleSetDefaultReceiver(record: WarehouseReceiverResult) {
+  Modal.confirm({
+    title: '设为默认',
+    content: `确认将"${record.consignee}"设为默认收货人吗？`,
+    onOk: async () => {
+      try {
+        await setDefaultWarehouseReceiver(record.id);
+        message.success('设置成功');
+        if (formData.warehouseCode) {
+          await loadReceiverList(formData.warehouseCode);
+        }
+      } catch (error: any) {
+        message.error(error?.message || '设置失败');
+      }
+    },
+  });
 }
 
 onMounted(() => {
