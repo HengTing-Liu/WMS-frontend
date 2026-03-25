@@ -6,6 +6,9 @@ export interface WarehouseQuery {
   warehouseCode?: string;
   warehouseName?: string;
   company?: string;
+  temperatureZone?: string;
+  qualityZone?: string;
+  isEnabled?: number;
 }
 
 export interface WarehouseResult {

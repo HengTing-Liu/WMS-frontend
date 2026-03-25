@@ -23,44 +23,66 @@
             <Input
               v-model:value="queryForm.warehouseName"
               allow-clear
-              placeholder="搜索仓库编号或名称..."
+              placeholder="搜索仓库名称..."
               class="search-input"
               @press-enter="handleSearch"
             />
           </div>
           <Select
-            v-model:value="queryForm.warehouseCode"
+            v-model:value="queryForm.isEnabled"
             allow-clear
             placeholder="全部状态"
             class="status-select"
             :options="statusFilterOptions"
             @change="handleSearch"
           />
-          <Button @click="showMoreFilter = !showMoreFilter">
-            <template #icon><Filter /></template>
-            更多筛选
-          </Button>
+          <Popover v-model:open="filterPopoverVisible" trigger="click" placement="bottomLeft">
+            <template #content>
+              <div class="filter-popover-content">
+                <div class="filter-popover-title">选择筛选字段</div>
+                <CheckboxGroup v-model:value="selectedFilters" class="filter-checkbox-group">
+                  <Row :gutter="[0, 8]">
+                    <Col v-for="item in filterFieldOptions" :key="item.value" :span="12">
+                      <Checkbox :value="item.value">{{ item.label }}</Checkbox>
+                    </Col>
+                  </Row>
+                </CheckboxGroup>
+                <div class="filter-popover-divider" />
+                <div class="filter-dynamic-inputs">
+                  <FormItem v-show="selectedFilters.includes('warehouseCode')" label="仓库编码" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+                    <Input v-model:value="queryForm.warehouseCode" allow-clear placeholder="请输入仓库编码" />
+                  </FormItem>
+                  <FormItem v-show="selectedFilters.includes('warehouseName')" label="仓库名称" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+                    <Input v-model:value="queryForm.warehouseName" allow-clear placeholder="请输入仓库名称" />
+                  </FormItem>
+                  <FormItem v-show="selectedFilters.includes('company')" label="所属公司" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+                    <Input v-model:value="queryForm.company" allow-clear placeholder="请输入所属公司" />
+                  </FormItem>
+                  <FormItem v-show="selectedFilters.includes('temperatureZone')" label="温区" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+                    <Select v-model:value="queryForm.temperatureZone" allow-clear :options="temperatureOptions" placeholder="请选择温区" />
+                  </FormItem>
+                  <FormItem v-show="selectedFilters.includes('qualityZone')" label="质量区" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+                    <Select v-model:value="queryForm.qualityZone" allow-clear :options="qualityOptions" placeholder="请选择质量区" />
+                  </FormItem>
+                  <FormItem v-show="selectedFilters.includes('isEnabled')" label="状态" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+                    <Select v-model:value="queryForm.isEnabled" allow-clear :options="statusOptions" placeholder="请选择状态" />
+                  </FormItem>
+                </div>
+                <div class="filter-popover-actions">
+                  <Button type="primary" size="small" @click="handleSearch">查询</Button>
+                  <Button size="small" @click="handleReset">重置</Button>
+                </div>
+              </div>
+            </template>
+            <Button>
+              <template #icon><Filter /></template>
+              更多筛选
+            </Button>
+          </Popover>
           <Button v-access:code="'base:warehouse:export'" :loading="exporting" @click="handleExport">
             <template #icon><Download /></template>
             导出
           </Button>
-        </div>
-        <!-- More Filters (expandable) -->
-        <div v-if="showMoreFilter" class="more-filters">
-          <Form layout="inline" :model="queryForm">
-            <FormItem label="仓库编码">
-              <Input v-model:value="queryForm.warehouseCode" allow-clear placeholder="请输入仓库编码" />
-            </FormItem>
-            <FormItem label="所属公司">
-              <Input v-model:value="queryForm.company" allow-clear placeholder="请输入所属公司" />
-            </FormItem>
-            <FormItem>
-              <Space>
-                <Button type="primary" @click="handleSearch">查询</Button>
-                <Button @click="handleReset">重置</Button>
-              </Space>
-            </FormItem>
-          </Form>
         </div>
       </Card>
 
@@ -243,16 +265,21 @@ import {
   Power,
   MapPin,
   Thermometer,
+  Down,
+  Up,
 } from 'lucide-vue-next';
 import {
   Button,
   Card,
+  Checkbox,
+  CheckboxGroup,
   Col,
   Form,
   FormItem,
   Input,
   Modal,
   Popconfirm,
+  Popover,
   Row,
   Select,
   Space,
@@ -285,16 +312,29 @@ const formMode = ref<'add' | 'edit'>('add');
 const tableData = ref<WarehouseResult[]>([]);
 const selectedRowKeys = ref<Array<number | string>>([]);
 const formRef = ref<FormInstance>();
-const showMoreFilter = ref(false);
+const filterPopoverVisible = ref(false);
+const selectedFilters = ref(['warehouseCode', 'warehouseName', 'company']);
+
+const filterFieldOptions = [
+  { label: '仓库编码', value: 'warehouseCode' },
+  { label: '仓库名称', value: 'warehouseName' },
+  { label: '所属公司', value: 'company' },
+  { label: '温区', value: 'temperatureZone' },
+  { label: '质量区', value: 'qualityZone' },
+  { label: '状态', value: 'isEnabled' },
+];
 
 const queryForm = reactive<WarehouseQuery>({
   warehouseCode: '',
   warehouseName: '',
   company: '',
+  temperatureZone: undefined,
+  qualityZone: undefined,
+  isEnabled: undefined,
 });
 
 const statusFilterOptions = [
-  { label: '全部状态', value: '' },
+  { label: '全部状态', value: undefined },
   { label: '启用', value: 1 },
   { label: '停用', value: 0 },
 ];
@@ -379,6 +419,9 @@ function normalizeQuery() {
     warehouseCode: queryForm.warehouseCode?.trim() || undefined,
     warehouseName: queryForm.warehouseName?.trim() || undefined,
     company: queryForm.company?.trim() || undefined,
+    temperatureZone: queryForm.temperatureZone || undefined,
+    qualityZone: queryForm.qualityZone || undefined,
+    isEnabled: queryForm.isEnabled ?? undefined,
   };
 }
 
@@ -410,6 +453,9 @@ function handleReset() {
   queryForm.warehouseCode = '';
   queryForm.warehouseName = '';
   queryForm.company = '';
+  queryForm.temperatureZone = undefined;
+  queryForm.qualityZone = undefined;
+  queryForm.isEnabled = undefined;
   selectedRowKeys.value = [];
   pagination.current = 1;
   loadData();
@@ -622,6 +668,45 @@ onMounted(() => {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid #f3f4f6;
+}
+
+.filter-popover-content {
+  width: 360px;
+}
+
+.filter-popover-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+
+.filter-checkbox-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-popover-divider {
+  height: 1px;
+  background-color: #f3f4f6;
+  margin: 12px 0;
+}
+
+.filter-dynamic-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-dynamic-inputs :deep(.ant-form-item) {
+  margin-bottom: 0;
+}
+
+.filter-popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 /* Stats Row */
