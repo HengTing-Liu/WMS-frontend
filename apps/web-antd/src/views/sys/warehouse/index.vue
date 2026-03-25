@@ -417,6 +417,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { Page } from '@vben/common-ui';
 import {
   Plus,
@@ -488,6 +489,8 @@ const selectedRowKeys = ref<Array<number | string>>([]);
 const formRef = ref<FormInstance>();
 const filterPopoverVisible = ref(false);
 const selectedFilters = ref(['warehouseCode', 'warehouseName', 'company']);
+
+const router = useRouter();
 
 // 收货人信息
 const receiverModalVisible = ref(false);
@@ -720,25 +723,11 @@ function handleTableChange(page: TablePaginationConfig) {
 }
 
 function handleAdd() {
-  formMode.value = 'add';
-  resetFormData();
-  formVisible.value = true;
+  router.push('/sys/warehouse/edit');
 }
 
 async function handleEdit(record: WarehouseResult) {
-  formMode.value = 'edit';
-  resetFormData();
-  try {
-    const detail = await getWarehouseDetail(record.id!);
-    Object.assign(formData, detail || {}, { id: record.id });
-    // 加载收货人列表
-    if (detail?.warehouseCode) {
-      await loadReceiverList(detail.warehouseCode);
-    }
-  } catch {
-    Object.assign(formData, record || {});
-  }
-  formVisible.value = true;
+  router.push({ path: '/sys/warehouse/edit', query: { id: String(record.id) } });
 }
 
 async function handleDelete(record: WarehouseResult) {

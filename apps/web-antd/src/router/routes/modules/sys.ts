@@ -20,6 +20,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/sys/warehouse/index.vue'),
       },
       {
+        meta: { title: '仓库编辑' },
+        name: 'BaseWarehouseEdit',
+        path: 'warehouse/edit',
+        component: () => import('#/views/sys/warehouse/warehouse-edit.vue'),
+      },
+      {
         meta: { title: '库位档案' },
         name: 'BaseLocation',
         path: 'location',
