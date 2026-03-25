@@ -15,17 +15,17 @@ export default defineConfig(async () => {
         proxy: {
           '/api': {
             changeOrigin: true,
-            target: 'http://localhost:8082',
+            target: 'http://localhost:5320',
             ws: true,
           },
           '/base': {
             changeOrigin: true,
-            target: 'http://localhost:8082',
+            target: 'http://localhost:5320',
             ws: true,
           },
           '/crud': {
             changeOrigin: true,
-            target: 'http://localhost:8082',
+            target: 'http://localhost:5320',
             ws: true,
             rewrite: (path) => '/api' + path,
           },

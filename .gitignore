@@ -34,3 +34,7 @@ coverage/
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+packages/@core/composables/node_modules
+packages/@core/ui-kit/*/node_modules
+internal/vite-config/node_modules
+internal/*/node_modules
