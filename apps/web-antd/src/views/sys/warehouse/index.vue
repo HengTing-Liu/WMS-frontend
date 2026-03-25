@@ -199,285 +199,6 @@
           </template>
         </Table>
       </Card>
-
-      <!-- 仓库编辑弹框 -->
-      <Modal
-        v-model:open="formVisible"
-        :title="formMode === 'add' ? '新建仓库档案' : '编辑仓库档案'"
-        :confirm-loading="submitting"
-        :mask-closable="false"
-        :width="isEditMode ? '80%' : '900px'"
-        :style="{ maxWidth: isEditMode ? '1200px' : '900px' }"
-        class-name="warehouse-edit-modal"
-        @ok="handleSubmit"
-        @cancel="handleCancel"
-      >
-        <div class="warehouse-form-wrapper">
-          <!-- 仓库基本信息 -->
-          <div class="warehouse-form-section">
-            <div class="section-header">
-              <Building2 class="section-icon" />
-              <span class="section-title">仓库基本信息</span>
-            </div>
-
-            <!-- 编辑提示横幅 -->
-            <Alert
-              v-if="isEditMode"
-              type="warning"
-              show-icon
-              class="edit-warning-alert"
-              message="编辑提示：仓库编码、仓库名称、温度分区、质量分区、所属公司、备注 为系统保护字段，创建后不可修改。可修改字段：责任人工号、责任人、责任部门编号、责任部门全路径、是否启用。"
-            />
-
-            <Form ref="formRef" :model="formData" :rules="formRules" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
-              <Row :gutter="16">
-                <Col :span="8">
-                  <FormItem label="仓库编码" name="warehouseCode">
-                    <Input
-                      v-model:value="formData.warehouseCode"
-                      :disabled="isEditMode"
-                      :class="{ 'ant-input-disabled': isEditMode }"
-                      maxlength="50"
-                      placeholder="请输入仓库编码"
-                    />
-                  </FormItem>
-                </Col>
-                <Col :span="8">
-                  <FormItem label="仓库名称" name="warehouseName">
-                    <Input
-                      v-model:value="formData.warehouseName"
-                      :disabled="isEditMode"
-                      :class="{ 'ant-input-disabled': isEditMode }"
-                      maxlength="100"
-                      placeholder="请输入仓库名称"
-                    />
-                  </FormItem>
-                </Col>
-                <Col :span="8">
-                  <FormItem label="温度分区" name="temperatureZone">
-                    <Select
-                      v-model:value="formData.temperatureZone"
-                      :disabled="isEditMode"
-                      :class="{ 'ant-input-disabled': isEditMode }"
-                      :options="temperatureZoneOptions"
-                      placeholder="请选择温度分区"
-                    />
-                  </FormItem>
-                </Col>
-                <Col :span="8">
-                  <FormItem label="质量分区" name="qualityZone">
-                    <Select
-                      v-model:value="formData.qualityZone"
-                      :disabled="isEditMode"
-                      :class="{ 'ant-input-disabled': isEditMode }"
-                      :options="qualityZoneOptions"
-                      placeholder="请选择质量分区"
-                    />
-                  </FormItem>
-                </Col>
-                <Col :span="8">
-                  <FormItem label="责任人工号" name="employeeCode">
-                    <Input v-model:value="formData.employeeCode" maxlength="50" placeholder="请输入责任人工号" />
-                  </FormItem>
-                </Col>
-                <Col :span="8">
-                  <FormItem label="责任人" name="employeeName">
-                    <Input v-model:value="formData.employeeName" maxlength="100" placeholder="请输入责任人" />
-                  </FormItem>
-                </Col>
-                <Col :span="8">
-                  <FormItem label="责任部门编号" name="deptCode">
-                    <Input v-model:value="formData.deptCode" maxlength="50" placeholder="请输入责任部门编号" />
-                  </FormItem>
-                </Col>
-                <Col :span="8">
-                  <FormItem label="责任部门全路径" name="deptNameFullPath">
-                    <Input v-model:value="formData.deptNameFullPath" maxlength="200" placeholder="请输入责任部门全路径" />
-                  </FormItem>
-                </Col>
-                <Col :span="8">
-                  <FormItem label="所属公司" name="company">
-                    <Select
-                      v-model:value="formData.company"
-                      :disabled="isEditMode"
-                      :class="{ 'ant-input-disabled': isEditMode }"
-                      :options="companyOptions"
-                      placeholder="请选择所属公司"
-                    />
-                  </FormItem>
-                </Col>
-                <Col :span="8">
-                  <FormItem label="是否启用" name="isEnabled">
-                    <RadioGroup v-model:value="formData.isEnabled">
-                      <Radio :value="1">启用</Radio>
-                      <Radio :value="0">停用</Radio>
-                    </RadioGroup>
-                  </FormItem>
-                </Col>
-                <Col :span="24">
-                  <FormItem label="备注" name="remark" :label-col="{ span: 2 }" :wrapper-col="{ span: 22 }">
-                    <Input.TextArea
-                      v-model:value="formData.remark"
-                      :disabled="isEditMode"
-                      :class="{ 'ant-input-disabled': isEditMode }"
-                      :rows="3"
-                      maxlength="500"
-                      show-count
-                      placeholder="请输入备注"
-                    />
-                  </FormItem>
-                </Col>
-              </Row>
-            </Form>
-
-            <!-- 系统信息 -->
-            <div v-if="isEditMode" class="system-info">
-              <div class="system-info-row">
-                <span class="system-info-label">添加人：</span>
-                <span class="system-info-value">{{ formData.createBy || '-' }}</span>
-                <span class="system-info-label ml-6">添加时间：</span>
-                <span class="system-info-value">{{ formData.createTime || '-' }}</span>
-                <span class="system-info-label ml-6">上次修改人：</span>
-                <span class="system-info-value">{{ formData.updateBy || '-' }}</span>
-                <span class="system-info-label ml-6">上次修改时间：</span>
-                <span class="system-info-value">{{ formData.updateTime || '-' }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 收货人信息区块（编辑模式下显示） -->
-          <div v-if="isEditMode" class="receiver-section">
-            <div class="receiver-section-header">
-              <div class="receiver-section-title">
-                <User class="section-icon" />
-                <span>收货人信息</span>
-              </div>
-              <Button type="primary" size="small" @click="handleAddReceiver">
-                <template #icon><Plus /></template>
-                添加收货人
-              </Button>
-            </div>
-            <div v-if="receiverList.length === 0" class="receiver-empty">
-              <User class="receiver-empty-icon" />
-              <p>暂无收货人信息</p>
-              <p class="receiver-empty-hint">点击"添加收货人"按钮开始添加</p>
-            </div>
-            <Table
-              v-else
-              :columns="receiverColumns"
-              :data-source="receiverList"
-              :loading="receiverLoading"
-              row-key="id"
-              :pagination="false"
-              :scroll="{ x: 800 }"
-              size="small"
-            >
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'phoneNumber'">
-                  {{ maskPhone(record.phoneNumber) }}
-                </template>
-                <template v-else-if="column.key === 'address'">
-                  {{ record.country || '' }}{{ record.province || '' }}{{ record.city || '' }}{{ record.district || '' }}{{ record.detailedAddress || '' }}
-                </template>
-                <template v-else-if="column.key === 'isDefault'">
-                  <Tag v-if="record.isDefault === 1" color="success">
-                    <template #icon><Check /></template>
-                    默认
-                  </Tag>
-                  <Button v-else type="link" size="small" @click="handleSetDefaultReceiver(record)">设为默认</Button>
-                </template>
-                <template v-else-if="column.key === 'action'">
-                  <Space>
-                    <Button type="link" size="small" @click="handleEditReceiver(record)">编辑</Button>
-                    <Button type="link" danger size="small" @click="handleDeleteReceiver(record)">删除</Button>
-                  </Space>
-                </template>
-              </template>
-            </Table>
-          </div>
-        </div>
-      </Modal>
-
-      <!-- 收货人编辑弹框 -->
-      <Modal
-        v-model:open="receiverFormVisible"
-        :title="editingReceiverId ? '编辑收货人' : '添加收货人'"
-        width="640px"
-        :footer="null"
-        :mask-closable="false"
-        :destroy-on-close="true"
-      >
-        <Form
-          ref="receiverFormRef"
-          :model="receiverFormData"
-          :rules="receiverFormRules"
-          layout="vertical"
-          class="receiver-form"
-        >
-          <Row :gutter="16">
-            <Col :span="12">
-              <FormItem label="收货人" name="consignee">
-                <Input v-model:value="receiverFormData.consignee" placeholder="请输入收货人姓名" allow-clear />
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="手机号码" name="phoneNumber">
-                <Input v-model:value="receiverFormData.phoneNumber" placeholder="请输入手机号码" allow-clear maxlength="11" />
-              </FormItem>
-            </Col>
-          </Row>
-          <Row :gutter="16">
-            <Col :span="12">
-              <FormItem label="国家" name="country">
-                <Input v-model:value="receiverFormData.country" placeholder="请输入国家" allow-clear />
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="省市" name="province">
-                <Input v-model:value="receiverFormData.province" placeholder="请输入省市" allow-clear />
-              </FormItem>
-            </Col>
-          </Row>
-          <Row :gutter="16">
-            <Col :span="12">
-              <FormItem label="区/县" name="district">
-                <Input v-model:value="receiverFormData.district" placeholder="请输入区/县" allow-clear />
-              </FormItem>
-            </Col>
-            <Col :span="12">
-              <FormItem label="邮编" name="postalCode">
-                <Input v-model:value="receiverFormData.postalCode" placeholder="请输入邮编" allow-clear maxlength="10" />
-              </FormItem>
-            </Col>
-          </Row>
-          <FormItem label="详细地址" name="detailedAddress">
-            <Input.TextArea
-              v-model:value="receiverFormData.detailedAddress"
-              placeholder="请输入详细地址"
-              :rows="2"
-              allow-clear
-              show-count
-              :maxlength="500"
-            />
-          </FormItem>
-          <FormItem label="备注" name="note">
-            <Input.TextArea
-              v-model:value="receiverFormData.note"
-              placeholder="请输入备注"
-              :rows="2"
-              allow-clear
-              :maxlength="200"
-            />
-          </FormItem>
-          <FormItem>
-            <Checkbox v-model:checked="receiverFormIsDefault">设为默认收货人</Checkbox>
-          </FormItem>
-        </Form>
-        <div class="receiver-form-footer">
-          <Button @click="receiverFormVisible = false">取消</Button>
-          <Button type="primary" :loading="receiverSubmitting" @click="handleSaveReceiver">保存</Button>
-        </div>
-      </Modal>
     </div>
   </Page>
 </template>
@@ -495,12 +216,8 @@ import {
   Power,
   MapPin,
   Thermometer,
-  User,
-  Building2,
-  Check,
 } from 'lucide-vue-next';
 import {
-  Alert,
   Button,
   Card,
   Checkbox,
@@ -509,7 +226,6 @@ import {
   Form,
   FormItem,
   Input,
-  Modal,
   Popconfirm,
   Popover,
   Radio,
@@ -523,106 +239,24 @@ import {
   Tag,
   message,
 } from 'ant-design-vue';
-import type { FormInstance, TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
+import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
 import {
   deleteWarehouse,
   exportWarehouse,
-  getWarehouseDetail,
   listWarehousePage,
   toggleWarehouseStatus,
-  updateWarehouse,
-  createWarehouse,
   type WarehouseQuery,
   type WarehouseResult,
 } from '#/api/sys/warehouse';
-import {
-  getWarehouseReceiverList,
-  deleteWarehouseReceiver,
-  setDefaultWarehouseReceiver,
-  createWarehouseReceiver,
-  updateWarehouseReceiver,
-  type WarehouseReceiverResult,
-} from '#/api/sys/warehouse-receiver';
-
-interface WarehouseForm extends Partial<WarehouseResult> {
-  id?: number;
-}
 
 const loading = ref(false);
-const submitting = ref(false);
 const exporting = ref(false);
-const formVisible = ref(false);
-const formMode = ref<'add' | 'edit'>('add');
 const tableData = ref<WarehouseResult[]>([]);
 const selectedRowKeys = ref<Array<number | string>>([]);
-const formRef = ref<FormInstance>();
 const filterPopoverVisible = ref(false);
 const selectedFilters = ref(['warehouseCode', 'warehouseName', 'company']);
 
-const isEditMode = computed(() => formMode.value === 'edit');
-
 const router = useRouter();
-
-// 收货人信息
-const receiverList = ref<WarehouseReceiverResult[]>([]);
-const receiverLoading = ref(false);
-const editingReceiverId = ref<number | undefined>(undefined);
-
-// 收货人表单
-const receiverFormVisible = ref(false);
-const receiverFormRef = ref<FormInstance>();
-const receiverSubmitting = ref(false);
-const receiverFormData = reactive({
-  consignee: '',
-  phoneNumber: '',
-  country: '中国',
-  province: '',
-  city: '',
-  district: '',
-  detailedAddress: '',
-  postalCode: '',
-  isDefault: 0,
-});
-const receiverFormIsDefault = ref(false);
-const receiverFormRules = {
-  consignee: [{ required: true, message: '请输入收货人', trigger: 'blur' }],
-  phoneNumber: [
-    { required: true, message: '请输入手机号码', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
-  ],
-};
-
-function maskPhone(phone: string) {
-  if (!phone || phone.length !== 11) return phone;
-  return `${phone.slice(0, 3)}****${phone.slice(7)}`;
-}
-
-async function handleSaveReceiver() {
-  try {
-    await receiverFormRef.value?.validate();
-    receiverSubmitting.value = true;
-    const data = {
-      ...receiverFormData,
-      warehouseCode: formData.warehouseCode,
-      isDefault: receiverFormIsDefault.value ? 1 : 0,
-    };
-    if (editingReceiverId.value) {
-      await updateWarehouseReceiver(editingReceiverId.value, data);
-      message.success('编辑成功');
-    } else {
-      await createWarehouseReceiver(data);
-      message.success('添加成功');
-    }
-    receiverFormVisible.value = false;
-    if (formData.warehouseCode) {
-      await loadReceiverList(formData.warehouseCode);
-    }
-  } catch (error) {
-    // validation failed
-  } finally {
-    receiverSubmitting.value = false;
-  }
-}
 
 const filterFieldOptions = [
   { label: '仓库编码', value: 'warehouseCode' },
@@ -648,18 +282,14 @@ const statusFilterOptions = [
   { label: '停用', value: 0 },
 ];
 
-// Status options for popover filter (no "全部" option)
 const statusValueOptions = [
   { label: '启用', value: 1 },
   { label: '停用', value: 0 },
 ];
 
-// Stats computed
 const enabledCount = computed(() => tableData.value.filter((item) => item.isEnabled === 1).length);
 const disabledCount = computed(() => tableData.value.filter((item) => item.isEnabled === 0).length);
 const normalTempCount = computed(() => tableData.value.filter((item) => item.temperatureZone === 'NORMAL').length);
-
-const formData = reactive<WarehouseForm>(createDefaultForm());
 
 const pagination = reactive<TablePaginationConfig>({
   current: 1,
@@ -691,15 +321,6 @@ const companyOptions = [
   { label: '子公司B', value: 'CHILD_B' },
 ];
 
-const formRules = {
-  warehouseCode: [{ required: true, message: '请输入仓库编码', trigger: 'blur' }],
-  warehouseName: [{ required: true, message: '请输入仓库名称', trigger: 'blur' }],
-  temperatureZone: [{ required: true, message: '请选择温度分区', trigger: 'change' }],
-  qualityZone: [{ required: true, message: '请选择质量分区', trigger: 'change' }],
-  company: [{ required: true, message: '请选择所属公司', trigger: 'change' }],
-  isEnabled: [{ required: true, message: '请选择是否启用', trigger: 'change' }],
-};
-
 const columns = computed<TableColumnsType<WarehouseResult>>(() => [
   { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${((pagination.current || 1) - 1) * (pagination.pageSize || 10) + index + 1}` },
   { title: '仓库编码', dataIndex: 'warehouseCode', key: 'warehouseCode', width: 140 },
@@ -718,26 +339,6 @@ const rowSelection = computed(() => ({
     selectedRowKeys.value = keys;
   },
 }));
-
-function createDefaultForm(): WarehouseForm {
-  return {
-    warehouseCode: '',
-    warehouseName: '',
-    temperatureZone: undefined,
-    qualityZone: undefined,
-    company: undefined,
-    employeeCode: '',
-    employeeName: '',
-    deptCode: '',
-    deptNameFullPath: '',
-    isEnabled: 1,
-    remark: '',
-  };
-}
-
-function resetFormData() {
-  Object.assign(formData, createDefaultForm());
-}
 
 function normalizeQuery() {
   return {
@@ -796,7 +397,7 @@ function handleAdd() {
   router.push('/sys/warehouse/edit');
 }
 
-async function handleEdit(record: WarehouseResult) {
+function handleEdit(record: WarehouseResult) {
   router.push({ path: '/sys/warehouse/edit', query: { id: String(record.id) } });
 }
 
@@ -861,98 +462,12 @@ async function handleExport() {
   }
 }
 
-async function handleSubmit() {
-  try {
-    await formRef.value?.validate();
-    submitting.value = true;
-    if (formMode.value === 'edit') {
-      await updateWarehouse(formData as WarehouseResult);
-    } else {
-      await createWarehouse(formData);
-    }
-    message.success(formMode.value === 'add' ? '新增成功' : '编辑成功');
-    formVisible.value = false;
-    await loadData();
-  } catch (error: any) {
-    if (error?.errorFields) {
-      return;
-    }
-    message.error(error?.message || '提交失败');
-  } finally {
-    submitting.value = false;
-  }
-}
-
-function handleCancel() {
-  formVisible.value = false;
-  formRef.value?.clearValidate();
-}
-
 function formatTemperatureZone(value?: string) {
   return temperatureZoneOptions.find((item) => item.value === value)?.label || value || '-';
 }
 
 function formatQualityZone(value?: string) {
   return qualityZoneOptions.find((item) => item.value === value)?.label || value || '-';
-}
-
-// 收货人列表相关
-const receiverColumns = [
-  { title: '收货人', dataIndex: 'consignee', key: 'consignee', width: 100 },
-  { title: '手机号码', dataIndex: 'phoneNumber', key: 'phoneNumber', width: 130 },
-  { title: '地址', key: 'address', width: 200 },
-  { title: '邮编', dataIndex: 'postalCode', key: 'postalCode', width: 100 },
-  { title: '默认', key: 'isDefault', width: 90, align: 'center' as const },
-  { title: '备注', dataIndex: 'note', key: 'note', width: 120, ellipsis: true },
-  { title: '操作', key: 'action', width: 120, fixed: 'right' as const },
-];
-
-async function loadReceiverList(warehouseCode: string) {
-  receiverLoading.value = true;
-  try {
-    const res = await getWarehouseReceiverList({ warehouseCode });
-    receiverList.value = res.data?.list || res.rows || res.data?.rows || [];
-  } catch {
-    receiverList.value = [];
-  } finally {
-    receiverLoading.value = false;
-  }
-}
-
-function handleDeleteReceiver(record: WarehouseReceiverResult) {
-  Modal.confirm({
-    title: '确认删除',
-    content: `确认删除收货人"${record.consignee}"吗？`,
-    onOk: async () => {
-      try {
-        await deleteWarehouseReceiver(record.id);
-        message.success('删除成功');
-        if (formData.warehouseCode) {
-          await loadReceiverList(formData.warehouseCode);
-        }
-      } catch (error: any) {
-        message.error(error?.message || '删除失败');
-      }
-    },
-  });
-}
-
-function handleSetDefaultReceiver(record: WarehouseReceiverResult) {
-  Modal.confirm({
-    title: '设为默认',
-    content: `确认将"${record.consignee}"设为默认收货人吗？`,
-    onOk: async () => {
-      try {
-        await setDefaultWarehouseReceiver(record.id);
-        message.success('设置成功');
-        if (formData.warehouseCode) {
-          await loadReceiverList(formData.warehouseCode);
-        }
-      } catch (error: any) {
-        message.error(error?.message || '设置失败');
-      }
-    },
-  });
 }
 
 onMounted(() => {
@@ -1036,12 +551,6 @@ onMounted(() => {
 
 .status-select {
   width: 140px;
-}
-
-.more-filters {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #f3f4f6;
 }
 
 .filter-popover-content {
@@ -1166,15 +675,6 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-.search-card :deep(.ant-card-body),
-.wms-warehouse-page :deep(.ant-card-body) {
-  padding: 16px;
-}
-
-.search-form {
-  row-gap: 12px;
-}
-
 /* Responsive */
 @media (max-width: 1024px) {
   .stats-row {
@@ -1186,120 +686,5 @@ onMounted(() => {
   .stats-row {
     grid-template-columns: 1fr;
   }
-}
-
-/* 收货人信息区块 */
-.receiver-section {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
-}
-
-.receiver-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.receiver-section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 16px;
-  font-weight: 500;
-  color: #1f2937;
-}
-
-.receiver-empty {
-  text-align: center;
-  padding: 32px 0;
-  color: #9ca3af;
-  font-size: 14px;
-}
-
-.receiver-empty-icon {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 12px;
-  color: #d1d5db;
-}
-
-.receiver-empty-hint {
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-/* 收货人表单 */
-.receiver-form {
-  padding-top: 8px;
-}
-
-.receiver-form-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
-  margin-top: 8px;
-}
-
-/* 仓库编辑弹框样式 */
-.warehouse-form-wrapper {
-  display: flex;
-  flex-direction: column;
-}
-
-.warehouse-form-section {
-  padding-bottom: 0;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.section-icon {
-  width: 20px;
-  height: 20px;
-  color: #6b7280;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: #1f2937;
-}
-
-.edit-warning-alert {
-  margin-bottom: 16px;
-}
-
-.system-info {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
-}
-
-.system-info-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-}
-
-.system-info-label {
-  color: #9ca3af;
-}
-
-.system-info-value {
-  color: #374151;
-}
-
-.ml-6 {
-  margin-left: 24px;
 }
 </style>
