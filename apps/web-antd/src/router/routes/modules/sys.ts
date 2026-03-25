@@ -57,6 +57,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/sys/location/index.vue'),
       },
       {
+        meta: { title: '货位管理' },
+        name: 'BaseStorage',
+        path: 'storage',
+        component: () => import('#/views/sys/storage/index.vue'),
+      },
+      {
         meta: { title: '用户管理' },
         name: 'BaseUser',
         path: 'user',
