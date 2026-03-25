@@ -1,0 +1,1 @@
+import{cm as s}from"./bootstrap-BIjQelFL.js";function n(){return s.get("/permission/tree")}function r(e){return s.get(`/permission/${e}`)}function t(e){return s.post("/permission",e)}function o(e){return s.put(`/permission/${e.menuId}`,e)}function u(e){return s.delete(`/permission/${e}`)}export{t as a,n as b,u as d,r as g,o as u};
