@@ -34,6 +34,7 @@
                 <Input
                   v-model:value="formData.warehouseCode"
                   :disabled="isEdit"
+                  :class="{ 'field-protected': isEdit }"
                   maxlength="50"
                   placeholder="请输入仓库编码"
                 />
@@ -44,6 +45,7 @@
                 <Input
                   v-model:value="formData.warehouseName"
                   :disabled="isEdit"
+                  :class="{ 'field-protected': isEdit }"
                   maxlength="100"
                   placeholder="请输入仓库名称"
                 />
@@ -54,6 +56,7 @@
                 <Select
                   v-model:value="formData.temperatureZone"
                   :disabled="isEdit"
+                  :class="{ 'field-protected': isEdit }"
                   :options="temperatureZoneOptions"
                   placeholder="请选择温度分区"
                 />
@@ -64,6 +67,7 @@
                 <Select
                   v-model:value="formData.qualityZone"
                   :disabled="isEdit"
+                  :class="{ 'field-protected': isEdit }"
                   :options="qualityZoneOptions"
                   placeholder="请选择质量分区"
                 />
@@ -94,6 +98,7 @@
                 <Select
                   v-model:value="formData.company"
                   :disabled="isEdit"
+                  :class="{ 'field-protected': isEdit }"
                   :options="companyOptions"
                   placeholder="请选择所属公司"
                 />
@@ -111,6 +116,8 @@
               <FormItem label="备注" name="remark" :label-col="{ span: 2 }" :wrapper-col="{ span: 22 }">
                 <Input.TextArea
                   v-model:value="formData.remark"
+                  :disabled="isEdit"
+                  :class="{ 'field-protected': isEdit }"
                   :rows="3"
                   maxlength="500"
                   show-count
@@ -143,9 +150,8 @@
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'isDefault'">
-              <Tag :color="record.isDefault === 1 ? 'success' : 'default'">
-                {{ record.isDefault === 1 ? '默认' : '-' }}
-              </Tag>
+              <Tag v-if="record.isDefault === 1" color="success">默认</Tag>
+              <Button v-else type="link" size="small" @click="handleSetDefault(record)">设为默认</Button>
             </template>
             <template v-else-if="column.key === 'action'">
               <Space>
@@ -158,14 +164,6 @@
                 >
                   <Button type="link" danger size="small">删除</Button>
                 </Popconfirm>
-                <Button
-                  v-if="record.isDefault !== 1"
-                  type="link"
-                  size="small"
-                  @click="handleSetDefault(record)"
-                >
-                  设为默认
-                </Button>
               </Space>
             </template>
           </template>
@@ -271,14 +269,12 @@ const formRules = {
 };
 
 const receiverColumns: TableColumnsType<WarehouseReceiverResult> = [
-  { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${index + 1}` },
-  { title: '收货人', dataIndex: 'consignee', key: 'consignee', width: 120 },
-  { title: '联系电话', dataIndex: 'phoneNumber', key: 'phoneNumber', width: 130 },
-  { title: '所在地区', key: 'region', width: 200, customRender: ({ record }) => `${record.province || ''} ${record.city || ''} ${record.district || ''}`.trim() },
-  { title: '详细地址', dataIndex: 'detailedAddress', key: 'detailedAddress', width: 220 },
+  { title: '收货人', dataIndex: 'consignee', key: 'consignee', width: 100 },
+  { title: '手机号码', dataIndex: 'phoneNumber', key: 'phoneNumber', width: 130, customRender: ({ record }) => maskPhone(record.phoneNumber) },
+  { title: '地址', key: 'address', width: 280, customRender: ({ record }) => `${record.country || ''}${record.province || ''}${record.city || ''}${record.district || ''}${record.detailedAddress || ''}` },
   { title: '邮编', dataIndex: 'postalCode', key: 'postalCode', width: 100 },
-  { title: '默认地址', key: 'isDefault', width: 100 },
-  { title: '操作', key: 'action', fixed: 'right', width: 180 },
+  { title: '默认', key: 'isDefault', width: 90, align: 'center' as const },
+  { title: '操作', key: 'action', fixed: 'right', width: 200 },
 ];
 
 const receiverList = ref<WarehouseReceiverResult[]>([]);
@@ -301,6 +297,11 @@ function createDefaultForm(): WarehouseForm {
 
 function resetFormData() {
   Object.assign(formData, createDefaultForm());
+}
+
+function maskPhone(phone: string) {
+  if (!phone || phone.length !== 11) return phone;
+  return `${phone.slice(0, 3)}****${phone.slice(7)}`;
 }
 
 async function loadWarehouseDetail(id: number) {
@@ -454,5 +455,12 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   width: 100%;
+}
+
+/* 编辑模式下受保护字段的灰色背景 */
+.field-protected :deep(input),
+.field-protected :deep(.ant-select-selector),
+.field-protected :deep(textarea) {
+  background-color: #f5f5f5 !important;
 }
 </style>
