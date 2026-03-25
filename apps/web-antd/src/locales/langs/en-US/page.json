@@ -676,5 +676,26 @@
       "entityClassExample": "e.g. com.wms.entity.Warehouse",
       "serviceClassExample": "e.g. com.wms.service.WarehouseService"
     }
+  },
+  "supplier": {
+    "title": "Supplier Management",
+    "supplierCode": "Supplier Code",
+    "supplierName": "Supplier Name",
+    "contactPerson": "Contact Person",
+    "contactPhone": "Contact Phone",
+    "email": "Email",
+    "address": "Address",
+    "isEnabled": "Enabled",
+    "isEnabledSelect": "Please select enabled",
+    "remark": "Remark",
+    "addTitle": "Add Supplier",
+    "editTitle": "Edit Supplier",
+    "codeRequired": "Please enter supplier code",
+    "codeMaxLength": "Supplier code max 50 characters",
+    "nameRequired": "Please enter supplier name",
+    "nameMaxLength": "Supplier name max 100 characters",
+    "statusRequired": "Please select enabled",
+    "loadDetailFailed": "Failed to load details",
+    "confirmDelete": "Confirm delete supplier 「{name}」? Cannot be recovered!"
   }
 }

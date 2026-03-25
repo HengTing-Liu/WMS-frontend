@@ -33,6 +33,12 @@ const routes: RouteRecordRaw[] = [
         ],
       },
       {
+        meta: { title: '供应商管理' },
+        name: 'BaseSupplier',
+        path: 'supplier',
+        component: () => import('#/views/sys/supplier/index.vue'),
+      },
+      {
         meta: { title: '库位档案' },
         name: 'BaseLocation',
         path: 'location',

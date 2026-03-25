@@ -768,5 +768,26 @@
       "entityClassExample": "如：com.wms.entity.Warehouse",
       "serviceClassExample": "如：com.wms.service.WarehouseService"
     }
+  },
+  "supplier": {
+    "title": "供应商管理",
+    "supplierCode": "供应商编码",
+    "supplierName": "供应商名称",
+    "contactPerson": "联系人",
+    "contactPhone": "联系电话",
+    "email": "邮箱",
+    "address": "地址",
+    "isEnabled": "是否启用",
+    "isEnabledSelect": "请选择是否启用",
+    "remark": "备注",
+    "addTitle": "新增供应商",
+    "editTitle": "编辑供应商",
+    "codeRequired": "请输入供应商编码",
+    "codeMaxLength": "供应商编码最大50字符",
+    "nameRequired": "请输入供应商名称",
+    "nameMaxLength": "供应商名称最大100字符",
+    "statusRequired": "请选择是否启用",
+    "loadDetailFailed": "加载详情失败",
+    "confirmDelete": "确认删除供应商「{name}」吗？删除后不可恢复！"
   }
 }

@@ -643,5 +643,26 @@
       "entityClassExample": "例：com.wms.entity.Warehouse",
       "serviceClassExample": "例：com.wms.service.WarehouseService"
     }
+  },
+  "supplier": {
+    "title": "サプライヤー管理",
+    "supplierCode": "サプライヤーコード",
+    "supplierName": "サプライヤー名",
+    "contactPerson": "連絡先",
+    "contactPhone": "連絡先電話",
+    "email": "メール",
+    "address": "住所",
+    "isEnabled": "有効",
+    "isEnabledSelect": "有効を選択してください",
+    "remark": "備考",
+    "addTitle": "サプライヤー追加",
+    "editTitle": "サプライヤー編集",
+    "codeRequired": "サプライヤーコードを入力してください",
+    "codeMaxLength": "サプライヤーコードは最大50文字",
+    "nameRequired": "サプライヤー名を入力してください",
+    "nameMaxLength": "サプライヤー名は最大100文字",
+    "statusRequired": "有効を選択してください",
+    "loadDetailFailed": "詳細の読み込みに失敗しました",
+    "confirmDelete": "サプライヤー「{name}」を削除してもよろしいですか？削除後は元に戻せません！"
   }
 }
