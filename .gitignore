@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.turbo/
+.output/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test
+coverage/
+.nyc_output/
+
+# Local env files
+.env.local
+.env.*.local
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
