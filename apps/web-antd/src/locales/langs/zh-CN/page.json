@@ -789,5 +789,25 @@
     "statusRequired": "请选择是否启用",
     "loadDetailFailed": "加载详情失败",
     "confirmDelete": "确认删除供应商「{name}」吗？删除后不可恢复！"
+  },
+  "material": {
+    "title": "物料管理",
+    "materialCode": "物料编码",
+    "materialName": "物料名称",
+    "specification": "规格",
+    "unit": "单位",
+    "category": "物料分类",
+    "isEnabled": "是否启用",
+    "isEnabledSelect": "请选择是否启用",
+    "remark": "备注",
+    "addTitle": "新增物料",
+    "editTitle": "编辑物料",
+    "codeRequired": "请输入物料编码",
+    "codeMaxLength": "物料编码最大50字符",
+    "nameRequired": "请输入物料名称",
+    "nameMaxLength": "物料名称最大100字符",
+    "statusRequired": "请选择是否启用",
+    "loadDetailFailed": "加载详情失败",
+    "confirmDelete": "确认删除物料「{name}」吗？删除后不可恢复！"
   }
 }

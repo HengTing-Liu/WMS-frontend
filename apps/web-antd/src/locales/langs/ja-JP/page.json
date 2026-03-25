@@ -664,5 +664,25 @@
     "statusRequired": "有効を選択してください",
     "loadDetailFailed": "詳細の読み込みに失敗しました",
     "confirmDelete": "サプライヤー「{name}」を削除してもよろしいですか？削除後は元に戻せません！"
+  },
+  "material": {
+    "title": "物料管理",
+    "materialCode": "物料コード",
+    "materialName": "物料名",
+    "specification": "仕様",
+    "unit": "単位",
+    "category": "分類",
+    "isEnabled": "有効",
+    "isEnabledSelect": "有効を選択してください",
+    "remark": "備考",
+    "addTitle": "物料追加",
+    "editTitle": "物料編集",
+    "codeRequired": "物料コードを入力してください",
+    "codeMaxLength": "物料コードは最大50文字",
+    "nameRequired": "物料名を入力してください",
+    "nameMaxLength": "物料名は最大100文字",
+    "statusRequired": "有効を選択してください",
+    "loadDetailFailed": "詳細の読み込みに失敗しました",
+    "confirmDelete": "物料「{name}」を削除してもよろしいですか？削除後は元に戻せません！"
   }
 }

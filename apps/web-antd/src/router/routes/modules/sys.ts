@@ -39,6 +39,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/sys/supplier/index.vue'),
       },
       {
+        meta: { title: '物料管理' },
+        name: 'BaseMaterial',
+        path: 'material',
+        component: () => import('#/views/sys/material/index.vue'),
+      },
+      {
         meta: { title: '库位档案' },
         name: 'BaseLocation',
         path: 'location',

@@ -697,5 +697,25 @@
     "statusRequired": "Please select enabled",
     "loadDetailFailed": "Failed to load details",
     "confirmDelete": "Confirm delete supplier 「{name}」? Cannot be recovered!"
+  },
+  "material": {
+    "title": "Material Management",
+    "materialCode": "Material Code",
+    "materialName": "Material Name",
+    "specification": "Specification",
+    "unit": "Unit",
+    "category": "Category",
+    "isEnabled": "Enabled",
+    "isEnabledSelect": "Please select enabled",
+    "remark": "Remark",
+    "addTitle": "Add Material",
+    "editTitle": "Edit Material",
+    "codeRequired": "Please enter material code",
+    "codeMaxLength": "Material code max 50 characters",
+    "nameRequired": "Please enter material name",
+    "nameMaxLength": "Material name max 100 characters",
+    "statusRequired": "Please select enabled",
+    "loadDetailFailed": "Failed to load details",
+    "confirmDelete": "Confirm delete material 「{name}」? Cannot be recovered!"
   }
 }
