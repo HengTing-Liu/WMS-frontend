@@ -271,7 +271,146 @@
             </Col>
           </Row>
         </Form>
+
+        <!-- 收货人信息区块 -->
+        <div v-if="formMode === 'edit'" class="receiver-section">
+          <div class="receiver-section-header">
+            <div class="receiver-section-title">
+              <User class="size-4" />
+              <span>收货人信息</span>
+            </div>
+            <Button type="primary" size="small" @click="handleOpenReceiverModal">
+              <template #icon><Plus /></template>
+              管理收货人
+            </Button>
+          </div>
+          <div v-if="receiverList.length === 0" class="receiver-empty">
+            <span>暂无收货人信息</span>
+          </div>
+          <Table
+            v-else
+            :columns="receiverColumns"
+            :data-source="receiverList"
+            :loading="receiverLoading"
+            row-key="id"
+            :pagination="false"
+            :scroll="{ x: 700 }"
+            size="small"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'phoneNumber'">
+                {{ maskPhone(record.phoneNumber) }}
+              </template>
+              <template v-else-if="column.key === 'address'">
+                {{ record.province }}{{ record.city }}{{ record.district }}{{ record.detailedAddress }}
+              </template>
+              <template v-else-if="column.key === 'isDefault'">
+                <Tag v-if="record.isDefault === 1" color="success">默认</Tag>
+                <Button v-else type="link" size="small" @click="handleSetDefaultReceiver(record)">设为默认</Button>
+              </template>
+              <template v-else-if="column.key === 'action'">
+                <Button type="link" size="small" danger @click="handleDeleteReceiver(record)">删除</Button>
+              </template>
+            </template>
+          </Table>
+        </div>
       </Modal>
+
+      <!-- 收货人管理弹框 -->
+      <Modal
+        v-model:open="receiverModalVisible"
+        :title="`${formData.warehouseCode} - ${formData.warehouseName} 收货人管理`"
+        width="900px"
+        :footer="null"
+        :mask-closable="false"
+      >
+        <div class="receiver-modal-content">
+          <div class="toolbar mb-4">
+            <Button type="primary" @click="() => { editingReceiverId = undefined; receiverFormVisible = true; }">
+              <template #icon><Plus /></template>
+              添加收货人
+            </Button>
+          </div>
+          <Table
+            :columns="receiverColumns"
+            :data-source="receiverList"
+            :loading="receiverLoading"
+            row-key="id"
+            :pagination="false"
+            :scroll="{ x: 700 }"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'phoneNumber'">
+                {{ maskPhone(record.phoneNumber) }}
+              </template>
+              <template v-else-if="column.key === 'address'">
+                {{ record.province }}{{ record.city }}{{ record.district }}{{ record.detailedAddress }}
+              </template>
+              <template v-else-if="column.key === 'isDefault'">
+                <Tag v-if="record.isDefault === 1" color="success">默认</Tag>
+                <Button v-else type="link" size="small" @click="handleSetDefaultReceiver(record)">设为默认</Button>
+              </template>
+              <template v-else-if="column.key === 'action'">
+                <Space>
+                  <Button type="link" size="small" @click="() => { editingReceiverId = record.id; receiverFormVisible = true; }">编辑</Button>
+                  <Button type="link" danger size="small" @click="handleDeleteReceiver(record)">删除</Button>
+                </Space>
+              </template>
+            </template>
+          </Table>
+        </div>
+      </Modal>
+
+      <!-- 收货人编辑抽屉 -->
+      <Drawer
+        v-model:open="receiverFormVisible"
+        :title="editingReceiverId ? '编辑收货人' : '添加收货人'"
+        width="520"
+        :destroy-on-close="true"
+      >
+        <Form
+          ref="receiverFormRef"
+          :model="receiverFormData"
+          :rules="receiverFormRules"
+          layout="vertical"
+        >
+          <FormItem label="收货人" name="consignee">
+            <Input v-model:value="receiverFormData.consignee" placeholder="请输入收货人姓名" allow-clear />
+          </FormItem>
+          <FormItem label="手机号码" name="phoneNumber">
+            <Input v-model:value="receiverFormData.phoneNumber" placeholder="请输入手机号码" allow-clear maxlength="11" />
+          </FormItem>
+          <FormItem label="国家" name="country">
+            <Select v-model:value="receiverFormData.country" disabled>
+              <SelectOption value="中国">中国</SelectOption>
+            </Select>
+          </FormItem>
+          <FormItem label="省/市/区" name="province">
+            <Input placeholder="请输入省份" v-model:value="receiverFormData.province" allow-clear />
+          </FormItem>
+          <FormItem label="城市" name="city">
+            <Input placeholder="请输入城市" v-model:value="receiverFormData.city" allow-clear />
+          </FormItem>
+          <FormItem label="区县" name="district">
+            <Input placeholder="请输入区县" v-model:value="receiverFormData.district" allow-clear />
+          </FormItem>
+          <FormItem label="详细地址" name="detailedAddress">
+            <Input.TextArea v-model:value="receiverFormData.detailedAddress" placeholder="请输入详细地址" :rows="2" allow-clear show-count :maxlength="500" />
+          </FormItem>
+          <FormItem label="邮编" name="postalCode">
+            <Input v-model:value="receiverFormData.postalCode" placeholder="请输入邮编" allow-clear maxlength="6" />
+          </FormItem>
+          <FormItem name="isDefault">
+            <Checkbox v-model:checked="receiverFormIsDefault">设为默认收货人</Checkbox>
+          </FormItem>
+        </Form>
+        <template #footer>
+          <div class="drawer-footer">
+            <Button @click="receiverFormVisible = false">取消</Button>
+            <Button type="primary" :loading="receiverSubmitting" @click="handleSaveReceiver">保存</Button>
+          </div>
+        </template>
+      </Drawer>
     </div>
   </Page>
 </template>
@@ -288,8 +427,6 @@ import {
   Power,
   MapPin,
   Thermometer,
-  Down,
-  Up,
   User,
 } from 'lucide-vue-next';
 import {
@@ -298,6 +435,7 @@ import {
   Checkbox,
   CheckboxGroup,
   Col,
+  Drawer,
   Form,
   FormItem,
   Input,
@@ -308,6 +446,7 @@ import {
   RadioGroup,
   Row,
   Select,
+  SelectOption,
   Space,
   Switch,
   Table,
@@ -330,6 +469,8 @@ import {
   getWarehouseReceiverList,
   deleteWarehouseReceiver,
   setDefaultWarehouseReceiver,
+  createWarehouseReceiver,
+  updateWarehouseReceiver,
   type WarehouseReceiverResult,
 } from '#/api/sys/warehouse-receiver';
 
@@ -353,6 +494,62 @@ const receiverModalVisible = ref(false);
 const receiverList = ref<WarehouseReceiverResult[]>([]);
 const receiverLoading = ref(false);
 const editingReceiverId = ref<number | undefined>(undefined);
+
+// 收货人表单
+const receiverFormVisible = ref(false);
+const receiverFormRef = ref<FormInstance>();
+const receiverSubmitting = ref(false);
+const receiverFormData = reactive({
+  consignee: '',
+  phoneNumber: '',
+  country: '中国',
+  province: '',
+  city: '',
+  district: '',
+  detailedAddress: '',
+  postalCode: '',
+  isDefault: 0,
+});
+const receiverFormIsDefault = ref(false);
+const receiverFormRules = {
+  consignee: [{ required: true, message: '请输入收货人', trigger: 'blur' }],
+  phoneNumber: [
+    { required: true, message: '请输入手机号码', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
+  ],
+};
+
+function maskPhone(phone: string) {
+  if (!phone || phone.length !== 11) return phone;
+  return `${phone.slice(0, 3)}****${phone.slice(7)}`;
+}
+
+async function handleSaveReceiver() {
+  try {
+    await receiverFormRef.value?.validate();
+    receiverSubmitting.value = true;
+    const data = {
+      ...receiverFormData,
+      warehouseCode: formData.warehouseCode,
+      isDefault: receiverFormIsDefault.value ? 1 : 0,
+    };
+    if (editingReceiverId.value) {
+      await updateWarehouseReceiver(editingReceiverId.value, data);
+      message.success('编辑成功');
+    } else {
+      await createWarehouseReceiver(data);
+      message.success('添加成功');
+    }
+    receiverFormVisible.value = false;
+    if (formData.warehouseCode) {
+      await loadReceiverList(formData.warehouseCode);
+    }
+  } catch (error) {
+    // validation failed
+  } finally {
+    receiverSubmitting.value = false;
+  }
+}
 
 const filterFieldOptions = [
   { label: '仓库编码', value: 'warehouseCode' },
@@ -937,5 +1134,46 @@ onMounted(() => {
   .stats-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* 收货人信息区块 */
+.receiver-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.receiver-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.receiver-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.receiver-empty {
+  text-align: center;
+  padding: 32px 0;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* 收货人管理弹框 */
+.receiver-modal-content {
+  padding: 16px 0;
+}
+
+.drawer-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 </style>
