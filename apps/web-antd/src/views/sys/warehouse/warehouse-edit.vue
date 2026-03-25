@@ -252,20 +252,73 @@
           </Row>
           <Row :gutter="16">
             <Col :span="12">
-              <FormItem label="国家" name="country">
-                <Input v-model:value="receiverFormData.country" placeholder="请输入国家" allow-clear />
+              <FormItem label="电话" name="telephone">
+                <Input v-model:value="receiverFormData.telephone" placeholder="请输入电话" allow-clear maxlength="20" />
               </FormItem>
             </Col>
             <Col :span="12">
-              <FormItem label="省市" name="province">
-                <Input v-model:value="receiverFormData.province" placeholder="请输入省市" allow-clear />
+              <FormItem label="国家" name="country">
+                <Select v-model:value="receiverFormData.country" disabled placeholder="请选择国家">
+                  <SelectOption value="中国">中国</SelectOption>
+                </Select>
               </FormItem>
             </Col>
           </Row>
+          <FormItem label="地区" required>
+            <Row :gutter="8">
+              <Col :span="8">
+                <FormItem name="province" no-style>
+                  <Select
+                    v-model:value="receiverFormData.province"
+                    placeholder="省"
+                    @change="handleProvinceChange"
+                  >
+                    <SelectOption v-for="item in provinceList" :key="item.code" :value="item.name">
+                      {{ item.name }}
+                    </SelectOption>
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col :span="8">
+                <FormItem name="city" no-style>
+                  <Select
+                    v-model:value="receiverFormData.city"
+                    placeholder="市"
+                    :disabled="!receiverFormData.province"
+                    @change="handleCityChange"
+                  >
+                    <SelectOption v-for="item in cityList" :key="item.code" :value="item.name">
+                      {{ item.name }}
+                    </SelectOption>
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col :span="8">
+                <FormItem name="district" no-style>
+                  <Select
+                    v-model:value="receiverFormData.district"
+                    placeholder="区/县"
+                    :disabled="!receiverFormData.city"
+                  >
+                    <SelectOption v-for="item in districtList" :key="item.code" :value="item.name">
+                      {{ item.name }}
+                    </SelectOption>
+                  </Select>
+                </FormItem>
+              </Col>
+            </Row>
+          </FormItem>
           <Row :gutter="16">
             <Col :span="12">
-              <FormItem label="区/县" name="district">
-                <Input v-model:value="receiverFormData.district" placeholder="请输入区/县" allow-clear />
+              <FormItem label="详细地址" name="detailedAddress">
+                <Input.TextArea
+                  v-model:value="receiverFormData.detailedAddress"
+                  placeholder="请输入详细地址"
+                  :rows="2"
+                  allow-clear
+                  show-count
+                  :maxlength="500"
+                />
               </FormItem>
             </Col>
             <Col :span="12">
@@ -274,25 +327,6 @@
               </FormItem>
             </Col>
           </Row>
-          <FormItem label="详细地址" name="detailedAddress">
-            <Input.TextArea
-              v-model:value="receiverFormData.detailedAddress"
-              placeholder="请输入详细地址"
-              :rows="2"
-              allow-clear
-              show-count
-              :maxlength="500"
-            />
-          </FormItem>
-          <FormItem label="备注" name="note">
-            <Input.TextArea
-              v-model:value="receiverFormData.note"
-              placeholder="请输入备注"
-              :rows="2"
-              allow-clear
-              :maxlength="200"
-            />
-          </FormItem>
           <FormItem>
             <Checkbox v-model:checked="receiverFormIsDefault">设为默认收货人</Checkbox>
           </FormItem>
@@ -325,6 +359,7 @@ import {
   RadioGroup,
   Row,
   Select,
+  SelectOption,
   Space,
   Table,
   Tag,
@@ -347,6 +382,7 @@ import {
   updateWarehouseReceiver,
   type WarehouseReceiverResult,
 } from '#/api/sys/warehouse-receiver';
+import { regionData } from '#/utils/region-data';
 
 interface WarehouseForm extends Partial<WarehouseResult> {
   id?: number;
@@ -370,6 +406,7 @@ const formData = reactive<WarehouseForm>(createDefaultForm());
 const receiverFormData = reactive({
   consignee: '',
   phoneNumber: '',
+  telephone: '',
   country: '中国',
   province: '',
   city: '',
@@ -387,6 +424,28 @@ const receiverFormRules = {
     { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
   ],
 };
+
+// 省市区三级联动数据
+const provinceList = computed(() => regionData);
+const cityList = computed(() => {
+  const province = provinceList.value.find(
+    (p: any) => p.name === receiverFormData.province,
+  );
+  return province?.children || [];
+});
+const districtList = computed(() => {
+  const city = cityList.value.find((c: any) => c.name === receiverFormData.city);
+  return city?.children || [];
+});
+
+function handleProvinceChange() {
+  receiverFormData.city = '';
+  receiverFormData.district = '';
+}
+
+function handleCityChange() {
+  receiverFormData.district = '';
+}
 
 const temperatureZoneOptions = [
   { label: '常温', value: 'NORMAL' },
@@ -510,6 +569,7 @@ function handleAddReceiver() {
   editingReceiverId.value = undefined;
   receiverFormData.consignee = '';
   receiverFormData.phoneNumber = '';
+  receiverFormData.telephone = '';
   receiverFormData.country = '中国';
   receiverFormData.province = '';
   receiverFormData.city = '';
@@ -525,6 +585,7 @@ function handleEditReceiver(record: WarehouseReceiverResult) {
   editingReceiverId.value = record.id;
   receiverFormData.consignee = record.consignee || '';
   receiverFormData.phoneNumber = record.phoneNumber || '';
+  receiverFormData.telephone = (record as any).telephone || '';
   receiverFormData.country = record.country || '中国';
   receiverFormData.province = record.province || '';
   receiverFormData.city = record.city || '';
