@@ -92,8 +92,12 @@ function setupAccessGuard(router: Router) {
     // 注意：动态路由通过 addRoute 添加，页面刷新后会丢失，所以需要根据 isAccessChecked 判断
     // isAccessChecked 为 true 表示用户已登录且菜单已获取，但路由可能需要重新添加
     
-    if (accessStore.isAccessChecked && accessStore.accessMenus?.length > 0) {
-      // 检查目标路由是否可以直接解析（可能是基本路由）
+    // 系统路径直接放行
+    const systemPaths = ['/dashboard', '/analytics', '/workspace', '/auth'];
+    const isSystemPath = systemPaths.some(p => to.path?.startsWith(p));
+    
+    if (accessStore.isAccessChecked && accessStore.accessMenus?.length > 0 && !isSystemPath) {
+      // 即使 isAccessChecked 为 true，动态路由也可能未添加，先尝试放行
       let routeExists = false;
       try {
         const resolved = router.resolve(to);
@@ -102,44 +106,13 @@ function setupAccessGuard(router: Router) {
         routeExists = false;
       }
       
-      // 如果目标路由是系统路径且用户已登录，需要从用户菜单中找到有效的跳转路径
-      const systemPaths = ['/dashboard', '/analytics', '/workspace', '/auth'];
-      const isSystemPath = systemPaths.some(p => to.path?.startsWith(p));
-      
-      if (routeExists && !isSystemPath) {
-        console.log('[Guard] 目标路由存在且不是系统路径，放行:', to.path);
+      if (routeExists) {
+        console.log('[Guard] 目标路由已注册，放行:', to.path);
         return true;
       }
       
-      // 目标路径是系统路径或不存在，需要从用户菜单中找有效路径
-      console.log('[Guard] 需要获取有效跳转路径:', { path: to.path, isSystemPath, routeExists });
-      
-      // 从用户菜单中找第一个有效路径
-      const findFirstValidPath = (menus: any[]): string | null => {
-        for (const menu of menus) {
-          if (menu.children?.length > 0) {
-            const childPath = findFirstValidPath(menu.children);
-            if (childPath) return childPath;
-          }
-          if (menu.path) {
-            return menu.path.startsWith('/') ? menu.path : `/${menu.path}`;
-          }
-        }
-        return null;
-      };
-      
-      const firstValidPath = findFirstValidPath(accessStore.accessMenus);
-      
-      if (firstValidPath && firstValidPath !== to.path) {
-        console.log('[Guard] 跳转到用户第一个有效菜单:', firstValidPath);
-        return {
-          path: firstValidPath,
-          replace: true,
-        };
-      }
-      
-      // 如果已经在第一个有效菜单，但路由不存在，需要重新生成
-      console.log('[Guard] 已在目标路径但路由不存在，需要重新生成');
+      // 路由不存在但 isAccessChecked=true，先重新生成动态路由（可能菜单已更新）
+      console.log('[Guard] 路由未注册但已登录，重新生成动态路由:', to.path);
     }
     
     // 需要重新生成动态路由
