@@ -742,5 +742,14 @@
     "statusRequired": "Please select enabled",
     "loadDetailFailed": "Failed to load details",
     "confirmDelete": "Confirm delete material 「{name}」? Cannot be recovered!"
+  },
+  "wms": {
+    "filter": {
+      "allStatus": "All Status",
+      "addFilter": "Add Filter"
+    },
+    "table": {
+      "totalRecords": "{total} records"
+    }
   }
 }

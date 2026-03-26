@@ -834,5 +834,14 @@
     "statusRequired": "请选择是否启用",
     "loadDetailFailed": "加载详情失败",
     "confirmDelete": "确认删除物料「{name}」吗？删除后不可恢复！"
+  },
+  "wms": {
+    "filter": {
+      "allStatus": "全部状态",
+      "addFilter": "添加筛选"
+    },
+    "table": {
+      "totalRecords": "共 {total} 条"
+    }
   }
 }

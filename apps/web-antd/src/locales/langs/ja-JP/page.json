@@ -709,5 +709,14 @@
     "statusRequired": "有効を選択してください",
     "loadDetailFailed": "詳細の読み込みに失敗しました",
     "confirmDelete": "物料「{name}」を削除してもよろしいですか？削除後は元に戻せません！"
+  },
+  "wms": {
+    "filter": {
+      "allStatus": "すべてのステータス",
+      "addFilter": "フィルターを追加"
+    },
+    "table": {
+      "totalRecords": "{total} 件"
+    }
   }
 }

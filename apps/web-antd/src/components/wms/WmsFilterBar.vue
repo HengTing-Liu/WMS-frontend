@@ -20,7 +20,7 @@
         v-if="statusKey && statusOptions?.length"
         v-model:value="query[statusKey]"
         allow-clear
-        placeholder="全部状态"
+        :placeholder="$t('wms.filter.allStatus')"
         class="wms-filter-bar__status"
         :options="statusOptions"
         @change="emit('search')"
@@ -33,7 +33,7 @@
             v-if="field.type === 'select'"
             v-model:value="query[field.key]"
             allow-clear
-            :placeholder="`请选择${field.label}`"
+            :placeholder="`${$t('common.selectPlaceholder')}${field.label}`"
             class="wms-filter-bar__tag-select"
             :options="field.options"
             @change="emit('search')"
@@ -42,7 +42,7 @@
             v-else
             v-model:value="query[field.key]"
             allow-clear
-            :placeholder="`请输入${field.label}`"
+            :placeholder="`${$t('common.inputPlaceholder')}${field.label}`"
             class="wms-filter-bar__tag-input"
             @press-enter="emit('search')"
           />
@@ -53,7 +53,7 @@
       <Dropdown v-if="availableFields.length > 0" trigger="click">
         <Button>
           <template #icon><Plus /></template>
-          添加筛选
+          {{ $t('wms.filter.addFilter') }}
           <ChevronDown />
         </Button>
         <template #overlay>
@@ -74,6 +74,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { Button, Card, Dropdown, Input, Menu, MenuItem, Select } from 'ant-design-vue';
 import { ChevronDown, Plus, Search, X } from 'lucide-vue-next';
+import { $t } from '@vben/locales';
 import type { WmsFilterFieldDef } from './types';
 
 const props = withDefaults(

@@ -33,6 +33,7 @@
 import { computed, ref, watch } from 'vue';
 import { Button, Card, Popconfirm, Space, Table } from 'ant-design-vue';
 import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
+import { $t } from '@vben/locales';
 
 interface WmsDataTableProps {
   /** 表格加载状态 */
@@ -98,7 +99,7 @@ const paginationConfig = computed(() => {
   if (!props.pagination) return false;
   return {
     showSizeChanger: true,
-    showTotal: (total: number) => `共 ${total} 条`,
+    showTotal: (total: number) => $t('wms.table.totalRecords', { total }),
     ...props.pagination,
   };
 });
