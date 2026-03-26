@@ -1,25 +1,22 @@
 <template>
-  <WmsPageLayout title="WMS0020 供应商管理" description="管理供应商基本信息、联系方式等">
-    <template #actions>
-      <Button type="primary" @click="handleAdd">
-        <template #icon><Plus /></template>
-        新建供应商
-      </Button>
-    </template>
-
+  <WmsPageLayout
+    title="WMS0020 供应商管理"
+    description="管理供应商基本信息、联系方式等"
+    :actions="pageActions"
+  >
     <template #stats>
       <WmsStatsCards :items="statsCards" />
     </template>
 
-    <template #filters>
+    <template #filter>
       <WmsFilterBar
-        :query="queryForm as any"
+        :query="queryForm"
         search-key="supplierName"
         search-placeholder="搜索供应商名称..."
         status-key="isEnabled"
         :status-options="statusFilterOptions"
-        :fields="allFieldDefs"
-        :storage-key="STORAGE_KEY"
+        :fields="filterFields"
+        storage-key="wms:filter:supplier:activeFields"
         :default-field-keys="['supplierCode', 'supplierName']"
         @search="handleSearch"
       >
@@ -32,64 +29,66 @@
       </WmsFilterBar>
     </template>
 
-    <WmsDataTable
-      row-key="id"
-      :loading="loading"
-      :columns="columns"
-      :data-source="tableData"
-      :pagination="pagination"
-      :row-selection="rowSelection"
-      :scroll="{ x: 1200 }"
-      @change="handleTableChange"
-    >
-      <template #toolbar>
-        <Space wrap>
-          <Popconfirm
-            title="确认删除选中的供应商记录吗？"
-            ok-text="确定"
-            cancel-text="取消"
-            @confirm="handleBatchDelete"
-          >
-            <Button danger :disabled="selectedRowKeys.length === 0">删除</Button>
-          </Popconfirm>
-        </Space>
-      </template>
-
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'isEnabled'">
-          <Switch
-            :checked="record.isEnabled === 1"
-            checked-children="启用"
-            un-checked-children="停用"
-            @change="(checked) => handleToggleStatus(record, checked)"
-          />
-        </template>
-        <template v-else-if="column.key === 'action'">
-          <Space>
-            <Button type="link" size="small" @click="handleEdit(record)">编辑</Button>
+    <template #table>
+      <WmsDataTable
+        row-key="id"
+        :loading="loading"
+        :columns="columns"
+        :data-source="tableData"
+        :pagination="pagination"
+        :row-selection="rowSelection"
+        :scroll="{ x: 1200 }"
+        @change="handleTableChange"
+      >
+        <template #toolbar>
+          <Space wrap>
             <Popconfirm
-              title="确认删除该供应商记录吗？"
+              title="确认删除选中的供应商记录吗？"
               ok-text="确定"
               cancel-text="取消"
-              @confirm="handleDelete(record)"
+              @confirm="handleBatchDelete"
             >
-              <Button type="link" danger size="small">删除</Button>
+              <Button danger :disabled="selectedRowKeys.length === 0">删除</Button>
             </Popconfirm>
           </Space>
         </template>
-        <template v-else>
-          {{ (record as any)[column.dataIndex as keyof SupplierResult] ?? '-' }}
-        </template>
-      </template>
-    </WmsDataTable>
 
-    <SupplierModal
-      ref="supplierModalRef"
-      :supplier-id="currentEditId"
-      v-model:open="modalVisible"
-      @success="handleModalSuccess"
-    />
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'isEnabled'">
+            <Switch
+              :checked="record.isEnabled === 1"
+              checked-children="启用"
+              un-checked-children="停用"
+              @change="(checked) => handleToggleStatus(record, checked)"
+            />
+          </template>
+          <template v-else-if="column.key === 'action'">
+            <Space>
+              <Button type="link" size="small" @click="handleEdit(record)">编辑</Button>
+              <Popconfirm
+                title="确认删除该供应商记录吗？"
+                ok-text="确定"
+                cancel-text="取消"
+                @confirm="handleDelete(record)"
+              >
+                <Button type="link" danger size="small">删除</Button>
+              </Popconfirm>
+            </Space>
+          </template>
+          <template v-else>
+            {{ (record as any)[column.dataIndex as keyof SupplierResult] ?? '-' }}
+          </template>
+        </template>
+      </WmsDataTable>
+    </template>
   </WmsPageLayout>
+
+  <SupplierModal
+    ref="supplierModalRef"
+    :supplier-id="currentEditId"
+    v-model:open="modalVisible"
+    @success="handleModalSuccess"
+  />
 </template>
 
 <script setup lang="ts">
@@ -122,8 +121,6 @@ import { WmsDataTable, WmsFilterBar, WmsPageLayout, WmsStatsCards } from '#/comp
 
 import SupplierModal from './components/supplier-modal.vue';
 
-const STORAGE_KEY = 'supplier_filter_fields';
-
 const loading = ref(false);
 const exporting = ref(false);
 const tableData = ref<SupplierResult[]>([]);
@@ -132,18 +129,20 @@ const modalVisible = ref(false);
 const currentEditId = ref<number>();
 const supplierModalRef = ref<InstanceType<typeof SupplierModal>>();
 
-interface FilterFieldDef {
-  key: string;
-  label: string;
-  type: 'input' | 'select';
-  options?: Array<{ label: string; value: any }>;
-}
+const pageActions = computed(() => [
+  {
+    label: '新建供应商',
+    type: 'primary' as const,
+    icon: Plus,
+    onClick: handleAdd,
+  },
+]);
 
-const allFieldDefs: FilterFieldDef[] = [
-  { key: 'supplierCode', label: '供应商编码', type: 'input' },
-  { key: 'supplierName', label: '供应商名称', type: 'input' },
-  { key: 'contactPerson', label: '联系人', type: 'input' },
-  { key: 'contactPhone', label: '联系电话', type: 'input' },
+const filterFields = [
+  { key: 'supplierCode', label: '供应商编码', type: 'input' as const },
+  { key: 'supplierName', label: '供应商名称', type: 'input' as const },
+  { key: 'contactPerson', label: '联系人', type: 'input' as const },
+  { key: 'contactPhone', label: '联系电话', type: 'input' as const },
 ];
 
 const queryForm = reactive<SupplierQuery>({
