@@ -895,6 +895,69 @@
       },
       "searchPlaceholder": "搜索供应商名称..."
     },
+    "location": {
+      "listTitle": "WMS0050 库区管理",
+      "listDescription": "管理仓库下的库区区域，包括存储区、拣货区等",
+      "add": "新建库区",
+      "export": "导出",
+      "batchDeleteConfirm": "确认删除选中的库区记录吗？",
+      "deleteConfirm": "确认删除该库区记录吗？",
+      "filter": {
+        "locationCode": "库区编码",
+        "locationName": "库区名称",
+        "warehouseId": "所属仓库",
+        "locationType": "库区类型"
+      },
+      "columns": {
+        "locationCode": "库区编码",
+        "locationName": "库区名称",
+        "warehouseName": "所属仓库",
+        "locationType": "库区类型",
+        "createTime": "创建时间"
+      },
+      "status": {
+        "all": "全部状态",
+        "enabled": "启用",
+        "disabled": "停用"
+      },
+      "stats": {
+        "total": "库区总数",
+        "enabled": "已启用",
+        "disabled": "已停用",
+        "storageArea": "存储区"
+      },
+      "messages": {
+        "loadFail": "库区列表加载失败",
+        "deleteSuccess": "删除成功",
+        "deleteFail": "删除失败",
+        "selectToDelete": "请先选择要删除的记录",
+        "batchDeleteFail": "批量删除失败",
+        "enableSuccess": "启用成功",
+        "disableSuccess": "停用成功",
+        "statusToggleFail": "状态切换失败",
+        "exportSuccess": "导出成功",
+        "exportFail": "导出失败"
+      },
+      "locationType": {
+        "STORAGE": "存储区",
+        "PICK": "拣货区",
+        "COLLECT": "集货区",
+        "RETURN": "退货区"
+      },
+      "searchPlaceholder": "搜索库区名称...",
+      "locationCodePlaceholder": "请输入库区编码",
+      "locationNamePlaceholder": "请输入库区名称",
+      "warehouseIdPlaceholder": "请选择所属仓库",
+      "locationTypePlaceholder": "请选择库区类型",
+      "addTitle": "新建库区",
+      "editTitle": "编辑库区",
+      "loadDetailFailed": "加载库区详情失败",
+      "loadFail": "加载库区列表失败",
+      "locationCodeRequired": "请输入库区编码",
+      "locationNameRequired": "请输入库区名称",
+      "warehouseIdRequired": "请选择所属仓库",
+      "locationTypeRequired": "请选择库区类型"
+    },
     "material": {
       "listTitle": "WMS0030 物料管理",
       "listDescription": "管理物料基本信息、规格、单位、分类等",
@@ -1058,69 +1121,6 @@
       "storageTypeRequired": "请选择货位类型",
       "capacityPlaceholder": "请输入容量"
     },
-    "location": {
-      "listTitle": "WMS0050 库区管理",
-      "listDescription": "管理仓库下的库区区域，包括存储区、拣货区等",
-      "add": "新建库区",
-      "export": "导出",
-      "batchDeleteConfirm": "确认删除选中的库区记录吗？",
-      "deleteConfirm": "确认删除该库区记录吗？",
-      "filter": {
-        "locationCode": "库区编码",
-        "locationName": "库区名称",
-        "warehouseId": "所属仓库",
-        "locationType": "库区类型"
-      },
-      "columns": {
-        "locationCode": "库区编码",
-        "locationName": "库区名称",
-        "warehouseName": "所属仓库",
-        "locationType": "库区类型",
-        "createTime": "创建时间"
-      },
-      "status": {
-        "all": "全部状态",
-        "enabled": "启用",
-        "disabled": "停用"
-      },
-      "stats": {
-        "total": "库区总数",
-        "enabled": "已启用",
-        "disabled": "已停用",
-        "storageArea": "存储区"
-      },
-      "messages": {
-        "loadFail": "库区列表加载失败",
-        "deleteSuccess": "删除成功",
-        "deleteFail": "删除失败",
-        "selectToDelete": "请先选择要删除的记录",
-        "batchDeleteFail": "批量删除失败",
-        "enableSuccess": "启用成功",
-        "disableSuccess": "停用成功",
-        "statusToggleFail": "状态切换失败",
-        "exportSuccess": "导出成功",
-        "exportFail": "导出失败"
-      },
-      "locationType": {
-        "STORAGE": "存储区",
-        "PICK": "拣货区",
-        "COLLECT": "集货区",
-        "RETURN": "退货区"
-      },
-      "searchPlaceholder": "搜索库区名称...",
-      "locationCodePlaceholder": "请输入库区编码",
-      "locationNamePlaceholder": "请输入库区名称",
-      "warehouseIdPlaceholder": "请选择所属仓库",
-      "locationTypePlaceholder": "请选择库区类型",
-      "addTitle": "新建库区",
-      "editTitle": "编辑库区",
-      "loadDetailFailed": "加载库区详情失败",
-      "loadFail": "加载库区列表失败",
-      "locationCodeRequired": "请输入库区编码",
-      "locationNameRequired": "请输入库区名称",
-      "warehouseIdRequired": "请选择所属仓库",
-      "locationTypeRequired": "请选择库区类型"
-    },
     "dict": {
       "listTitle": "WMS0070 字典管理",
       "listDescription": "管理系统字典类型和字典数据，支持增删改查和状态管理",
@@ -1181,7 +1181,12 @@
         "exportSuccess": "导出成功",
         "exportFail": "导出失败"
       },
-      "searchPlaceholder": "搜索字典标签..."
+      "searchPlaceholder": "搜索字典标签...",
+      "tabs": {
+        "type": "字典类型",
+        "data": "字典数据"
+      },
+      "exportFileName": "字典档案"
     },
     "user": {
       "listTitle": "WMS0080 用户管理",
@@ -1228,7 +1233,8 @@
         "statusToggleFail": "状态切换失败",
         "exportSuccess": "导出成功",
         "exportFail": "导出失败"
-      }
+      },
+      "searchPlaceholder": "搜索用户账号..."
     }
   }
 }

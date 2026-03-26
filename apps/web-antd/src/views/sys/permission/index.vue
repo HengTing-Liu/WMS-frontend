@@ -48,10 +48,10 @@
       </template>
     </Grid>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- Add/Edit Modal -->
     <PermissionModal ref="modalRef" @success="handleReload" />
 
-    <!-- 分配权限抽屉 -->
+    <!-- Assign Permission Drawer -->
     <PermissionDrawer ref="drawerRef" @success="handleReload" />
   </Page>
 </template>
@@ -159,7 +159,7 @@ const handleAdd = () => modalRef.value?.open();
 const handleEdit = (row: any) => modalRef.value?.open(row);
 const handleReload = () => gridApi.reload();
 
-// 修改状态
+// Change status
 const handleChangeStatus = async (row: any) => {
   const nextStatus = row.isEnabled === 1 ? 0 : 1;
   Modal.confirm({
@@ -180,12 +180,12 @@ const handleChangeStatus = async (row: any) => {
   });
 };
 
-// 分配权限
+// Assign permissions
 const handleAssign = (row: any) => {
   drawerRef.value?.open(row);
 };
 
-// 删除
+// Delete
 const handleDelete = async (row: any) => {
   Modal.confirm({
     title: $t('page.common.confirmDelete'),
@@ -198,7 +198,7 @@ const handleDelete = async (row: any) => {
   });
 };
 
-// 导出
+// Export
 async function handleExport() {
   try {
     const formValues = gridApi.formValues || {};

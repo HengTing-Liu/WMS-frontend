@@ -553,7 +553,8 @@
     "totalRecords": "{total} records",
     "pleaseSelect": "Please select",
     "sysTip": "System Prompt",
-    "remarkPlaceholder": "Please enter remark"
+    "remarkPlaceholder": "Please enter remark",
+    "total": "{total} records"
   },
   "message": {
     "operationSuccess": "Operation successful",
@@ -803,6 +804,69 @@
       },
       "searchPlaceholder": "Search supplier name..."
     },
+    "location": {
+      "listTitle": "WMS0050 Location Area Management",
+      "listDescription": "Manage warehouse location areas including storage, picking, etc.",
+      "add": "New Location",
+      "export": "Export",
+      "batchDeleteConfirm": "Confirm deleting selected location records?",
+      "deleteConfirm": "Confirm deleting this location record?",
+      "filter": {
+        "locationCode": "Location Code",
+        "locationName": "Location Name",
+        "warehouseId": "Warehouse",
+        "locationType": "Location Type"
+      },
+      "columns": {
+        "locationCode": "Location Code",
+        "locationName": "Location Name",
+        "warehouseName": "Warehouse",
+        "locationType": "Location Type",
+        "createTime": "Created At"
+      },
+      "status": {
+        "all": "All Status",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "stats": {
+        "total": "Total Locations",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "storageArea": "Storage Area"
+      },
+      "messages": {
+        "loadFail": "Failed to load location list",
+        "deleteSuccess": "Deleted successfully",
+        "deleteFail": "Delete failed",
+        "selectToDelete": "Please select records to delete first",
+        "batchDeleteFail": "Batch delete failed",
+        "enableSuccess": "Enabled successfully",
+        "disableSuccess": "Disabled successfully",
+        "statusToggleFail": "Failed to toggle status",
+        "exportSuccess": "Exported successfully",
+        "exportFail": "Export failed"
+      },
+      "locationType": {
+        "STORAGE": "Storage Area",
+        "PICK": "Pick Area",
+        "COLLECT": "Collect Area",
+        "RETURN": "Return Area"
+      },
+      "searchPlaceholder": "Search location name...",
+      "locationCodePlaceholder": "Please enter location code",
+      "locationNamePlaceholder": "Please enter location name",
+      "warehouseIdPlaceholder": "Please select warehouse",
+      "locationTypePlaceholder": "Please select location type",
+      "addTitle": "Add Location",
+      "editTitle": "Edit Location",
+      "loadDetailFailed": "Failed to load location details",
+      "loadFail": "Failed to load location list",
+      "locationCodeRequired": "Please enter location code",
+      "locationNameRequired": "Please enter location name",
+      "warehouseIdRequired": "Please select warehouse",
+      "locationTypeRequired": "Please select location type"
+    },
     "material": {
       "listTitle": "WMS0030 Material Management",
       "listDescription": "Manage material basic info, specifications, units, categories, etc.",
@@ -966,69 +1030,6 @@
       "storageTypeRequired": "Please select storage type",
       "capacityPlaceholder": "Please enter capacity"
     },
-    "location": {
-      "listTitle": "WMS0050 Location Area Management",
-      "listDescription": "Manage warehouse location areas including storage, picking, etc.",
-      "add": "New Location",
-      "export": "Export",
-      "batchDeleteConfirm": "Confirm deleting selected location records?",
-      "deleteConfirm": "Confirm deleting this location record?",
-      "filter": {
-        "locationCode": "Location Code",
-        "locationName": "Location Name",
-        "warehouseId": "Warehouse",
-        "locationType": "Location Type"
-      },
-      "columns": {
-        "locationCode": "Location Code",
-        "locationName": "Location Name",
-        "warehouseName": "Warehouse",
-        "locationType": "Location Type",
-        "createTime": "Created At"
-      },
-      "status": {
-        "all": "All Status",
-        "enabled": "Enabled",
-        "disabled": "Disabled"
-      },
-      "stats": {
-        "total": "Total Locations",
-        "enabled": "Enabled",
-        "disabled": "Disabled",
-        "storageArea": "Storage Area"
-      },
-      "messages": {
-        "loadFail": "Failed to load location list",
-        "deleteSuccess": "Deleted successfully",
-        "deleteFail": "Delete failed",
-        "selectToDelete": "Please select records to delete first",
-        "batchDeleteFail": "Batch delete failed",
-        "enableSuccess": "Enabled successfully",
-        "disableSuccess": "Disabled successfully",
-        "statusToggleFail": "Failed to toggle status",
-        "exportSuccess": "Exported successfully",
-        "exportFail": "Export failed"
-      },
-      "locationType": {
-        "STORAGE": "Storage Area",
-        "PICK": "Pick Area",
-        "COLLECT": "Collect Area",
-        "RETURN": "Return Area"
-      },
-      "searchPlaceholder": "Search location name...",
-      "locationCodePlaceholder": "Please enter location code",
-      "locationNamePlaceholder": "Please enter location name",
-      "warehouseIdPlaceholder": "Please select warehouse",
-      "locationTypePlaceholder": "Please select location type",
-      "addTitle": "Add Location",
-      "editTitle": "Edit Location",
-      "loadDetailFailed": "Failed to load location details",
-      "loadFail": "Failed to load location list",
-      "locationCodeRequired": "Please enter location code",
-      "locationNameRequired": "Please enter location name",
-      "warehouseIdRequired": "Please select warehouse",
-      "locationTypeRequired": "Please select location type"
-    },
     "dict": {
       "listTitle": "WMS0070 Dictionary Management",
       "listDescription": "Manage system dictionary types and data, support CRUD and status management",
@@ -1089,7 +1090,12 @@
         "exportSuccess": "Exported successfully",
         "exportFail": "Export failed"
       },
-      "searchPlaceholder": "Search dict label..."
+      "searchPlaceholder": "Search dict label...",
+      "tabs": {
+        "type": "Dict Types",
+        "data": "Dict Data"
+      },
+      "exportFileName": "Dictionary Records"
     },
     "user": {
       "listTitle": "WMS0080 User Management",
@@ -1136,7 +1142,8 @@
         "statusToggleFail": "Failed to toggle status",
         "exportSuccess": "Exported successfully",
         "exportFail": "Export failed"
-      }
+      },
+      "searchPlaceholder": "Search by username..."
     }
   }
 }

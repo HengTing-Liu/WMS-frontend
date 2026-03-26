@@ -137,7 +137,7 @@ const formData = reactive<Record<string, any>>({
   remark: '',
 });
 
-// 加载详情
+// Load detail
 const loadDetail = async (id: number) => {
   try {
     const res = await getMaterialDetail(id);
@@ -147,7 +147,7 @@ const loadDetail = async (id: number) => {
   }
 };
 
-// 打开弹窗时加载数据
+// Load data when opening modal
 const open = async (id?: number) => {
   visible.value = true;
   resetForm();
@@ -156,7 +156,7 @@ const open = async (id?: number) => {
   }
 };
 
-// 提交
+// Submit
 const handleSubmit = async () => {
   try {
     await formRef.value?.validate();
@@ -173,20 +173,20 @@ const handleSubmit = async () => {
     visible.value = false;
     emit('success');
   } catch (error) {
-    // 表单验证失败或请求失败
+    // Form validation failed or request error
   } finally {
     loading.value = false;
   }
 };
 
-// 取消
+// Cancel
 const handleCancel = () => {
   visible.value = false;
   resetForm();
   emit('cancel');
 };
 
-// 重置表单
+// Reset form
 const resetForm = () => {
   formData.id = undefined;
   formData.materialCode = '';
@@ -199,7 +199,7 @@ const resetForm = () => {
   formRef.value?.resetFields();
 };
 
-// 暴露方法
+// Expose methods
 defineExpose({
   open,
 });

@@ -4,13 +4,13 @@
       <!-- Page Header -->
       <div class="page-header">
         <div class="header-left">
-          <h1 class="page-title">WMS0080 用户管理</h1>
-          <p class="page-desc">管理系统用户基本信息、角色分配等</p>
+          <h1 class="page-title">{{ $t('page.wms.user.listTitle') }}</h1>
+          <p class="page-desc">{{ $t('page.wms.user.listDescription') }}</p>
         </div>
         <div class="header-right">
           <Button type="primary" @click="handleAdd">
             <template #icon><Plus /></template>
-            新建用户
+            {{ $t('page.wms.user.add') }}
           </Button>
         </div>
       </div>
@@ -23,7 +23,7 @@
             <Input
               v-model:value="queryForm.user_name"
               allow-clear
-              placeholder="搜索用户账号..."
+              :placeholder="$t('page.wms.user.filter.userName')"
               class="search-input"
               @press-enter="handleSearch"
             />
@@ -32,7 +32,7 @@
             <Input
               v-model:value="queryForm.nick_name"
               allow-clear
-              placeholder="搜索用户姓名..."
+              :placeholder="$t('page.wms.user.filter.nickName')"
               class="search-input"
               @press-enter="handleSearch"
             />
@@ -41,7 +41,7 @@
             <Input
               v-model:value="queryForm.phonenumber"
               allow-clear
-              placeholder="搜索手机号..."
+              :placeholder="$t('page.wms.user.filter.phonenumber')"
               class="search-input"
               @press-enter="handleSearch"
             />
@@ -49,18 +49,18 @@
           <Select
             v-model:value="queryForm.status"
             allow-clear
-            placeholder="全部状态"
+            :placeholder="$t('page.wms.user.status.all')"
             class="status-select"
             :options="statusFilterOptions"
             @change="handleSearch"
           />
           <Button type="primary" @click="handleSearch">
             <template #icon><Search /></template>
-            查询
+            {{ $t('page.common.search') }}
           </Button>
           <Button @click="handleReset">
             <template #icon><RotateCcw /></template>
-            重置
+            {{ $t('page.common.reset') }}
           </Button>
         </div>
       </Card>
@@ -73,7 +73,7 @@
               <Users />
             </div>
             <div class="stat-info">
-              <p class="stat-label">用户总数</p>
+              <p class="stat-label">{{ $t('page.wms.user.stats.total') }}</p>
               <p class="stat-value">{{ pagination.total }}</p>
             </div>
           </div>
@@ -84,7 +84,7 @@
               <Power />
             </div>
             <div class="stat-info">
-              <p class="stat-label">已启用</p>
+              <p class="stat-label">{{ $t('page.wms.user.stats.enabled') }}</p>
               <p class="stat-value">{{ enabledCount }}</p>
             </div>
           </div>
@@ -95,7 +95,7 @@
               <Ban />
             </div>
             <div class="stat-info">
-              <p class="stat-label">已停用</p>
+              <p class="stat-label">{{ $t('page.wms.user.stats.disabled') }}</p>
               <p class="stat-value">{{ disabledCount }}</p>
             </div>
           </div>
@@ -106,7 +106,7 @@
               <Smartphone />
             </div>
             <div class="stat-info">
-              <p class="stat-label">已绑定手机</p>
+              <p class="stat-label">{{ $t('page.wms.user.stats.hasMobile') }}</p>
               <p class="stat-value">{{ hasMobileCount }}</p>
             </div>
           </div>
@@ -118,17 +118,19 @@
         <div class="toolbar">
           <Space wrap>
             <Popconfirm
-              title="确认删除选中的用户记录吗？"
-              ok-text="确定"
-              cancel-text="取消"
+              :title="$t('page.wms.user.batchDeleteConfirm')"
+              :ok-text="$t('page.common.confirm')"
+              :cancel-text="$t('page.common.cancel')"
               @confirm="handleBatchDelete"
             >
-              <Button danger :disabled="selectedRowKeys.length === 0">删除</Button>
+              <Button danger :disabled="selectedRowKeys.length === 0">
+                {{ $t('page.common.delete') }}
+              </Button>
             </Popconfirm>
           </Space>
           <Button :loading="exporting" @click="handleExport">
             <template #icon><Download /></template>
-            导出
+            {{ $t('page.wms.user.export') }}
           </Button>
         </div>
 
@@ -148,7 +150,7 @@
             </template>
             <template v-else-if="column.key === 'status'">
               <Tag :color="record.status === '0' ? 'green' : 'red'">
-                {{ record.status === '0' ? '正常' : '停用' }}
+                {{ $t(record.status === '0' ? 'page.wms.user.status.normal' : 'page.wms.user.status.disabled') }}
               </Tag>
             </template>
             <template v-else-if="column.key === 'action'">
@@ -158,22 +160,24 @@
                   size="small"
                   @click="handleEdit(record)"
                 >
-                  编辑
+                  {{ $t('page.common.edit') }}
                 </Button>
                 <Button
                   type="link"
                   size="small"
                   @click="handleAssignRole(record)"
                 >
-                  分配角色
+                  {{ $t('page.wms.user.assignRole') }}
                 </Button>
                 <Popconfirm
-                  title="确认删除该用户记录吗？"
-                  ok-text="确定"
-                  cancel-text="取消"
+                  :title="$t('page.wms.user.deleteConfirm')"
+                  :ok-text="$t('page.common.confirm')"
+                  :cancel-text="$t('page.common.cancel')"
                   @confirm="handleDelete(record)"
                 >
-                  <Button type="link" danger size="small">删除</Button>
+                  <Button type="link" danger size="small">
+                    {{ $t('page.common.delete') }}
+                  </Button>
                 </Popconfirm>
               </Space>
             </template>
@@ -203,6 +207,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { Page } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 import {
   Plus,
   Search,
@@ -259,11 +264,11 @@ const queryForm = reactive<SysUserQuery & Record<string, any>>({
   dept_id: undefined,
 });
 
-const statusFilterOptions = [
-  { label: '全部状态', value: undefined },
-  { label: '正常', value: '0' },
-  { label: '停用', value: '1' },
-];
+const statusFilterOptions = computed(() => [
+  { label: $t('page.wms.user.status.all'), value: undefined },
+  { label: $t('page.wms.user.status.normal'), value: '0' },
+  { label: $t('page.wms.user.status.disabled'), value: '1' },
+]);
 
 const enabledCount = computed(() =>
   tableData.value.filter((item) => item.status === '0').length
@@ -280,21 +285,21 @@ const paginationConfig = reactive<TablePaginationConfig>({
   pageSize: 10,
   total: 0,
   showSizeChanger: true,
-  showTotal: (total) => `共 ${total} 条`,
+  showTotal: (total) => $t('page.common.total', { total }),
 });
 
 const columns = computed<TableColumnsType<SysUserResult>>(() => [
-  { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${((paginationConfig.current || 1) - 1) * (paginationConfig.pageSize || 10) + index + 1}` },
-  { title: '用户编号', dataIndex: 'user_id', key: 'user_id', width: 100 },
-  { title: '用户名', dataIndex: 'user_name', key: 'user_name', width: 120 },
-  { title: '用户姓名', dataIndex: 'nick_name', key: 'nick_name', width: 120 },
-  { title: '手机', dataIndex: 'phonenumber', key: 'phonenumber', width: 130 },
-  { title: '邮箱', dataIndex: 'email', key: 'email', width: 180 },
-  { title: '部门', dataIndex: 'dept_name', key: 'dept_name', width: 140 },
-  { title: '角色', dataIndex: 'role_names', key: 'role_names', width: 160, ellipsis: true },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 90 },
-  { title: '创建时间', dataIndex: 'create_time', key: 'create_time', width: 180 },
-  { title: '操作', key: 'action', fixed: 'right', width: 180 },
+  { title: $t('page.common.seq'), key: 'index', width: 70, customRender: ({ index }) => `${((paginationConfig.current || 1) - 1) * (paginationConfig.pageSize || 10) + index + 1}` },
+  { title: $t('page.wms.user.columns.userId'), dataIndex: 'user_id', key: 'user_id', width: 100 },
+  { title: $t('page.wms.user.columns.userName'), dataIndex: 'user_name', key: 'user_name', width: 120 },
+  { title: $t('page.wms.user.columns.nickName'), dataIndex: 'nick_name', key: 'nick_name', width: 120 },
+  { title: $t('page.wms.user.columns.phonenumber'), dataIndex: 'phonenumber', key: 'phonenumber', width: 130 },
+  { title: $t('page.wms.user.columns.email'), dataIndex: 'email', key: 'email', width: 180 },
+  { title: $t('page.wms.user.columns.deptName'), dataIndex: 'dept_name', key: 'dept_name', width: 140 },
+  { title: $t('page.wms.user.columns.roleNames'), dataIndex: 'role_names', key: 'role_names', width: 160, ellipsis: true },
+  { title: $t('page.common.status'), dataIndex: 'status', key: 'status', width: 90 },
+  { title: $t('page.wms.user.columns.createTime'), dataIndex: 'create_time', key: 'create_time', width: 180 },
+  { title: $t('page.common.operation'), key: 'action', fixed: 'right', width: 180 },
 ]);
 
 const rowSelection = computed(() => ({
@@ -327,7 +332,7 @@ async function loadData() {
   } catch (error: any) {
     tableData.value = [];
     paginationConfig.total = 0;
-    message.error(error?.message || '用户列表加载失败');
+    message.error($t('page.wms.user.messages.loadFail'));
   } finally {
     loading.value = false;
   }
@@ -373,7 +378,7 @@ function handleAssignRole(record: SysUserResult) {
 async function handleDelete(record: SysUserResult) {
   try {
     await deleteUser(record.user_id!);
-    message.success('删除成功');
+    message.success($t('page.wms.user.messages.deleteSuccess'));
     if (tableData.value.length === 1 && (paginationConfig.current || 1) > 1) {
       paginationConfig.current = (paginationConfig.current || 1) - 1;
     }
@@ -382,24 +387,24 @@ async function handleDelete(record: SysUserResult) {
     );
     await loadData();
   } catch (error: any) {
-    message.error(error?.message || '删除失败');
+    message.error($t('page.wms.user.messages.deleteFail'));
   }
 }
 
 async function handleBatchDelete() {
   if (selectedRowKeys.value.length === 0) {
-    message.warning('请先选择要删除的记录');
+    message.warning($t('page.wms.user.messages.selectToDelete'));
     return;
   }
   try {
     const ids = selectedRowKeys.value.map((id) => Number(id));
     await batchDeleteUser(ids);
-    message.success('删除成功');
+    message.success($t('page.wms.user.messages.deleteSuccess'));
     selectedRowKeys.value = [];
     paginationConfig.current = 1;
     await loadData();
   } catch (error: any) {
-    message.error(error?.message || '批量删除失败');
+    message.error($t('page.wms.user.messages.batchDeleteFail'));
   }
 }
 
@@ -410,14 +415,14 @@ async function handleExport() {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `用户管理_${Date.now()}.xlsx`;
+    link.download = `${$t('page.wms.user.listTitle')}_${Date.now()}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    message.success('导出成功');
+    message.success($t('page.wms.user.messages.exportSuccess'));
   } catch (error: any) {
-    message.error(error?.message || '导出失败');
+    message.error($t('page.wms.user.messages.exportFail'));
   } finally {
     exporting.value = false;
   }

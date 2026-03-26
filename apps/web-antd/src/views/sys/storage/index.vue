@@ -204,7 +204,7 @@ const pagination = reactive<TablePaginationConfig>({
   pageSize: 10,
   total: 0,
   showSizeChanger: true,
-  showTotal: (total) => $t('page.wms.table.totalRecords', { total }),
+  showTotal: (total) => $t('page.common.totalRecords', { total }),
 });
 
 const columns = computed<TableColumnsType<StorageResult>>(() => [

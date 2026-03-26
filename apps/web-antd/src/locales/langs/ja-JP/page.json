@@ -516,7 +516,8 @@
     "saveFail": "保存に失敗しました",
     "requiredFieldsHint": "必須項目を入力してください",
     "totalRecords": "{total} 件",
-    "pleaseSelect": "選択してください"
+    "pleaseSelect": "選択してください",
+    "total": "{total} 件"
   },
   "message": {
     "operationSuccess": "操作が成功しました",
@@ -717,6 +718,68 @@
     },
     "table": {
       "totalRecords": "{total} 件"
+    },
+    "location": {
+      "listTitle": "WMS0060 ロケーションマネジメント",
+      "listDescription": "ロケーションの基本情報、倉庫、タイプなどを管理",
+      "add": "新規ロケーション",
+      "export": "エクスポート",
+      "exportFileName": "ロケーションアーカイブ",
+      "batchDeleteConfirm": "選択したロケーション記録を削除してもよろしいですか？",
+      "deleteConfirm": "このロケーション記録を削除してもよろしいですか？",
+      "filter": {
+        "locationCode": "ロケーションコード",
+        "locationName": "ロケーション名",
+        "warehouseId": "倉庫",
+        "locationType": "ロケーションタイプ"
+      },
+      "columns": {
+        "locationCode": "ロケーションコード",
+        "locationName": "ロケーション名",
+        "warehouseName": "倉庫",
+        "locationType": "ロケーションタイプ",
+        "createTime": "作成時間"
+      },
+      "status": {
+        "all": "すべてのステータス",
+        "enabled": "有効",
+        "disabled": "無効"
+      },
+      "stats": {
+        "total": "ロケーション総数",
+        "enabled": "有効",
+        "disabled": "無効",
+        "storageArea": "ストレージエリア"
+      },
+      "messages": {
+        "loadFail": "ロケーションリストの読み込みに失敗しました",
+        "deleteSuccess": "削除成功",
+        "deleteFail": "削除失敗",
+        "selectToDelete": "削除する記録を先に選択してください",
+        "batchDeleteFail": "一括削除失敗",
+        "enableSuccess": "有効化成功",
+        "disableSuccess": "無効化成功",
+        "statusToggleFail": "ステータス切替失敗",
+        "exportSuccess": "エクスポート成功",
+        "exportFail": "エクスポート失敗"
+      },
+      "searchPlaceholder": "ロケーション名を検索...",
+      "locationType": {
+        "STORAGE": "ストレージ",
+        "PICK": "ピック",
+        "COLLECT": "コレクション",
+        "RETURN": "リターン"
+      }
+    },
+    "user": {
+      "searchPlaceholder": "ユーザー名で検索..."
+    },
+    "dict": {
+      "tabs": {
+        "type": "辞書タイプ",
+        "data": "辞書のデータ"
+      },
+      "exportFileName": "辞書アーカイブ"
     }
   }
 }

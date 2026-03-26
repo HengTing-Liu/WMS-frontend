@@ -1,7 +1,7 @@
 <template>
   <WmsPageLayout
-    title="WMS0070 字典管理"
-    description="管理系统字典类型和字典数据，支持增删改查和状态管理"
+    :title="$t('page.wms.dict.listTitle')"
+    :description="$t('page.wms.dict.listDescription')"
     :actions="pageActions"
   >
     <template #stats>
@@ -23,7 +23,7 @@
         <template #actions>
           <Button :loading="exporting" @click="handleExport">
             <template #icon><Download /></template>
-            导出
+            {{ $t('page.wms.dict.export') }}
           </Button>
         </template>
       </WmsFilterBar>
@@ -43,12 +43,12 @@
         <template #toolbar>
           <Space wrap>
             <Popconfirm
-              :title="activeTab === 'type' ? '确认删除选中的字典类型吗？' : '确认删除选中的字典数据吗？'"
-              ok-text="确定"
-              cancel-text="取消"
+              :title="activeTab === 'type' ? $t('page.wms.dict.batchDeleteTypeConfirm') : $t('page.wms.dict.batchDeleteDataConfirm')"
+              :ok-text="$t('page.common.confirm')"
+              :cancel-text="$t('page.common.cancel')"
               @confirm="handleBatchDelete"
             >
-              <Button danger :disabled="activeSelectedRowKeys.length === 0">删除</Button>
+              <Button danger :disabled="activeSelectedRowKeys.length === 0">{{ $t('page.common.delete') }}</Button>
             </Popconfirm>
           </Space>
         </template>
@@ -60,8 +60,8 @@
           <template v-else-if="column.key === 'isEnabled'">
             <Switch
               :checked="record.isEnabled === 1"
-              checked-children="启用"
-              un-checked-children="停用"
+              :checked-children="$t('page.wms.dict.status.enabled')"
+              :un-checked-children="$t('page.wms.dict.status.disabled')"
               @change="(checked: any) => handleToggleStatus(record, checked as boolean)"
             />
           </template>
@@ -70,14 +70,18 @@
           </template>
           <template v-else-if="column.key === 'action'">
             <Space>
-              <Button type="link" size="small" @click="handleEdit(record)">编辑</Button>
+              <Button type="link" size="small" @click="handleEdit(record)">
+                {{ $t('page.common.edit') }}
+              </Button>
               <Popconfirm
-                :title="activeTab === 'type' ? '确认删除该字典类型吗？' : '确认删除该字典数据吗？'"
-                ok-text="确定"
-                cancel-text="取消"
+                :title="activeTab === 'type' ? $t('page.wms.dict.deleteTypeConfirm') : $t('page.wms.dict.deleteDataConfirm')"
+                :ok-text="$t('page.common.confirm')"
+                :cancel-text="$t('page.common.cancel')"
                 @confirm="handleDelete(record)"
               >
-                <Button type="link" danger size="small">删除</Button>
+                <Button type="link" danger size="small">
+                  {{ $t('page.common.delete') }}
+                </Button>
               </Popconfirm>
             </Space>
           </template>
@@ -96,7 +100,7 @@
         <template #tab>
           <span class="tab-label">
             <BookTemplate :size="16" />
-            字典类型
+            {{ $t('page.wms.dict.tabs.type') }}
           </span>
         </template>
       </TabPane>
@@ -104,7 +108,7 @@
         <template #tab>
           <span class="tab-label">
             <List :size="16" />
-            字典数据
+            {{ $t('page.wms.dict.tabs.data') }}
           </span>
         </template>
       </TabPane>
@@ -134,6 +138,7 @@ import { BookTemplate, List, Plus, Download, Power, Ban, Star } from 'lucide-vue
 import { Button, Card, Popconfirm, Space, Switch, Tabs, TabPane, message } from 'ant-design-vue';
 import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
 import { computed, onMounted, reactive, ref } from 'vue';
+import { $t } from '@vben/locales';
 import {
   deleteDictData,
   deleteDictType,
@@ -172,7 +177,7 @@ const dictTypeOptions = ref<Array<{ label: string; value: string }>>([]);
 // ========== Page Actions ==========
 const pageActions = computed(() => [
   {
-    label: activeTab.value === 'type' ? '新建类型' : '新建数据',
+    label: activeTab.value === 'type' ? $t('page.wms.dict.addType') : $t('page.wms.dict.addData'),
     type: 'primary' as const,
     icon: Plus,
     onClick: () => {
@@ -201,7 +206,7 @@ const typePagination = reactive<TablePaginationConfig>({
   pageSize: 10,
   total: 0,
   showSizeChanger: true,
-  showTotal: (total) => `共 ${total} 条`,
+  showTotal: (total) => $t('page.common.total', { total }),
 });
 
 // ========== Data List State ==========
@@ -221,31 +226,31 @@ const dataPagination = reactive<TablePaginationConfig>({
   pageSize: 10,
   total: 0,
   showSizeChanger: true,
-  showTotal: (total) => `共 ${total} 条`,
+  showTotal: (total) => $t('page.common.total', { total }),
 });
 
 // ========== Filter Fields ==========
 const statusFilterOptions = [
-  { label: '全部状态', value: undefined },
-  { label: '启用', value: 1 },
-  { label: '停用', value: 0 },
+  { label: $t('page.wms.dict.status.all'), value: undefined },
+  { label: $t('page.wms.dict.status.enabled'), value: 1 },
+  { label: $t('page.wms.dict.status.disabled'), value: 0 },
 ];
 
 const typeFilterFields = [
-  { key: 'dictCode', label: '字典编码', type: 'input' as const },
-  { key: 'dictName', label: '字典名称', type: 'input' as const },
+  { key: 'dictCode', label: $t('page.wms.dict.filter.dictCode'), type: 'input' as const },
+  { key: 'dictName', label: $t('page.wms.dict.filter.dictName'), type: 'input' as const },
 ];
 
 const dataFilterFields = computed(() => [
-  { key: 'dictType', label: '所属类型', type: 'select' as const, options: dictTypeOptions.value },
-  { key: 'dictLabel', label: '字典标签', type: 'input' as const },
-  { key: 'dictValue', label: '字典值', type: 'input' as const },
+  { key: 'dictType', label: $t('page.wms.dict.filter.dictType'), type: 'select' as const, options: dictTypeOptions.value },
+  { key: 'dictLabel', label: $t('page.wms.dict.filter.dictLabel'), type: 'input' as const },
+  { key: 'dictValue', label: $t('page.wms.dict.filter.dictValue'), type: 'input' as const },
 ]);
 
 // ========== Active Tab Computeds ==========
 const activeQueryForm = computed(() => activeTab.value === 'type' ? queryTypeForm : queryDataForm);
 const activeSearchKey = computed(() => activeTab.value === 'type' ? 'dictName' : 'dictLabel');
-const activeSearchPlaceholder = computed(() => activeTab.value === 'type' ? '搜索字典名称...' : '搜索字典标签...');
+const activeSearchPlaceholder = computed(() => activeTab.value === 'type' ? $t('page.wms.dict.filter.dictName') : $t('page.wms.dict.filter.dictLabel'));
 const activeStorageKey = computed(() => activeTab.value === 'type' ? 'wms:filter:dict:type:activeFields' : 'wms:filter:dict:data:activeFields');
 const activeDefaultFieldKeys = computed(() => activeTab.value === 'type' ? ['dictCode', 'dictName'] : ['dictType', 'dictLabel']);
 const filterFields = computed(() => activeTab.value === 'type' ? typeFilterFields : dataFilterFields.value);
@@ -265,42 +270,42 @@ const dataTypeCount = computed(() => new Set(dataTableData.value.map((item) => i
 const statsCards = computed(() => {
   if (activeTab.value === 'type') {
     return [
-      { key: 'total', label: '字典类型', icon: BookTemplate, tone: 'blue' as const, value: typePagination.total || 0 },
-      { key: 'enabled', label: '已启用', icon: Power, tone: 'green' as const, value: typeEnabledCount.value },
-      { key: 'disabled', label: '已停用', icon: Ban, tone: 'orange' as const, value: typeDisabledCount.value },
-      { key: 'custom', label: '自定义类型', icon: Star, tone: 'purple' as const, value: typeCustomCount.value },
+      { key: 'total', label: $t('page.wms.dict.stats.type.total'), icon: BookTemplate, tone: 'blue' as const, value: typePagination.total || 0 },
+      { key: 'enabled', label: $t('page.wms.dict.stats.type.enabled'), icon: Power, tone: 'green' as const, value: typeEnabledCount.value },
+      { key: 'disabled', label: $t('page.wms.dict.stats.type.disabled'), icon: Ban, tone: 'orange' as const, value: typeDisabledCount.value },
+      { key: 'custom', label: $t('page.wms.dict.stats.type.customType'), icon: Star, tone: 'purple' as const, value: typeCustomCount.value },
     ];
   }
   return [
-    { key: 'total', label: '字典数据', icon: List, tone: 'blue' as const, value: dataPagination.total || 0 },
-    { key: 'enabled', label: '已启用', icon: Power, tone: 'green' as const, value: dataEnabledCount.value },
-    { key: 'disabled', label: '已停用', icon: Ban, tone: 'orange' as const, value: dataDisabledCount.value },
-    { key: 'type', label: '字典类型', icon: BookTemplate, tone: 'purple' as const, value: dataTypeCount.value },
+    { key: 'total', label: $t('page.wms.dict.stats.data.total'), icon: List, tone: 'blue' as const, value: dataPagination.total || 0 },
+    { key: 'enabled', label: $t('page.wms.dict.stats.data.enabled'), icon: Power, tone: 'green' as const, value: dataEnabledCount.value },
+    { key: 'disabled', label: $t('page.wms.dict.stats.data.disabled'), icon: Ban, tone: 'orange' as const, value: dataDisabledCount.value },
+    { key: 'type', label: $t('page.wms.dict.stats.data.type'), icon: BookTemplate, tone: 'purple' as const, value: dataTypeCount.value },
   ];
 });
 
 // ========== Columns ==========
 const typeColumns = computed<TableColumnsType<DictTypeResult>>(() => [
-  { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${((typePagination.current || 1) - 1) * (typePagination.pageSize || 10) + index + 1}` },
-  { title: '字典编码', dataIndex: 'dictCode', key: 'dictCode', width: 180 },
-  { title: '字典名称', dataIndex: 'dictName', key: 'dictName', width: 180 },
-  { title: '类型', dataIndex: 'dictType', key: 'dictType', width: 120 },
-  { title: '状态', dataIndex: 'isEnabled', key: 'isEnabled', width: 110 },
-  { title: '备注', dataIndex: 'remark', key: 'remark', width: 160 },
-  { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
-  { title: '操作', key: 'action', fixed: 'right', width: 140 },
+  { title: $t('page.common.seq'), key: 'index', width: 70, customRender: ({ index }) => `${((typePagination.current || 1) - 1) * (typePagination.pageSize || 10) + index + 1}` },
+  { title: $t('page.wms.dict.columns.dictCode'), dataIndex: 'dictCode', key: 'dictCode', width: 180 },
+  { title: $t('page.wms.dict.columns.dictName'), dataIndex: 'dictName', key: 'dictName', width: 180 },
+  { title: $t('page.wms.dict.columns.dictType'), dataIndex: 'dictType', key: 'dictType', width: 120 },
+  { title: $t('page.common.status'), dataIndex: 'isEnabled', key: 'isEnabled', width: 110 },
+  { title: $t('page.common.remark'), dataIndex: 'remark', key: 'remark', width: 160 },
+  { title: $t('page.common.createTime'), dataIndex: 'createTime', key: 'createTime', width: 180 },
+  { title: $t('page.common.operation'), key: 'action', fixed: 'right', width: 140 },
 ]);
 
 const dataColumns = computed<TableColumnsType<DictDataResult>>(() => [
-  { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${((dataPagination.current || 1) - 1) * (dataPagination.pageSize || 10) + index + 1}` },
-  { title: '所属类型', dataIndex: 'dictTypeName', key: 'dictTypeName', width: 160 },
-  { title: '字典标签', dataIndex: 'dictLabel', key: 'dictLabel', width: 160 },
-  { title: '字典值', dataIndex: 'dictValue', key: 'dictValue', width: 160 },
-  { title: '排序', dataIndex: 'sortOrder', key: 'sortOrder', width: 100 },
-  { title: '状态', dataIndex: 'isEnabled', key: 'isEnabled', width: 110 },
-  { title: '备注', dataIndex: 'remark', key: 'remark', width: 160 },
-  { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
-  { title: '操作', key: 'action', fixed: 'right', width: 140 },
+  { title: $t('page.common.seq'), key: 'index', width: 70, customRender: ({ index }) => `${((dataPagination.current || 1) - 1) * (dataPagination.pageSize || 10) + index + 1}` },
+  { title: $t('page.wms.dict.columns.dictTypeName'), dataIndex: 'dictTypeName', key: 'dictTypeName', width: 160 },
+  { title: $t('page.wms.dict.columns.dictLabel'), dataIndex: 'dictLabel', key: 'dictLabel', width: 160 },
+  { title: $t('page.wms.dict.columns.dictValue'), dataIndex: 'dictValue', key: 'dictValue', width: 160 },
+  { title: $t('page.wms.dict.columns.sortOrder'), dataIndex: 'sortOrder', key: 'sortOrder', width: 100 },
+  { title: $t('page.common.status'), dataIndex: 'isEnabled', key: 'isEnabled', width: 110 },
+  { title: $t('page.common.remark'), dataIndex: 'remark', key: 'remark', width: 160 },
+  { title: $t('page.common.createTime'), dataIndex: 'createTime', key: 'createTime', width: 180 },
+  { title: $t('page.common.operation'), key: 'action', fixed: 'right', width: 140 },
 ]);
 
 const activeColumns = computed(() => activeTab.value === 'type' ? typeColumns.value : dataColumns.value);
@@ -332,7 +337,7 @@ async function loadTypeData() {
   } catch (error: any) {
     typeTableData.value = [];
     typePagination.total = 0;
-    message.error(error?.message || '字典类型列表加载失败');
+    message.error($t('page.wms.dict.messages.loadTypeFail'));
   } finally {
     typeLoading.value = false;
   }
@@ -354,7 +359,7 @@ async function loadDataData() {
   } catch (error: any) {
     dataTableData.value = [];
     dataPagination.total = 0;
-    message.error(error?.message || '字典数据列表加载失败');
+    message.error($t('page.wms.dict.messages.loadDataFail'));
   } finally {
     dataLoading.value = false;
   }
@@ -404,40 +409,40 @@ function handleEditType(record: DictTypeResult) {
 async function handleDeleteType(record: DictTypeResult) {
   try {
     await deleteDictType(record.id!);
-    message.success('删除成功');
+    message.success($t('page.wms.dict.messages.deleteSuccess'));
     if (typeTableData.value.length === 1 && (typePagination.current || 1) > 1) {
       typePagination.current = (typePagination.current || 1) - 1;
     }
     selectedTypeRowKeys.value = selectedTypeRowKeys.value.filter((key) => key !== record.id);
     await loadTypeData();
   } catch (error: any) {
-    message.error(error?.message || '删除失败');
+    message.error($t('page.wms.dict.messages.deleteFail'));
   }
 }
 
 async function handleBatchDeleteType() {
   if (selectedTypeRowKeys.value.length === 0) {
-    message.warning('请先选择要删除的记录');
+    message.warning($t('page.wms.dict.messages.selectToDelete'));
     return;
   }
   try {
     await Promise.all(selectedTypeRowKeys.value.map((id) => deleteDictType(Number(id))));
-    message.success('删除成功');
+    message.success($t('page.wms.dict.messages.deleteSuccess'));
     selectedTypeRowKeys.value = [];
     typePagination.current = 1;
     await loadTypeData();
   } catch (error: any) {
-    message.error(error?.message || '批量删除失败');
+    message.error($t('page.wms.dict.messages.batchDeleteFail'));
   }
 }
 
 async function handleToggleTypeStatus(record: DictTypeResult, checked: boolean) {
   try {
     await toggleDictTypeStatus(record.id!, checked ? 1 : 0);
-    message.success(checked ? '启用成功' : '停用成功');
+    message.success(checked ? $t('page.wms.dict.messages.enableSuccess') : $t('page.wms.dict.messages.disableSuccess'));
     await loadTypeData();
   } catch (error: any) {
-    message.error(error?.message || '状态切换失败');
+    message.error($t('page.wms.dict.messages.statusToggleFail'));
     await loadTypeData();
   }
 }
@@ -460,40 +465,40 @@ function handleEditData(record: DictDataResult) {
 async function handleDeleteData(record: DictDataResult) {
   try {
     await deleteDictData(record.id!);
-    message.success('删除成功');
+    message.success($t('page.wms.dict.messages.deleteSuccess'));
     if (dataTableData.value.length === 1 && (dataPagination.current || 1) > 1) {
       dataPagination.current = (dataPagination.current || 1) - 1;
     }
     selectedDataRowKeys.value = selectedDataRowKeys.value.filter((key) => key !== record.id);
     await loadDataData();
   } catch (error: any) {
-    message.error(error?.message || '删除失败');
+    message.error($t('page.wms.dict.messages.deleteFail'));
   }
 }
 
 async function handleBatchDeleteData() {
   if (selectedDataRowKeys.value.length === 0) {
-    message.warning('请先选择要删除的记录');
+    message.warning($t('page.wms.dict.messages.selectToDelete'));
     return;
   }
   try {
     await Promise.all(selectedDataRowKeys.value.map((id) => deleteDictData(Number(id))));
-    message.success('删除成功');
+    message.success($t('page.wms.dict.messages.deleteSuccess'));
     selectedDataRowKeys.value = [];
     dataPagination.current = 1;
     await loadDataData();
   } catch (error: any) {
-    message.error(error?.message || '批量删除失败');
+    message.error($t('page.wms.dict.messages.batchDeleteFail'));
   }
 }
 
 async function handleToggleDataStatus(record: DictDataResult, checked: boolean) {
   try {
     await toggleDictDataStatus(record.id!, checked ? 1 : 0);
-    message.success(checked ? '启用成功' : '停用成功');
+    message.success(checked ? $t('page.wms.dict.messages.enableSuccess') : $t('page.wms.dict.messages.disableSuccess'));
     await loadDataData();
   } catch (error: any) {
-    message.error(error?.message || '状态切换失败');
+    message.error($t('page.wms.dict.messages.statusToggleFail'));
     await loadDataData();
   }
 }
@@ -554,14 +559,14 @@ async function handleExport() {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${activeTab.value === 'type' ? '字典类型' : '字典数据'}_${Date.now()}.xlsx`;
+    link.download = `${$t('page.wms.dict.exportFileName')}_${Date.now()}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    message.success('导出成功');
+    message.success($t('page.wms.dict.messages.exportSuccess'));
   } catch (error: any) {
-    message.error(error?.message || '导出失败');
+    message.error($t('page.wms.dict.messages.exportFail'));
   } finally {
     exporting.value = false;
   }
