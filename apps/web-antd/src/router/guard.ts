@@ -81,7 +81,7 @@ function setupAccessGuard(router: Router) {
       if (to.fullPath !== LOGIN_PATH) {
         return {
           path: LOGIN_PATH,
-          query: { redirect: encodeURIComponent(to.fullPath) },
+          query: { redirect: encodeURIComponent(to.query.redirect as string || to.path) },
           replace: true,
         };
       }
@@ -167,7 +167,7 @@ function setupAccessGuard(router: Router) {
         accessStore.setIsAccessChecked(false);
         return {
           path: LOGIN_PATH,
-          query: { redirect: encodeURIComponent(to.fullPath) },
+          query: { redirect: encodeURIComponent(to.query.redirect as string || to.path) },
           replace: true,
         };
       }
@@ -189,7 +189,7 @@ function setupAccessGuard(router: Router) {
         accessStore.setIsAccessChecked(false);
         return {
           path: LOGIN_PATH,
-          query: { redirect: encodeURIComponent(to.fullPath) },
+          query: { redirect: encodeURIComponent(to.query.redirect as string || to.path) },
           replace: true,
         };
       }
@@ -201,7 +201,7 @@ function setupAccessGuard(router: Router) {
         accessStore.setIsAccessChecked(false);
         return {
           path: LOGIN_PATH,
-          query: { redirect: encodeURIComponent(to.fullPath) },
+          query: { redirect: encodeURIComponent(to.query.redirect as string || to.path) },
           replace: true,
         };
       }
