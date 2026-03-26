@@ -1,149 +1,46 @@
 <template>
-  <Page auto-content-height>
-    <div class="wms-storage-page">
-      <!-- Page Header -->
-      <div class="page-header">
-        <div class="header-left">
-          <h1 class="page-title">WMS0060 货位管理</h1>
-          <p class="page-desc">管理库区下的具体存放位置（货架/货位）</p>
-        </div>
-        <div class="header-right">
-          <Button type="primary" @click="handleAdd">
-            <template #icon><Plus /></template>
-            新建货位
-          </Button>
-        </div>
-      </div>
+  <WmsPageLayout
+    title="WMS0060 货位管理"
+    description="管理库区下的具体存放位置（货架/货位）"
+    :actions="pageActions"
+  >
+    <template #stats>
+      <WmsStatsCards :items="statsCards" />
+    </template>
 
-      <!-- Search & Filter Bar -->
-      <Card class="filter-card" :bordered="false">
-        <div class="filter-bar">
-          <div class="search-input-wrap">
-            <Search class="search-icon" />
-            <Input
-              v-model:value="queryForm.storageName"
-              allow-clear
-              placeholder="搜索货位名称..."
-              class="search-input"
-              @press-enter="handleSearch"
-            />
-          </div>
-          <Select
-            v-model:value="queryForm.isEnabled"
-            allow-clear
-            placeholder="全部状态"
-            class="status-select"
-            :options="statusFilterOptions"
-            @change="handleSearch"
-          />
-          <!-- Persistent filter field tags -->
-          <div class="filter-tags-wrap">
-            <div
-              v-for="field in activeFilterFields"
-              :key="field.key"
-              class="filter-tag"
-            >
-              <span class="filter-tag-label">{{ field.label }}:</span>
-              <Select
-                v-if="field.type === 'select'"
-                v-model:value="queryForm[field.key as keyof StorageQuery]"
-                allow-clear
-                :placeholder="`请选择${field.label}`"
-                class="filter-tag-select"
-                :options="field.options"
-                @change="handleSearch"
-              />
-              <Input
-                v-else
-                v-model:value="queryForm[field.key as keyof StorageQuery]"
-                allow-clear
-                :placeholder="`请输入${field.label}`"
-                class="filter-tag-input"
-                @press-enter="handleSearch"
-              />
-              <X
-                class="filter-tag-close"
-                @click="removeFilterField(field.key)"
-              />
-            </div>
-          </div>
-          <!-- Add filter dropdown -->
-          <Dropdown v-if="availableFields.length > 0" trigger="click">
-            <Button>
-              <template #icon><Plus /></template>
-              添加筛选
-              <ChevronDown />
-            </Button>
-            <template #overlay>
-              <Menu>
-                <MenuItem
-                  v-for="item in availableFields"
-                  :key="item.key"
-                  @click="addFilterField(item.key)"
-                >
-                  {{ item.label }}
-                </MenuItem>
-              </Menu>
-            </template>
-          </Dropdown>
+    <template #filter>
+      <WmsFilterBar
+        :query="queryForm"
+        search-key="storageName"
+        search-placeholder="搜索货位名称..."
+        status-key="isEnabled"
+        :status-options="statusFilterOptions"
+        :fields="filterFields"
+        storage-key="storage_filter_fields"
+        :default-field-keys="['storageCode', 'storageName']"
+        @search="handleSearch"
+      >
+        <template #actions>
           <Button :loading="exporting" @click="handleExport">
             <template #icon><Download /></template>
             导出
           </Button>
-        </div>
-      </Card>
+        </template>
+      </WmsFilterBar>
+    </template>
 
-      <!-- Stats Cards -->
-      <div class="stats-row">
-        <Card class="stat-card stat-total" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-blue">
-              <Grid3x3 />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">货位总数</p>
-              <p class="stat-value">{{ pagination.total }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-enabled" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-green">
-              <Power />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">已启用</p>
-              <p class="stat-value">{{ enabledCount }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-disabled" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-orange">
-              <Ban />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">已停用</p>
-              <p class="stat-value">{{ disabledCount }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-capacity" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-purple">
-              <Package />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">总容量</p>
-              <p class="stat-value">{{ totalCapacity }}</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      <!-- Data Table -->
-      <Card :bordered="false" class="table-card">
-        <div class="toolbar">
+    <template #table>
+      <WmsDataTable
+        row-key="id"
+        :loading="loading"
+        :columns="columns"
+        :data-source="tableData"
+        :pagination="pagination"
+        :row-selection="rowSelection"
+        :scroll="{ x: 1400 }"
+        @change="handleTableChange"
+      >
+        <template #toolbar>
           <Space wrap>
             <Popconfirm
               title="确认删除选中的货位记录吗？"
@@ -154,95 +51,69 @@
               <Button danger :disabled="selectedRowKeys.length === 0">删除</Button>
             </Popconfirm>
           </Space>
-        </div>
+        </template>
 
-        <Table
-          row-key="id"
-          :loading="loading"
-          :columns="columns"
-          :data-source="tableData"
-          :pagination="pagination"
-          :row-selection="rowSelection"
-          :scroll="{ x: 1400 }"
-          @change="handleTableChange"
-        >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'storageType'">
-              {{ formatStorageType(record.storageType) }}
-            </template>
-            <template v-else-if="column.key === 'capacity'">
-              {{ record.capacity ?? '-' }}
-            </template>
-            <template v-else-if="column.key === 'isEnabled'">
-              <Switch
-                :checked="record.isEnabled === 1"
-                checked-children="启用"
-                un-checked-children="停用"
-                @change="(checked) => handleToggleStatus(record, checked)"
-              />
-            </template>
-            <template v-else-if="column.key === 'action'">
-              <Space>
-                <Button
-                  type="link"
-                  size="small"
-                  @click="handleEdit(record)"
-                >
-                  编辑
-                </Button>
-                <Popconfirm
-                  title="确认删除该货位记录吗？"
-                  ok-text="确定"
-                  cancel-text="取消"
-                  @confirm="handleDelete(record)"
-                >
-                  <Button type="link" danger size="small">删除</Button>
-                </Popconfirm>
-              </Space>
-            </template>
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'storageType'">
+            {{ formatStorageType(record.storageType) }}
           </template>
-        </Table>
-      </Card>
-    </div>
+          <template v-else-if="column.key === 'capacity'">
+            {{ record.capacity ?? '-' }}
+          </template>
+          <template v-else-if="column.key === 'isEnabled'">
+            <Switch
+              :checked="record.isEnabled === 1"
+              checked-children="启用"
+              un-checked-children="停用"
+              @change="(checked) => handleToggleStatus(record, checked)"
+            />
+          </template>
+          <template v-else-if="column.key === 'action'">
+            <Space>
+              <Button type="link" size="small" @click="handleEdit(record)">编辑</Button>
+              <Popconfirm
+                title="确认删除该货位记录吗？"
+                ok-text="确定"
+                cancel-text="取消"
+                @confirm="handleDelete(record)"
+              >
+                <Button type="link" danger size="small">删除</Button>
+              </Popconfirm>
+            </Space>
+          </template>
+          <template v-else>
+            {{ (record as any)[column.dataIndex as keyof StorageResult] ?? '-' }}
+          </template>
+        </template>
+      </WmsDataTable>
+    </template>
+  </WmsPageLayout>
 
-    <!-- Edit Modal -->
-    <StorageModal
-      ref="storageModalRef"
-      :storage-id="currentEditId"
-      v-model:open="modalVisible"
-      :warehouse-options="warehouseOptions"
-      :location-options="locationOptions"
-      @success="handleModalSuccess"
-    />
-  </Page>
+  <StorageModal
+    ref="storageModalRef"
+    :storage-id="currentEditId"
+    v-model:open="modalVisible"
+    :warehouse-options="warehouseOptions"
+    :location-options="locationOptions"
+    @success="handleModalSuccess"
+  />
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
-import { Page } from '@vben/common-ui';
 import {
   Plus,
-  Search,
   Download,
   Grid3x3,
   Power,
   Ban,
   Package,
-  ChevronDown,
-  X,
 } from 'lucide-vue-next';
 import {
   Button,
-  Card,
-  Dropdown,
-  Input,
-  Menu,
-  MenuItem,
   Popconfirm,
-  Select,
   Space,
   Switch,
-  Table,
   message,
 } from 'ant-design-vue';
 import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
@@ -256,10 +127,9 @@ import {
   type StorageQuery,
   type StorageResult,
 } from '#/api/sys/storage';
+import { WmsDataTable, WmsFilterBar, WmsPageLayout, WmsStatsCards } from '#/components/wms';
 
 import StorageModal from './components/storage-modal.vue';
-
-const STORAGE_KEY = 'storage_filter_fields';
 
 const loading = ref(false);
 const exporting = ref(false);
@@ -273,102 +143,22 @@ const storageModalRef = ref<InstanceType<typeof StorageModal>>();
 const warehouseOptions = ref<Array<{ label: string; value: number }>>([]);
 const locationOptions = ref<Array<{ label: string; value: number }>>([]);
 
-interface FilterFieldDef {
-  key: string;
-  label: string;
-  type: 'input' | 'select';
-  options?: Array<{ label: string; value: any }>;
-}
+const pageActions = computed(() => [
+  {
+    label: '新建货位',
+    type: 'primary' as const,
+    icon: Plus,
+    onClick: handleAdd,
+  },
+]);
 
-const allFieldDefs: FilterFieldDef[] = [
-  { key: 'storageCode', label: '货位编码', type: 'input' },
-  { key: 'storageName', label: '货位名称', type: 'input' },
-  { key: 'warehouseId', label: '所属仓库', type: 'select', options: [] },
-  { key: 'locationId', label: '所属库区', type: 'select', options: [] },
-  { key: 'storageType', label: '货位类型', type: 'select', options: [] },
+const filterFields = [
+  { key: 'storageCode', label: '货位编码', type: 'input' as const },
+  { key: 'storageName', label: '货位名称', type: 'input' as const },
+  { key: 'warehouseId', label: '所属仓库', type: 'select' as const, options: warehouseOptions },
+  { key: 'locationId', label: '所属库区', type: 'select' as const, options: locationOptions },
+  { key: 'storageType', label: '货位类型', type: 'select' as const, options: storageTypeOptions },
 ];
-
-// Active filter fields shown as tags in the search bar
-const activeFilterFields = ref<FilterFieldDef[]>([]);
-
-function loadFilterFields() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const keys: string[] = JSON.parse(saved);
-      activeFilterFields.value = keys
-        .map((key) => allFieldDefs.find((f) => f.key === key))
-        .filter((f): f is FilterFieldDef => !!f)
-        .map((f) => ({
-          ...f,
-          options:
-            f.key === 'storageType'
-              ? storageTypeOptions
-              : f.key === 'warehouseId'
-              ? warehouseOptions.value
-              : f.key === 'locationId'
-              ? locationOptions.value
-              : undefined,
-        }));
-    } else {
-      // Default: show storageCode and storageName
-      activeFilterFields.value = [
-        { ...allFieldDefs[0], options: undefined },
-        { ...allFieldDefs[1], options: undefined },
-      ];
-    }
-  } catch {
-    activeFilterFields.value = [
-      { ...allFieldDefs[0], options: undefined },
-      { ...allFieldDefs[1], options: undefined },
-    ];
-  }
-}
-
-function saveFilterFields() {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(activeFilterFields.value.map((f) => f.key))
-  );
-}
-
-function isFieldActive(key: string) {
-  return activeFilterFields.value.some((f) => f.key === key);
-}
-
-function addFilterField(key: string) {
-  if (isFieldActive(key)) return;
-  const def = allFieldDefs.find((f) => f.key === key);
-  if (!def) return;
-  const field: FilterFieldDef = {
-    ...def,
-    options:
-      def.key === 'storageType'
-        ? storageTypeOptions
-        : def.key === 'warehouseId'
-        ? warehouseOptions.value
-        : def.key === 'locationId'
-        ? locationOptions.value
-        : undefined,
-  };
-  activeFilterFields.value.push(field);
-  saveFilterFields();
-}
-
-function removeFilterField(key: string) {
-  activeFilterFields.value = activeFilterFields.value.filter(
-    (f) => f.key !== key
-  );
-  // Clear the query form value
-  (queryForm as any)[key] = undefined;
-  saveFilterFields();
-  handleSearch();
-}
-
-// Available fields = not yet added
-const availableFields = computed(() =>
-  allFieldDefs.filter((f) => !isFieldActive(f.key))
-);
 
 const queryForm = reactive<StorageQuery>({
   storageCode: '',
@@ -394,6 +184,13 @@ const storageTypeOptions = [
 const enabledCount = computed(() => tableData.value.filter((item) => item.isEnabled === 1).length);
 const disabledCount = computed(() => tableData.value.filter((item) => item.isEnabled === 0).length);
 const totalCapacity = computed(() => tableData.value.reduce((sum, item) => sum + (item.capacity ?? 0), 0));
+
+const statsCards = computed(() => [
+  { key: 'total', label: '货位总数', icon: Grid3x3, tone: 'blue' as const, value: pagination.total || 0 },
+  { key: 'enabled', label: '已启用', icon: Power, tone: 'green' as const, value: enabledCount.value },
+  { key: 'disabled', label: '已停用', icon: Ban, tone: 'orange' as const, value: disabledCount.value },
+  { key: 'capacity', label: '总容量', icon: Package, tone: 'purple' as const, value: totalCapacity.value },
+]);
 
 const pagination = reactive<TablePaginationConfig>({
   current: 1,
@@ -454,18 +251,6 @@ async function loadData() {
 }
 
 function handleSearch() {
-  pagination.current = 1;
-  loadData();
-}
-
-function handleReset() {
-  queryForm.storageCode = '';
-  queryForm.storageName = '';
-  queryForm.warehouseId = undefined;
-  queryForm.locationId = undefined;
-  queryForm.storageType = undefined;
-  queryForm.isEnabled = undefined;
-  selectedRowKeys.value = [];
   pagination.current = 1;
   loadData();
 }
@@ -568,238 +353,6 @@ async function loadDropdownOptions() {
 
 onMounted(async () => {
   await loadDropdownOptions();
-  loadFilterFields();
   loadData();
 });
 </script>
-
-<style scoped>
-.wms-storage-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Page Header */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0 16px 0;
-}
-
-.header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.page-desc {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 0;
-}
-
-.header-right :deep(.ant-btn-primary) {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Filter Card */
-.filter-card :deep(.ant-card-body) {
-  padding: 16px;
-}
-
-.filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.search-input-wrap {
-  position: relative;
-  flex: 1;
-  min-width: 280px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  color: #9ca3af;
-  z-index: 1;
-}
-
-.search-input {
-  padding-left: 36px !important;
-}
-
-.status-select {
-  width: 140px;
-}
-
-.filter-tags-wrap {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.filter-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  background-color: #f3f4f6;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  font-size: 13px;
-}
-
-.filter-tag-label {
-  color: #374151;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.filter-tag-input {
-  width: 120px;
-  height: 26px;
-}
-
-.filter-tag-select {
-  width: 120px;
-  height: 26px;
-}
-
-.filter-tag-select :deep(.ant-select-selector) {
-  height: 26px !important;
-  padding: 0 8px !important;
-}
-
-.filter-tag-select :deep(.ant-select-selection-search-input) {
-  height: 24px !important;
-}
-
-.filter-tag-close {
-  width: 14px;
-  height: 14px;
-  color: #9ca3af;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: color 0.2s;
-}
-
-.filter-tag-close:hover {
-  color: #ef4444;
-}
-
-/* Stats Row */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.stat-card :deep(.ant-card-body) {
-  padding: 16px;
-}
-
-.stat-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.stat-icon-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-icon-wrap :deep(svg) {
-  width: 20px;
-  height: 20px;
-}
-
-.stat-icon-blue {
-  background-color: #eff6ff;
-  color: #2563eb;
-}
-
-.stat-icon-green {
-  background-color: #f0fdf4;
-  color: #16a34a;
-}
-
-.stat-icon-orange {
-  background-color: #fff7ed;
-  color: #ea580c;
-}
-
-.stat-icon-purple {
-  background-color: #faf5ff;
-  color: #9333ea;
-}
-
-.stat-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.stat-label {
-  font-size: 13px;
-  color: #6b7280;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.stat-value {
-  font-size: 22px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  line-height: 1.2;
-}
-
-/* Table Card */
-.table-card :deep(.ant-card-body) {
-  padding: 0 16px 16px 16px;
-}
-
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .stats-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .stats-row {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
