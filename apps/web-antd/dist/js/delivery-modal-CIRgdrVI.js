@@ -1,1 +1,0 @@
-import{a2 as e,ao as a,ay as o}from"../jse/index-index-Dw5g1Zpq.js";const c=e({__name:"delivery-modal",setup(n){return(r,t)=>(a(),o("div",null,"delivery-modal.vue"))}});export{c as default};

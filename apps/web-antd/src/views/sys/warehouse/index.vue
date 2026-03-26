@@ -30,8 +30,16 @@
     </template>
 
     <template #table>
-      <Card :bordered="false" class="table-card">
-        <div class="toolbar">
+      <WmsDataTable
+        :loading="loading"
+        :columns="columns"
+        :data-source="tableData"
+        :pagination="pagination"
+        :row-selection="rowSelection"
+        :scroll="{ x: 1200 }"
+        @table-change="handleTableChange"
+      >
+        <template #toolbar>
           <Space wrap>
             <Popconfirm
               v-access:code="'base:warehouse:delete'"
@@ -43,52 +51,41 @@
               <Button danger :disabled="selectedRowKeys.length === 0">删除</Button>
             </Popconfirm>
           </Space>
-        </div>
+        </template>
 
-        <Table
-          row-key="id"
-          :loading="loading"
-          :columns="columns"
-          :data-source="tableData"
-          :pagination="pagination"
-          :row-selection="rowSelection"
-          :scroll="{ x: 1200 }"
-          @change="handleTableChange"
-        >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'temperatureZone'">
-              {{ formatTemperatureZone(record.temperatureZone) }}
-            </template>
-            <template v-else-if="column.key === 'qualityZone'">
-              {{ formatQualityZone(record.qualityZone) }}
-            </template>
-            <template v-else-if="column.key === 'isEnabled'">
-              <Switch
-                :checked="record.isEnabled === 1"
-                checked-children="启用"
-                un-checked-children="停用"
-                @change="(checked) => handleToggleStatus(record, checked)"
-              />
-            </template>
-            <template v-else-if="column.key === 'action'">
-              <Space>
-                <Button type="link" size="small" @click="handleEdit(record)">
-                  编辑
-                </Button>
-                <Popconfirm
-                  v-access:code="'base:warehouse:delete'"
-                  title="确认删除该仓库记录吗？"
-                  ok-text="确定"
-                  cancel-text="取消"
-                  @confirm="handleDelete(record)"
-                >
-                  <Button type="link" danger size="small">删除</Button>
-                </Popconfirm>
-              </Space>
-            </template>
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'temperatureZone'">
+            {{ formatTemperatureZone(record.temperatureZone) }}
           </template>
-        </Table>
-      </Card>
+          <template v-else-if="column.key === 'qualityZone'">
+            {{ formatQualityZone(record.qualityZone) }}
+          </template>
+          <template v-else-if="column.key === 'isEnabled'">
+            <Switch
+              :checked="record.isEnabled === 1"
+              checked-children="启用"
+              un-checked-children="停用"
+              @change="(checked) => handleToggleStatus(record, checked)"
+            />
+          </template>
+          <template v-else-if="column.key === 'action'">
+            <Space>
+              <Button type="link" size="small" @click="handleEdit(record)">
+                编辑
+              </Button>
+              <Popconfirm
+                v-access:code="'base:warehouse:delete'"
+                title="确认删除该仓库记录吗？"
+                ok-text="确定"
+                cancel-text="取消"
+                @confirm="handleDelete(record)"
+              >
+                <Button type="link" danger size="small">删除</Button>
+              </Popconfirm>
+            </Space>
+          </template>
+        </template>
+      </WmsDataTable>
     </template>
   </WmsPageLayout>
 </template>
@@ -106,16 +103,13 @@ import {
 } from 'lucide-vue-next';
 import {
   Button,
-  Card,
   Popconfirm,
-  Select,
   Space,
   Switch,
-  Table,
   message,
 } from 'ant-design-vue';
 import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
-import { WmsFilterBar, WmsPageLayout, WmsStatsCards } from '#/components/wms';
+import { WmsDataTable, WmsFilterBar, WmsPageLayout, WmsStatsCards } from '#/components/wms';
 import {
   deleteWarehouse,
   exportWarehouse,
@@ -354,14 +348,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Table Card */
-.table-card :deep(.ant-card-body) {
-  padding: 0 16px 16px 16px;
-}
-
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
 </style>

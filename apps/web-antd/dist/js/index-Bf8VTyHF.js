@@ -1,1 +1,0 @@
-import{c as o}from"./index-BJ6XF7Dc.js";import"./bootstrap-BIjQelFL.js";const g=o("svg:download"),n=o("svg:card"),a=o("svg:bell"),t=o("svg:cake"),v=o("svg:github"),e=o("svg:google"),I=o("svg:qqchat"),S=o("svg:wechat"),i=o("svg:dingding");export{i as S,S as a,I as b,v as c,e as d,n as e,t as f,g,a as h};
