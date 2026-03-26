@@ -1,383 +1,140 @@
 <template>
-  <Page auto-content-height>
-    <div class="wms-dict-page">
-      <!-- Page Header -->
-      <div class="page-header">
-        <div class="header-left">
-          <h1 class="page-title">WMS0070 字典管理</h1>
-          <p class="page-desc">管理系统字典类型和字典数据，支持增删改查和状态管理</p>
-        </div>
-      </div>
+  <WmsPageLayout
+    title="WMS0070 字典管理"
+    description="管理系统字典类型和字典数据，支持增删改查和状态管理"
+    :actions="pageActions"
+  >
+    <template #stats>
+      <WmsStatsCards :items="statsCards" />
+    </template>
 
-      <!-- Search & Filter Bar -->
-      <Card class="filter-card" :bordered="false">
-        <div class="filter-bar">
-          <div class="search-input-wrap">
-            <Search class="search-icon" />
-            <Input
-              v-model:value="searchKeyword"
-              allow-clear
-              :placeholder="activeTab === 'type' ? '搜索字典名称...' : '搜索字典标签...'"
-              class="search-input"
-              @press-enter="handleSearch"
-            />
-          </div>
-          <Select
-            v-model:value="statusValue"
-            allow-clear
-            placeholder="全部状态"
-            class="status-select"
-            :options="statusFilterOptions"
-            @change="handleSearch"
-          />
-          <!-- Persistent filter field tags -->
-          <div class="filter-tags-wrap">
-            <div
-              v-for="field in activeFilterFields"
-              :key="field.key"
-              class="filter-tag"
-            >
-              <span class="filter-tag-label">{{ field.label }}:</span>
-              <Select
-                v-if="field.type === 'select'"
-                v-model:value="activeQueryForm[field.key as keyof any]"
-                allow-clear
-                :placeholder="`请选择${field.label}`"
-                class="filter-tag-select"
-                :options="field.options"
-                @change="handleSearch"
-              />
-              <Input
-                v-else
-                v-model:value="activeQueryForm[field.key as keyof any]"
-                allow-clear
-                :placeholder="`请输入${field.label}`"
-                class="filter-tag-input"
-                @press-enter="handleSearch"
-              />
-              <X
-                class="filter-tag-close"
-                @click="removeFilterField(field.key)"
-              />
-            </div>
-          </div>
-          <!-- Add filter dropdown -->
-          <Dropdown v-if="availableFields.length > 0" trigger="click">
-            <Button>
-              <template #icon><Plus /></template>
-              添加筛选
-              <ChevronDown />
-            </Button>
-            <template #overlay>
-              <Menu>
-                <MenuItem
-                  v-for="item in availableFields"
-                  :key="item.key"
-                  @click="addFilterField(item.key)"
-                >
-                  {{ item.label }}
-                </MenuItem>
-              </Menu>
-            </template>
-          </Dropdown>
+    <template #filter>
+      <WmsFilterBar
+        :query="activeQueryForm"
+        :search-key="activeSearchKey"
+        :search-placeholder="activeSearchPlaceholder"
+        status-key="isEnabled"
+        :status-options="statusFilterOptions"
+        :fields="filterFields"
+        :storage-key="activeStorageKey"
+        :default-field-keys="activeDefaultFieldKeys"
+        @search="handleSearch"
+      >
+        <template #actions>
           <Button :loading="exporting" @click="handleExport">
             <template #icon><Download /></template>
             导出
           </Button>
-        </div>
-      </Card>
+        </template>
+      </WmsFilterBar>
+    </template>
 
-      <!-- Tabs -->
-      <Tabs v-model:activeKey="activeTab" @change="handleTabChange">
-        <TabPane key="type">
-          <template #tab>
-            <span class="tab-label">
-              <BookTemplate :size="16" />
-              字典类型
-            </span>
-          </template>
-        </TabPane>
-        <TabPane key="data">
-          <template #tab>
-            <span class="tab-label">
-              <List :size="16" />
-              字典数据
-            </span>
-          </template>
-        </TabPane>
-      </Tabs>
-
-      <!-- Stats Cards (Type) -->
-      <div v-if="activeTab === 'type'" class="stats-row">
-        <Card class="stat-card stat-total" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-blue">
-              <BookTemplate />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">字典类型</p>
-              <p class="stat-value">{{ typePagination.total }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-enabled" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-green">
-              <Power />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">已启用</p>
-              <p class="stat-value">{{ typeEnabledCount }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-disabled" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-orange">
-              <Ban />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">已停用</p>
-              <p class="stat-value">{{ typeDisabledCount }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-custom" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-purple">
-              <Star />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">自定义类型</p>
-              <p class="stat-value">{{ typeCustomCount }}</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      <!-- Stats Cards (Data) -->
-      <div v-if="activeTab === 'data'" class="stats-row">
-        <Card class="stat-card stat-total" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-blue">
-              <List />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">字典数据</p>
-              <p class="stat-value">{{ dataPagination.total }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-enabled" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-green">
-              <Power />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">已启用</p>
-              <p class="stat-value">{{ dataEnabledCount }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-disabled" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-orange">
-              <Ban />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">已停用</p>
-              <p class="stat-value">{{ dataDisabledCount }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-type" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-purple">
-              <BookTemplate />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">字典类型</p>
-              <p class="stat-value">{{ dataTypeCount }}</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      <!-- Data Table: Dict Type -->
-      <Card v-if="activeTab === 'type'" :bordered="false" class="table-card">
-        <div class="toolbar">
+    <template #table>
+      <WmsDataTable
+        row-key="id"
+        :loading="activeLoading"
+        :columns="activeColumns"
+        :data-source="activeTableData"
+        :pagination="activePagination"
+        :row-selection="activeRowSelection"
+        :scroll="{ x: activeTab === 'type' ? 1000 : 1200 }"
+        @change="handleTableChange"
+      >
+        <template #toolbar>
           <Space wrap>
             <Popconfirm
-              title="确认删除选中的字典类型吗？"
+              :title="activeTab === 'type' ? '确认删除选中的字典类型吗？' : '确认删除选中的字典数据吗？'"
               ok-text="确定"
               cancel-text="取消"
-              @confirm="handleBatchDeleteType"
+              @confirm="handleBatchDelete"
             >
-              <Button danger :disabled="selectedTypeRowKeys.length === 0">删除</Button>
+              <Button danger :disabled="activeSelectedRowKeys.length === 0">删除</Button>
             </Popconfirm>
           </Space>
-          <Button type="primary" @click="handleAddType">
-            <template #icon><Plus /></template>
-            新建类型
-          </Button>
-        </div>
+        </template>
 
-        <Table
-          row-key="id"
-          :loading="typeLoading"
-          :columns="typeColumns"
-          :data-source="typeTableData"
-          :pagination="typePagination"
-          :row-selection="typeRowSelection"
-          :scroll="{ x: 1000 }"
-          @change="handleTableChangeType"
-        >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'dictType'">
-              {{ formatDictType(record.dictType) }}
-            </template>
-            <template v-else-if="column.key === 'isEnabled'">
-              <Switch
-                :checked="record.isEnabled === 1"
-                checked-children="启用"
-                un-checked-children="停用"
-                @change="(checked) => handleToggleTypeStatus(record, checked)"
-              />
-            </template>
-            <template v-else-if="column.key === 'action'">
-              <Space>
-                <Button type="link" size="small" @click="handleEditType(record)">
-                  编辑
-                </Button>
-                <Popconfirm
-                  title="确认删除该字典类型吗？"
-                  ok-text="确定"
-                  cancel-text="取消"
-                  @confirm="handleDeleteType(record)"
-                >
-                  <Button type="link" danger size="small">删除</Button>
-                </Popconfirm>
-              </Space>
-            </template>
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'dictType'">
+            {{ formatDictType(record.dictType) }}
           </template>
-        </Table>
-      </Card>
-
-      <!-- Data Table: Dict Data -->
-      <Card v-if="activeTab === 'data'" :bordered="false" class="table-card">
-        <div class="toolbar">
-          <Space wrap>
-            <Popconfirm
-              title="确认删除选中的字典数据吗？"
-              ok-text="确定"
-              cancel-text="取消"
-              @confirm="handleBatchDeleteData"
-            >
-              <Button danger :disabled="selectedDataRowKeys.length === 0">删除</Button>
-            </Popconfirm>
-          </Space>
-          <Button type="primary" @click="handleAddData">
-            <template #icon><Plus /></template>
-            新建数据
-          </Button>
-        </div>
-
-        <Table
-          row-key="id"
-          :loading="dataLoading"
-          :columns="dataColumns"
-          :data-source="dataTableData"
-          :pagination="dataPagination"
-          :row-selection="dataRowSelection"
-          :scroll="{ x: 1200 }"
-          @change="handleTableChangeData"
-        >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'isEnabled'">
-              <Switch
-                :checked="record.isEnabled === 1"
-                checked-children="启用"
-                un-checked-children="停用"
-                @change="(checked) => handleToggleDataStatus(record, checked)"
-              />
-            </template>
-            <template v-else-if="column.key === 'sortOrder'">
-              {{ record.sortOrder ?? '-' }}
-            </template>
-            <template v-else-if="column.key === 'action'">
-              <Space>
-                <Button type="link" size="small" @click="handleEditData(record)">
-                  编辑
-                </Button>
-                <Popconfirm
-                  title="确认删除该字典数据吗？"
-                  ok-text="确定"
-                  cancel-text="取消"
-                  @confirm="handleDeleteData(record)"
-                >
-                  <Button type="link" danger size="small">删除</Button>
-                </Popconfirm>
-              </Space>
-            </template>
+          <template v-else-if="column.key === 'isEnabled'">
+            <Switch
+              :checked="record.isEnabled === 1"
+              checked-children="启用"
+              un-checked-children="停用"
+              @change="(checked: any) => handleToggleStatus(record, checked as boolean)"
+            />
           </template>
-        </Table>
-      </Card>
-    </div>
+          <template v-else-if="column.key === 'sortOrder'">
+            {{ record.sortOrder ?? '-' }}
+          </template>
+          <template v-else-if="column.key === 'action'">
+            <Space>
+              <Button type="link" size="small" @click="handleEdit(record)">编辑</Button>
+              <Popconfirm
+                :title="activeTab === 'type' ? '确认删除该字典类型吗？' : '确认删除该字典数据吗？'"
+                ok-text="确定"
+                cancel-text="取消"
+                @confirm="handleDelete(record)"
+              >
+                <Button type="link" danger size="small">删除</Button>
+              </Popconfirm>
+            </Space>
+          </template>
+          <template v-else>
+            {{ (record as any)[column.dataIndex as keyof any] ?? '-' }}
+          </template>
+        </template>
+      </WmsDataTable>
+    </template>
+  </WmsPageLayout>
 
-    <!-- Dict Type Modal -->
-    <DictTypeModal
-      ref="dictTypeModalRef"
-      :dict-type-id="currentTypeId"
-      v-model:open="typeModalVisible"
-      @success="handleTypeModalSuccess"
-    />
+  <!-- Tabs -->
+  <Card :bordered="false" class="dict-tabs-card">
+    <Tabs v-model:activeKey="activeTab" @change="(key) => handleTabChange(key as string)">
+      <TabPane key="type">
+        <template #tab>
+          <span class="tab-label">
+            <BookTemplate :size="16" />
+            字典类型
+          </span>
+        </template>
+      </TabPane>
+      <TabPane key="data">
+        <template #tab>
+          <span class="tab-label">
+            <List :size="16" />
+            字典数据
+          </span>
+        </template>
+      </TabPane>
+    </Tabs>
+  </Card>
 
-    <!-- Dict Data Modal -->
-    <DictDataModal
-      ref="dictDataModalRef"
-      :dict-data-id="currentDataId"
-      v-model:open="dataModalVisible"
-      :dict-type-options="dictTypeOptions"
-      @success="handleDataModalSuccess"
-    />
-  </Page>
+  <!-- Dict Type Modal -->
+  <DictTypeModal
+    ref="dictTypeModalRef"
+    :dict-type-id="currentTypeId"
+    v-model:open="typeModalVisible"
+    @success="handleTypeModalSuccess"
+  />
+
+  <!-- Dict Data Modal -->
+  <DictDataModal
+    ref="dictDataModalRef"
+    :dict-data-id="currentDataId"
+    v-model:open="dataModalVisible"
+    :dict-type-options="dictTypeOptions"
+    @success="handleDataModalSuccess"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
-import { Page } from '@vben/common-ui';
-import {
-  Plus,
-  Search,
-  Download,
-  BookTemplate,
-  List,
-  Power,
-  Ban,
-  Star,
-  ChevronDown,
-  X,
-} from 'lucide-vue-next';
-import {
-  Button,
-  Card,
-  Dropdown,
-  Input,
-  Menu,
-  MenuItem,
-  Popconfirm,
-  Select,
-  Space,
-  Switch,
-  Table,
-  Tabs,
-  TabPane,
-  message,
-} from 'ant-design-vue';
+import { BookTemplate, List, Plus, Download, Power, Ban, Star } from 'lucide-vue-next';
+import { Button, Card, Popconfirm, Space, Switch, Tabs, TabPane, message } from 'ant-design-vue';
 import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import {
-  createDictData,
-  createDictType,
   deleteDictData,
   deleteDictType,
   exportDictData,
@@ -391,50 +148,47 @@ import {
   type DictDataResult,
   type DictTypeQuery,
   type DictTypeResult,
-  updateDictData,
-  updateDictType,
 } from '#/api/sys/dict';
+import { WmsDataTable, WmsFilterBar, WmsPageLayout, WmsStatsCards } from '#/components/wms';
 
 import DictTypeModal from './modules/dict-type-modal.vue';
 import DictDataModal from './modules/dict-data-modal.vue';
 
-const STORAGE_KEY_TYPE = 'dict_type_filter_fields';
-const STORAGE_KEY_DATA = 'dict_data_filter_fields';
-
 // ========== Tab State ==========
 const activeTab = ref<'type' | 'data'>('type');
 
-const searchKeyword = computed({
-  get: () => activeTab.value === 'type' ? queryTypeForm.dictName : queryDataForm.dictLabel,
-  set: (val) => {
-    if (activeTab.value === 'type') {
-      queryTypeForm.dictName = val;
-    } else {
-      queryDataForm.dictLabel = val;
-    }
-  },
-});
-
-const statusValue = computed({
-  get: () => activeTab.value === 'type' ? queryTypeForm.isEnabled : queryDataForm.isEnabled,
-  set: (val) => {
-    if (activeTab.value === 'type') {
-      queryTypeForm.isEnabled = val;
-    } else {
-      queryDataForm.isEnabled = val;
-    }
-  },
-});
-
-// ========== Type List State ==========
-const typeLoading = ref(false);
-const exporting = ref(false);
-const typeTableData = ref<DictTypeResult[]>([]);
-const selectedTypeRowKeys = ref<Array<number | string>>([]);
+// ========== Modal Refs ==========
 const typeModalVisible = ref(false);
 const currentTypeId = ref<number>();
 const dictTypeModalRef = ref<InstanceType<typeof DictTypeModal>>();
+const dictDataModalRef = ref<InstanceType<typeof DictDataModal>>();
+const dataModalVisible = ref(false);
+const currentDataId = ref<number>();
+
+// ========== Common State ==========
+const exporting = ref(false);
 const dictTypeOptions = ref<Array<{ label: string; value: string }>>([]);
+
+// ========== Page Actions ==========
+const pageActions = computed(() => [
+  {
+    label: activeTab.value === 'type' ? '新建类型' : '新建数据',
+    type: 'primary' as const,
+    icon: Plus,
+    onClick: () => {
+      if (activeTab.value === 'type') {
+        handleAddType();
+      } else {
+        handleAddData();
+      }
+    },
+  },
+]);
+
+// ========== Type List State ==========
+const typeLoading = ref(false);
+const typeTableData = ref<DictTypeResult[]>([]);
+const selectedTypeRowKeys = ref<Array<number | string>>([]);
 
 const queryTypeForm = reactive<DictTypeQuery>({
   dictCode: '',
@@ -450,35 +204,10 @@ const typePagination = reactive<TablePaginationConfig>({
   showTotal: (total) => `共 ${total} 条`,
 });
 
-const typeEnabledCount = computed(() => typeTableData.value.filter((item) => item.isEnabled === 1).length);
-const typeDisabledCount = computed(() => typeTableData.value.filter((item) => item.isEnabled === 0).length);
-const typeCustomCount = computed(() => typeTableData.value.filter((item) => item.dictType === 'custom').length);
-
-const typeColumns = computed<TableColumnsType<DictTypeResult>>(() => [
-  { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${((typePagination.current || 1) - 1) * (typePagination.pageSize || 10) + index + 1}` },
-  { title: '字典编码', dataIndex: 'dictCode', key: 'dictCode', width: 180 },
-  { title: '字典名称', dataIndex: 'dictName', key: 'dictName', width: 180 },
-  { title: '类型', dataIndex: 'dictType', key: 'dictType', width: 120 },
-  { title: '状态', dataIndex: 'isEnabled', key: 'isEnabled', width: 110 },
-  { title: '备注', dataIndex: 'remark', key: 'remark', width: 160 },
-  { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
-  { title: '操作', key: 'action', fixed: 'right', width: 140 },
-]);
-
-const typeRowSelection = computed(() => ({
-  selectedRowKeys: selectedTypeRowKeys.value,
-  onChange: (keys: Array<number | string>) => {
-    selectedTypeRowKeys.value = keys;
-  },
-}));
-
 // ========== Data List State ==========
 const dataLoading = ref(false);
 const dataTableData = ref<DictDataResult[]>([]);
 const selectedDataRowKeys = ref<Array<number | string>>([]);
-const dataModalVisible = ref(false);
-const currentDataId = ref<number>();
-const dictDataModalRef = ref<InstanceType<typeof DictDataModal>>();
 
 const queryDataForm = reactive<DictDataQuery>({
   dictType: undefined,
@@ -495,9 +224,72 @@ const dataPagination = reactive<TablePaginationConfig>({
   showTotal: (total) => `共 ${total} 条`,
 });
 
+// ========== Filter Fields ==========
+const statusFilterOptions = [
+  { label: '全部状态', value: undefined },
+  { label: '启用', value: 1 },
+  { label: '停用', value: 0 },
+];
+
+const typeFilterFields = [
+  { key: 'dictCode', label: '字典编码', type: 'input' as const },
+  { key: 'dictName', label: '字典名称', type: 'input' as const },
+];
+
+const dataFilterFields = computed(() => [
+  { key: 'dictType', label: '所属类型', type: 'select' as const, options: dictTypeOptions.value },
+  { key: 'dictLabel', label: '字典标签', type: 'input' as const },
+  { key: 'dictValue', label: '字典值', type: 'input' as const },
+]);
+
+// ========== Active Tab Computeds ==========
+const activeQueryForm = computed(() => activeTab.value === 'type' ? queryTypeForm : queryDataForm);
+const activeSearchKey = computed(() => activeTab.value === 'type' ? 'dictName' : 'dictLabel');
+const activeSearchPlaceholder = computed(() => activeTab.value === 'type' ? '搜索字典名称...' : '搜索字典标签...');
+const activeStorageKey = computed(() => activeTab.value === 'type' ? 'wms:filter:dict:type:activeFields' : 'wms:filter:dict:data:activeFields');
+const activeDefaultFieldKeys = computed(() => activeTab.value === 'type' ? ['dictCode', 'dictName'] : ['dictType', 'dictLabel']);
+const filterFields = computed(() => activeTab.value === 'type' ? typeFilterFields : dataFilterFields.value);
+const activeLoading = computed(() => activeTab.value === 'type' ? typeLoading.value : dataLoading.value);
+const activeTableData = computed(() => activeTab.value === 'type' ? typeTableData.value : dataTableData.value);
+const activeSelectedRowKeys = computed(() => activeTab.value === 'type' ? selectedTypeRowKeys.value : selectedDataRowKeys.value);
+const activePagination = computed(() => activeTab.value === 'type' ? typePagination : dataPagination);
+
+// ========== Stats ==========
+const typeEnabledCount = computed(() => typeTableData.value.filter((item) => item.isEnabled === 1).length);
+const typeDisabledCount = computed(() => typeTableData.value.filter((item) => item.isEnabled === 0).length);
+const typeCustomCount = computed(() => typeTableData.value.filter((item) => item.dictType === 'custom').length);
 const dataEnabledCount = computed(() => dataTableData.value.filter((item) => item.isEnabled === 1).length);
 const dataDisabledCount = computed(() => dataTableData.value.filter((item) => item.isEnabled === 0).length);
 const dataTypeCount = computed(() => new Set(dataTableData.value.map((item) => item.dictType)).size);
+
+const statsCards = computed(() => {
+  if (activeTab.value === 'type') {
+    return [
+      { key: 'total', label: '字典类型', icon: BookTemplate, tone: 'blue' as const, value: typePagination.total || 0 },
+      { key: 'enabled', label: '已启用', icon: Power, tone: 'green' as const, value: typeEnabledCount.value },
+      { key: 'disabled', label: '已停用', icon: Ban, tone: 'orange' as const, value: typeDisabledCount.value },
+      { key: 'custom', label: '自定义类型', icon: Star, tone: 'purple' as const, value: typeCustomCount.value },
+    ];
+  }
+  return [
+    { key: 'total', label: '字典数据', icon: List, tone: 'blue' as const, value: dataPagination.total || 0 },
+    { key: 'enabled', label: '已启用', icon: Power, tone: 'green' as const, value: dataEnabledCount.value },
+    { key: 'disabled', label: '已停用', icon: Ban, tone: 'orange' as const, value: dataDisabledCount.value },
+    { key: 'type', label: '字典类型', icon: BookTemplate, tone: 'purple' as const, value: dataTypeCount.value },
+  ];
+});
+
+// ========== Columns ==========
+const typeColumns = computed<TableColumnsType<DictTypeResult>>(() => [
+  { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${((typePagination.current || 1) - 1) * (typePagination.pageSize || 10) + index + 1}` },
+  { title: '字典编码', dataIndex: 'dictCode', key: 'dictCode', width: 180 },
+  { title: '字典名称', dataIndex: 'dictName', key: 'dictName', width: 180 },
+  { title: '类型', dataIndex: 'dictType', key: 'dictType', width: 120 },
+  { title: '状态', dataIndex: 'isEnabled', key: 'isEnabled', width: 110 },
+  { title: '备注', dataIndex: 'remark', key: 'remark', width: 160 },
+  { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
+  { title: '操作', key: 'action', fixed: 'right', width: 140 },
+]);
 
 const dataColumns = computed<TableColumnsType<DictDataResult>>(() => [
   { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${((dataPagination.current || 1) - 1) * (dataPagination.pageSize || 10) + index + 1}` },
@@ -511,96 +303,18 @@ const dataColumns = computed<TableColumnsType<DictDataResult>>(() => [
   { title: '操作', key: 'action', fixed: 'right', width: 140 },
 ]);
 
-const dataRowSelection = computed(() => ({
-  selectedRowKeys: selectedDataRowKeys.value,
+const activeColumns = computed(() => activeTab.value === 'type' ? typeColumns.value : dataColumns.value);
+
+const activeRowSelection = computed(() => ({
+  selectedRowKeys: activeSelectedRowKeys.value,
   onChange: (keys: Array<number | string>) => {
-    selectedDataRowKeys.value = keys;
+    if (activeTab.value === 'type') {
+      selectedTypeRowKeys.value = keys;
+    } else {
+      selectedDataRowKeys.value = keys;
+    }
   },
 }));
-
-// ========== Filter Fields ==========
-interface FilterFieldDef {
-  key: string;
-  label: string;
-  type: 'input' | 'select';
-  options?: Array<{ label: string; value: any }>;
-}
-
-const typeFieldDefs: FilterFieldDef[] = [
-  { key: 'dictCode', label: '字典编码', type: 'input' },
-  { key: 'dictName', label: '字典名称', type: 'input' },
-];
-
-const dataFieldDefs: FilterFieldDef[] = [
-  { key: 'dictType', label: '所属类型', type: 'select', options: [] },
-  { key: 'dictLabel', label: '字典标签', type: 'input' },
-  { key: 'dictValue', label: '字典值', type: 'input' },
-];
-
-const statusFilterOptions = [
-  { label: '全部状态', value: undefined },
-  { label: '启用', value: 1 },
-  { label: '停用', value: 0 },
-];
-
-const activeFilterFields = ref<FilterFieldDef[]>([]);
-
-function getStorageKey() {
-  return activeTab.value === 'type' ? STORAGE_KEY_TYPE : STORAGE_KEY_DATA;
-}
-
-function getAllFieldDefs(): FilterFieldDef[] {
-  if (activeTab.value === 'type') return typeFieldDefs;
-  return dataFieldDefs.map((f) => ({
-    ...f,
-    options: f.key === 'dictType' ? dictTypeOptions.value : f.options,
-  }));
-}
-
-function loadFilterFields() {
-  try {
-    const saved = localStorage.getItem(getStorageKey());
-    if (saved) {
-      const keys: string[] = JSON.parse(saved);
-      activeFilterFields.value = keys
-        .map((key) => getAllFieldDefs().find((f) => f.key === key))
-        .filter((f): f is FilterFieldDef => !!f);
-    } else {
-      const defs = getAllFieldDefs();
-      activeFilterFields.value = [defs[0], defs[1]].filter(Boolean);
-    }
-  } catch {
-    const defs = getAllFieldDefs();
-    activeFilterFields.value = [defs[0], defs[1]].filter(Boolean);
-  }
-}
-
-function saveFilterFields() {
-  localStorage.setItem(getStorageKey(), JSON.stringify(activeFilterFields.value.map((f) => f.key)));
-}
-
-function isFieldActive(key: string) {
-  return activeFilterFields.value.some((f) => f.key === key);
-}
-
-function addFilterField(key: string) {
-  if (isFieldActive(key)) return;
-  const def = getAllFieldDefs().find((f) => f.key === key);
-  if (!def) return;
-  activeFilterFields.value.push({ ...def });
-  saveFilterFields();
-}
-
-function removeFilterField(key: string) {
-  activeFilterFields.value = activeFilterFields.value.filter((f) => f.key !== key);
-  (activeQueryForm as any)[key] = undefined;
-  saveFilterFields();
-  handleSearch();
-}
-
-const availableFields = computed(() => getAllFieldDefs().filter((f) => !isFieldActive(f.key)));
-
-const activeQueryForm = computed(() => activeTab.value === 'type' ? queryTypeForm : queryDataForm);
 
 // ========== Load Data ==========
 async function loadTypeData() {
@@ -657,9 +371,6 @@ function handleSearch() {
 }
 
 function handleTabChange(tab: string) {
-  selectedTypeRowKeys.value = [];
-  selectedDataRowKeys.value = [];
-  loadFilterFields();
   if (tab === 'type') {
     loadTypeData();
   } else {
@@ -667,16 +378,16 @@ function handleTabChange(tab: string) {
   }
 }
 
-function handleTableChangeType(page: TablePaginationConfig) {
-  typePagination.current = page.current || 1;
-  typePagination.pageSize = page.pageSize || 10;
-  loadTypeData();
-}
-
-function handleTableChangeData(page: TablePaginationConfig) {
-  dataPagination.current = page.current || 1;
-  dataPagination.pageSize = page.pageSize || 10;
-  loadDataData();
+function handleTableChange(page: TablePaginationConfig) {
+  if (activeTab.value === 'type') {
+    typePagination.current = page.current || 1;
+    typePagination.pageSize = page.pageSize || 10;
+    loadTypeData();
+  } else {
+    dataPagination.current = page.current || 1;
+    dataPagination.pageSize = page.pageSize || 10;
+    loadDataData();
+  }
 }
 
 // ========== Type CRUD ==========
@@ -687,7 +398,7 @@ function handleAddType() {
 
 function handleEditType(record: DictTypeResult) {
   currentTypeId.value = record.id;
-  dictTypeModalRef.value?.open(record.id);
+  dictTypeModalRef.value?.open(record.id!);
 }
 
 async function handleDeleteType(record: DictTypeResult) {
@@ -743,7 +454,7 @@ function handleAddData() {
 
 function handleEditData(record: DictDataResult) {
   currentDataId.value = record.id;
-  dictDataModalRef.value?.open(record.id);
+  dictDataModalRef.value?.open(record.id!);
 }
 
 async function handleDeleteData(record: DictDataResult) {
@@ -791,13 +502,55 @@ function handleDataModalSuccess() {
   loadDataData();
 }
 
+// ========== Unified Handlers (active tab) ==========
+function handleEdit(record: any) {
+  if (activeTab.value === 'type') {
+    handleEditType(record as DictTypeResult);
+  } else {
+    handleEditData(record as DictDataResult);
+  }
+}
+
+async function handleDelete(record: any) {
+  if (activeTab.value === 'type') {
+    await handleDeleteType(record as DictTypeResult);
+  } else {
+    await handleDeleteData(record as DictDataResult);
+  }
+}
+
+async function handleBatchDelete() {
+  if (activeTab.value === 'type') {
+    await handleBatchDeleteType();
+  } else {
+    await handleBatchDeleteData();
+  }
+}
+
+async function handleToggleStatus(record: any, checked: boolean) {
+  if (activeTab.value === 'type') {
+    await handleToggleTypeStatus(record as DictTypeResult, checked);
+  } else {
+    await handleToggleDataStatus(record as DictDataResult, checked);
+  }
+}
+
 // ========== Export ==========
 async function handleExport() {
   exporting.value = true;
   try {
     const blob = activeTab.value === 'type'
-      ? await exportDictType({ dictCode: queryTypeForm.dictCode, dictName: queryTypeForm.dictName, isEnabled: queryTypeForm.isEnabled })
-      : await exportDictData({ dictType: queryDataForm.dictType, dictLabel: queryDataForm.dictLabel, dictValue: queryDataForm.dictValue, isEnabled: queryDataForm.isEnabled });
+      ? await exportDictType({
+          dictCode: queryTypeForm.dictCode,
+          dictName: queryTypeForm.dictName,
+          isEnabled: queryTypeForm.isEnabled,
+        })
+      : await exportDictData({
+          dictType: queryDataForm.dictType,
+          dictLabel: queryDataForm.dictLabel,
+          dictValue: queryDataForm.dictValue,
+          isEnabled: queryDataForm.isEnabled,
+        });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -831,141 +584,21 @@ async function loadDictTypeOptions() {
 
 onMounted(async () => {
   await loadDictTypeOptions();
-  loadFilterFields();
   loadTypeData();
 });
 </script>
 
 <style scoped>
-.wms-dict-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.dict-tabs-card {
+  margin-top: 0;
 }
 
-/* Page Header */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0 16px 0;
+.dict-tabs-card :deep(.ant-card-body) {
+  padding: 0 0 0 0;
 }
 
-.header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.page-desc {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* Filter Card */
-.filter-card :deep(.ant-card-body) {
-  padding: 16px;
-}
-
-.filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.search-input-wrap {
-  position: relative;
-  flex: 1;
-  min-width: 280px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  color: #9ca3af;
-  z-index: 1;
-}
-
-.search-input {
-  padding-left: 36px !important;
-}
-
-.status-select {
-  width: 140px;
-}
-
-.filter-tags-wrap {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.filter-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  background-color: #f3f4f6;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  font-size: 13px;
-}
-
-.filter-tag-label {
-  color: #374151;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.filter-tag-input {
-  width: 120px;
-  height: 26px;
-}
-
-.filter-tag-select {
-  width: 120px;
-  height: 26px;
-}
-
-.filter-tag-select :deep(.ant-select-selector) {
-  height: 26px !important;
-  padding: 0 8px !important;
-}
-
-.filter-tag-select :deep(.ant-select-selection-search-input) {
-  height: 24px !important;
-}
-
-.filter-tag-close {
-  width: 14px;
-  height: 14px;
-  color: #9ca3af;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: color 0.2s;
-}
-
-.filter-tag-close:hover {
-  color: #ef4444;
-}
-
-/* Tabs */
 :deep(.ant-tabs-nav) {
+  padding: 0 16px;
   margin-bottom: 0;
 }
 
@@ -973,101 +606,5 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-
-/* Stats Row */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.stat-card :deep(.ant-card-body) {
-  padding: 16px;
-}
-
-.stat-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.stat-icon-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-icon-wrap :deep(svg) {
-  width: 20px;
-  height: 20px;
-}
-
-.stat-icon-blue {
-  background-color: #eff6ff;
-  color: #2563eb;
-}
-
-.stat-icon-green {
-  background-color: #f0fdf4;
-  color: #16a34a;
-}
-
-.stat-icon-orange {
-  background-color: #fff7ed;
-  color: #ea580c;
-}
-
-.stat-icon-purple {
-  background-color: #faf5ff;
-  color: #9333ea;
-}
-
-.stat-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.stat-label {
-  font-size: 13px;
-  color: #6b7280;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.stat-value {
-  font-size: 22px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  line-height: 1.2;
-}
-
-/* Table Card */
-.table-card :deep(.ant-card-body) {
-  padding: 0 16px 16px 16px;
-}
-
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .stats-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .stats-row {
-    grid-template-columns: 1fr;
-  }
 }
 </style>
