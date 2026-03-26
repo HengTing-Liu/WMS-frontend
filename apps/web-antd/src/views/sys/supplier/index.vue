@@ -1,7 +1,7 @@
 <template>
   <WmsPageLayout
-    title="WMS0020 供应商管理"
-    description="管理供应商基本信息、联系方式等"
+    :title="$t('page.wms.supplier.listTitle')"
+    :description="$t('page.wms.supplier.listDescription')"
     :actions="pageActions"
   >
     <template #stats>
@@ -12,7 +12,7 @@
       <WmsFilterBar
         :query="queryForm"
         search-key="supplierName"
-        search-placeholder="搜索供应商名称..."
+        :search-placeholder="$t('page.wms.supplier.searchPlaceholder')"
         status-key="isEnabled"
         :status-options="statusFilterOptions"
         :fields="filterFields"
@@ -23,7 +23,7 @@
         <template #actions>
           <Button :loading="exporting" @click="handleExport">
             <template #icon><Download /></template>
-            导出
+            {{ $t('page.wms.supplier.export') }}
           </Button>
         </template>
       </WmsFilterBar>
@@ -43,12 +43,14 @@
         <template #toolbar>
           <Space wrap>
             <Popconfirm
-              title="确认删除选中的供应商记录吗？"
-              ok-text="确定"
-              cancel-text="取消"
+              :title="$t('page.wms.supplier.batchDeleteConfirm')"
+              :ok-text="$t('page.common.confirm')"
+              :cancel-text="$t('page.common.cancel')"
               @confirm="handleBatchDelete"
             >
-              <Button danger :disabled="selectedRowKeys.length === 0">删除</Button>
+              <Button danger :disabled="selectedRowKeys.length === 0">
+                {{ $t('page.common.delete') }}
+              </Button>
             </Popconfirm>
           </Space>
         </template>
@@ -57,21 +59,25 @@
           <template v-if="column.key === 'isEnabled'">
             <Switch
               :checked="record.isEnabled === 1"
-              checked-children="启用"
-              un-checked-children="停用"
+              :checked-children="$t('page.common.enabled')"
+              :un-checked-children="$t('page.common.disabled')"
               @change="(checked) => handleToggleStatus(record, checked)"
             />
           </template>
           <template v-else-if="column.key === 'action'">
             <Space>
-              <Button type="link" size="small" @click="handleEdit(record)">编辑</Button>
+              <Button type="link" size="small" @click="handleEdit(record)">
+                {{ $t('page.common.edit') }}
+              </Button>
               <Popconfirm
-                title="确认删除该供应商记录吗？"
-                ok-text="确定"
-                cancel-text="取消"
+                :title="$t('page.wms.supplier.deleteConfirm')"
+                :ok-text="$t('page.common.confirm')"
+                :cancel-text="$t('page.common.cancel')"
                 @confirm="handleDelete(record)"
               >
-                <Button type="link" danger size="small">删除</Button>
+                <Button type="link" danger size="small">
+                  {{ $t('page.common.delete') }}
+                </Button>
               </Popconfirm>
             </Space>
           </template>
@@ -120,6 +126,7 @@ import {
 import { WmsDataTable, WmsFilterBar, WmsPageLayout, WmsStatsCards } from '#/components/wms';
 
 import SupplierModal from './components/supplier-modal.vue';
+import { $t } from '@vben/locales';
 
 const loading = ref(false);
 const exporting = ref(false);
@@ -131,19 +138,19 @@ const supplierModalRef = ref<InstanceType<typeof SupplierModal>>();
 
 const pageActions = computed(() => [
   {
-    label: '新建供应商',
+    label: $t('page.wms.supplier.add'),
     type: 'primary' as const,
     icon: Plus,
     onClick: handleAdd,
   },
 ]);
 
-const filterFields = [
-  { key: 'supplierCode', label: '供应商编码', type: 'input' as const },
-  { key: 'supplierName', label: '供应商名称', type: 'input' as const },
-  { key: 'contactPerson', label: '联系人', type: 'input' as const },
-  { key: 'contactPhone', label: '联系电话', type: 'input' as const },
-];
+const filterFields = computed(() => [
+  { key: 'supplierCode', label: $t('page.wms.supplier.filter.supplierCode'), type: 'input' as const },
+  { key: 'supplierName', label: $t('page.wms.supplier.filter.supplierName'), type: 'input' as const },
+  { key: 'contactPerson', label: $t('page.wms.supplier.filter.contactPerson'), type: 'input' as const },
+  { key: 'contactPhone', label: $t('page.wms.supplier.filter.contactPhone'), type: 'input' as const },
+]);
 
 const queryForm = reactive<SupplierQuery>({
   supplierCode: '',
@@ -153,11 +160,11 @@ const queryForm = reactive<SupplierQuery>({
   isEnabled: undefined,
 });
 
-const statusFilterOptions = [
-  { label: '全部状态', value: undefined },
-  { label: '启用', value: 1 },
-  { label: '停用', value: 0 },
-];
+const statusFilterOptions = computed(() => [
+  { label: $t('page.wms.supplier.status.all'), value: undefined },
+  { label: $t('page.wms.supplier.status.enabled'), value: 1 },
+  { label: $t('page.wms.supplier.status.disabled'), value: 0 },
+]);
 
 const enabledCount = computed(() => tableData.value.filter((item) => item.isEnabled === 1).length);
 const disabledCount = computed(() => tableData.value.filter((item) => item.isEnabled === 0).length);
@@ -166,10 +173,10 @@ const hasContactCount = computed(() =>
 );
 
 const statsCards = computed(() => [
-  { key: 'total', label: '供应商总数', icon: Truck, tone: 'blue' as const, value: pagination.total || 0 },
-  { key: 'enabled', label: '已启用', icon: Power, tone: 'green' as const, value: enabledCount.value },
-  { key: 'disabled', label: '已停用', icon: Ban, tone: 'orange' as const, value: disabledCount.value },
-  { key: 'contact', label: '有联系方式', icon: Phone, tone: 'purple' as const, value: hasContactCount.value },
+  { key: 'total', label: $t('page.wms.supplier.stats.total'), icon: Truck, tone: 'blue' as const, value: pagination.total || 0 },
+  { key: 'enabled', label: $t('page.wms.supplier.stats.enabled'), icon: Power, tone: 'green' as const, value: enabledCount.value },
+  { key: 'disabled', label: $t('page.wms.supplier.stats.disabled'), icon: Ban, tone: 'orange' as const, value: disabledCount.value },
+  { key: 'contact', label: $t('page.wms.supplier.stats.hasContact'), icon: Phone, tone: 'purple' as const, value: hasContactCount.value },
 ]);
 
 const pagination = reactive<TablePaginationConfig>({
@@ -177,19 +184,19 @@ const pagination = reactive<TablePaginationConfig>({
   pageSize: 10,
   total: 0,
   showSizeChanger: true,
-  showTotal: (total) => `共 ${total} 条`,
+  showTotal: (total) => $t('page.wms.table.totalRecords', { total }),
 });
 
 const columns = computed<TableColumnsType<SupplierResult>>(() => [
-  { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${((pagination.current || 1) - 1) * (pagination.pageSize || 10) + index + 1}` },
-  { title: '供应商编码', dataIndex: 'supplierCode', key: 'supplierCode', width: 140 },
-  { title: '供应商名称', dataIndex: 'supplierName', key: 'supplierName', width: 180 },
-  { title: '联系人', dataIndex: 'contactPerson', key: 'contactPerson', width: 120 },
-  { title: '联系电话', dataIndex: 'contactPhone', key: 'contactPhone', width: 140 },
-  { title: '邮箱', dataIndex: 'email', key: 'email', width: 180 },
-  { title: '状态', dataIndex: 'isEnabled', key: 'isEnabled', width: 110 },
-  { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
-  { title: '操作', key: 'action', fixed: 'right', width: 140 },
+  { title: $t('page.common.seq'), key: 'index', width: 70, customRender: ({ index }) => `${((pagination.current || 1) - 1) * (pagination.pageSize || 10) + index + 1}` },
+  { title: $t('page.wms.supplier.columns.supplierCode'), dataIndex: 'supplierCode', key: 'supplierCode', width: 140 },
+  { title: $t('page.wms.supplier.columns.supplierName'), dataIndex: 'supplierName', key: 'supplierName', width: 180 },
+  { title: $t('page.wms.supplier.columns.contactPerson'), dataIndex: 'contactPerson', key: 'contactPerson', width: 120 },
+  { title: $t('page.wms.supplier.columns.contactPhone'), dataIndex: 'contactPhone', key: 'contactPhone', width: 140 },
+  { title: $t('page.wms.supplier.columns.email'), dataIndex: 'email', key: 'email', width: 180 },
+  { title: $t('page.common.status'), dataIndex: 'isEnabled', key: 'isEnabled', width: 110 },
+  { title: $t('page.wms.supplier.columns.createTime'), dataIndex: 'createTime', key: 'createTime', width: 180 },
+  { title: $t('page.common.operation'), key: 'action', fixed: 'right', width: 140 },
 ]);
 
 const rowSelection = computed(() => ({
@@ -222,7 +229,7 @@ async function loadData() {
   } catch (error: any) {
     tableData.value = [];
     pagination.total = 0;
-    message.error(error?.message || '供应商列表加载失败');
+    message.error($t('page.wms.supplier.messages.loadFail'));
   } finally {
     loading.value = false;
   }
@@ -252,40 +259,40 @@ function handleEdit(record: SupplierResult) {
 async function handleDelete(record: SupplierResult) {
   try {
     await deleteSupplier(record.id!);
-    message.success('删除成功');
+    message.success($t('page.wms.supplier.messages.deleteSuccess'));
     if (tableData.value.length === 1 && (pagination.current || 1) > 1) {
       pagination.current = (pagination.current || 1) - 1;
     }
     selectedRowKeys.value = selectedRowKeys.value.filter((key) => key !== record.id);
     await loadData();
   } catch (error: any) {
-    message.error(error?.message || '删除失败');
+    message.error($t('page.wms.supplier.messages.deleteFail'));
   }
 }
 
 async function handleBatchDelete() {
   if (selectedRowKeys.value.length === 0) {
-    message.warning('请先选择要删除的记录');
+    message.warning($t('page.wms.supplier.messages.selectToDelete'));
     return;
   }
   try {
     await Promise.all(selectedRowKeys.value.map((id) => deleteSupplier(Number(id))));
-    message.success('删除成功');
+    message.success($t('page.wms.supplier.messages.deleteSuccess'));
     selectedRowKeys.value = [];
     pagination.current = 1;
     await loadData();
   } catch (error: any) {
-    message.error(error?.message || '批量删除失败');
+    message.error($t('page.wms.supplier.messages.batchDeleteFail'));
   }
 }
 
 async function handleToggleStatus(record: SupplierResult, checked: boolean) {
   try {
     await toggleSupplierStatus(record.id!, checked ? 1 : 0);
-    message.success(checked ? '启用成功' : '停用成功');
+    message.success(checked ? $t('page.wms.supplier.messages.enableSuccess') : $t('page.wms.supplier.messages.disableSuccess'));
     await loadData();
   } catch (error: any) {
-    message.error(error?.message || '状态切换失败');
+    message.error($t('page.wms.supplier.messages.statusToggleFail'));
     await loadData();
   }
 }
@@ -297,14 +304,14 @@ async function handleExport() {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `供应商管理_${Date.now()}.xlsx`;
+    link.download = `${$t('page.supplier.title')}_${Date.now()}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    message.success('导出成功');
+    message.success($t('page.wms.supplier.messages.exportSuccess'));
   } catch (error: any) {
-    message.error(error?.message || '导出失败');
+    message.error($t('page.wms.supplier.messages.exportFail'));
   } finally {
     exporting.value = false;
   }

@@ -4,13 +4,13 @@
       <!-- Page Header -->
       <div class="page-header">
         <div class="header-left">
-          <h1 class="page-title">WMS0050 库区管理</h1>
-          <p class="page-desc">管理仓库下的库区区域，包括存储区、拣货区等</p>
+          <h1 class="page-title">{{ $t('page.wms.location.listTitle') }}</h1>
+          <p class="page-desc">{{ $t('page.wms.location.listDescription') }}</p>
         </div>
         <div class="header-right">
           <Button type="primary" @click="handleAdd">
             <template #icon><Plus /></template>
-            新建库区
+            {{ $t('page.wms.location.add') }}
           </Button>
         </div>
       </div>
@@ -23,7 +23,7 @@
             <Input
               v-model:value="queryForm.locationName"
               allow-clear
-              placeholder="搜索库区名称..."
+              :placeholder="$t('page.wms.location.searchPlaceholder')"
               class="search-input"
               @press-enter="handleSearch"
             />
@@ -31,7 +31,7 @@
           <Select
             v-model:value="queryForm.isEnabled"
             allow-clear
-            placeholder="全部状态"
+            :placeholder="$t('page.wms.location.status.all')"
             class="status-select"
             :options="statusFilterOptions"
             @change="handleSearch"
@@ -48,7 +48,7 @@
                 v-if="field.type === 'select'"
                 v-model:value="queryForm[field.key as keyof LocationQuery]"
                 allow-clear
-                :placeholder="`请选择${field.label}`"
+                :placeholder="$t('page.common.selectPlaceholder')"
                 class="filter-tag-select"
                 :options="field.options"
                 @change="handleSearch"
@@ -57,7 +57,7 @@
                 v-else
                 v-model:value="queryForm[field.key as keyof LocationQuery]"
                 allow-clear
-                :placeholder="`请输入${field.label}`"
+                :placeholder="$t('page.common.inputPlaceholder')"
                 class="filter-tag-input"
                 @press-enter="handleSearch"
               />
@@ -71,7 +71,7 @@
           <Dropdown v-if="availableFields.length > 0" trigger="click">
             <Button>
               <template #icon><Plus /></template>
-              添加筛选
+              {{ $t('page.wms.filter.addFilter') }}
               <ChevronDown />
             </Button>
             <template #overlay>
@@ -88,7 +88,7 @@
           </Dropdown>
           <Button :loading="exporting" @click="handleExport">
             <template #icon><Download /></template>
-            导出
+            {{ $t('page.wms.location.export') }}
           </Button>
         </div>
       </Card>
@@ -101,7 +101,7 @@
               <MapPin />
             </div>
             <div class="stat-info">
-              <p class="stat-label">库区总数</p>
+              <p class="stat-label">{{ $t('page.wms.location.stats.total') }}</p>
               <p class="stat-value">{{ pagination.total }}</p>
             </div>
           </div>
@@ -112,7 +112,7 @@
               <Power />
             </div>
             <div class="stat-info">
-              <p class="stat-label">已启用</p>
+              <p class="stat-label">{{ $t('page.wms.location.stats.enabled') }}</p>
               <p class="stat-value">{{ enabledCount }}</p>
             </div>
           </div>
@@ -123,7 +123,7 @@
               <Ban />
             </div>
             <div class="stat-info">
-              <p class="stat-label">已停用</p>
+              <p class="stat-label">{{ $t('page.wms.location.stats.disabled') }}</p>
               <p class="stat-value">{{ disabledCount }}</p>
             </div>
           </div>
@@ -134,7 +134,7 @@
               <Package />
             </div>
             <div class="stat-info">
-              <p class="stat-label">存储区</p>
+              <p class="stat-label">{{ $t('page.wms.location.stats.storageArea') }}</p>
               <p class="stat-value">{{ storageCount }}</p>
             </div>
           </div>
@@ -146,12 +146,14 @@
         <div class="toolbar">
           <Space wrap>
             <Popconfirm
-              title="确认删除选中的库区记录吗？"
-              ok-text="确定"
-              cancel-text="取消"
+              :title="$t('page.wms.location.batchDeleteConfirm')"
+              :ok-text="$t('page.common.confirm')"
+              :cancel-text="$t('page.common.cancel')"
               @confirm="handleBatchDelete"
             >
-              <Button danger :disabled="selectedRowKeys.length === 0">删除</Button>
+              <Button danger :disabled="selectedRowKeys.length === 0">
+                {{ $t('page.common.delete') }}
+              </Button>
             </Popconfirm>
           </Space>
         </div>
@@ -173,8 +175,8 @@
             <template v-else-if="column.key === 'isEnabled'">
               <Switch
                 :checked="record.isEnabled === 1"
-                checked-children="启用"
-                un-checked-children="停用"
+                :checked-children="$t('page.common.enabled')"
+                :un-checked-children="$t('page.common.disabled')"
                 @change="(checked) => handleToggleStatus(record, checked)"
               />
             </template>
@@ -185,15 +187,17 @@
                   size="small"
                   @click="handleEdit(record)"
                 >
-                  编辑
+                  {{ $t('page.common.edit') }}
                 </Button>
                 <Popconfirm
-                  title="确认删除该库区记录吗？"
-                  ok-text="确定"
-                  cancel-text="取消"
+                  :title="$t('page.wms.location.deleteConfirm')"
+                  :ok-text="$t('page.common.confirm')"
+                  :cancel-text="$t('page.common.cancel')"
                   @confirm="handleDelete(record)"
                 >
-                  <Button type="link" danger size="small">删除</Button>
+                  <Button type="link" danger size="small">
+                    {{ $t('page.common.delete') }}
+                  </Button>
                 </Popconfirm>
               </Space>
             </template>
@@ -252,6 +256,7 @@ import {
   type LocationResult,
 } from '#/api/sys/location';
 import LocationModal from './modules/location-modal.vue';
+import { $t } from '@vben/locales';
 
 const STORAGE_KEY = 'location_filter_fields';
 
@@ -276,10 +281,10 @@ interface FilterFieldDef {
 }
 
 const allFieldDefs: FilterFieldDef[] = [
-  { key: 'locationCode', label: '库区编码', type: 'input' },
-  { key: 'locationName', label: '库区名称', type: 'input' },
-  { key: 'warehouseId', label: '所属仓库', type: 'select', options: [] },
-  { key: 'locationType', label: '库区类型', type: 'select', options: [] },
+  { key: 'locationCode', label: $t('page.wms.location.filter.locationCode'), type: 'input' },
+  { key: 'locationName', label: $t('page.wms.location.filter.locationName'), type: 'input' },
+  { key: 'warehouseId', label: $t('page.wms.location.filter.warehouseId'), type: 'select', options: [] },
+  { key: 'locationType', label: $t('page.wms.location.filter.locationType'), type: 'select', options: [] },
 ];
 
 // Active filter fields shown as tags in the search bar
@@ -368,17 +373,17 @@ const queryForm = reactive<LocationQuery>({
   isEnabled: undefined,
 });
 
-const statusFilterOptions = [
-  { label: '全部状态', value: undefined },
-  { label: '启用', value: 1 },
-  { label: '停用', value: 0 },
-];
+const statusFilterOptions = computed(() => [
+  { label: $t('page.wms.location.status.all'), value: undefined },
+  { label: $t('page.wms.location.status.enabled'), value: 1 },
+  { label: $t('page.wms.location.status.disabled'), value: 0 },
+]);
 
 const locationTypeOptions = [
-  { label: '存储区', value: 'STORAGE' },
-  { label: '拣货区', value: 'PICK' },
-  { label: '集货区', value: 'COLLECT' },
-  { label: '退货区', value: 'RETURN' },
+  { label: $t('page.wms.location.locationType.STORAGE'), value: 'STORAGE' },
+  { label: $t('page.wms.location.locationType.PICK'), value: 'PICK' },
+  { label: $t('page.wms.location.locationType.COLLECT'), value: 'COLLECT' },
+  { label: $t('page.wms.location.locationType.RETURN'), value: 'RETURN' },
 ];
 
 const enabledCount = computed(() => tableData.value.filter((item) => item.isEnabled === 1).length);
@@ -390,18 +395,18 @@ const pagination = reactive<TablePaginationConfig>({
   pageSize: 10,
   total: 0,
   showSizeChanger: true,
-  showTotal: (total) => `共 ${total} 条`,
+  showTotal: (total) => $t('page.wms.table.totalRecords', { total }),
 });
 
 const columns = computed<TableColumnsType<LocationResult>>(() => [
-  { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${((pagination.current || 1) - 1) * (pagination.pageSize || 10) + index + 1}` },
-  { title: '库区编码', dataIndex: 'locationCode', key: 'locationCode', width: 140 },
-  { title: '库区名称', dataIndex: 'locationName', key: 'locationName', width: 160 },
-  { title: '所属仓库', dataIndex: 'warehouseName', key: 'warehouseName', width: 160 },
-  { title: '库区类型', dataIndex: 'locationType', key: 'locationType', width: 120 },
-  { title: '状态', dataIndex: 'isEnabled', key: 'isEnabled', width: 110 },
-  { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
-  { title: '操作', key: 'action', fixed: 'right', width: 140 },
+  { title: $t('page.common.seq'), key: 'index', width: 70, customRender: ({ index }) => `${((pagination.current || 1) - 1) * (pagination.pageSize || 10) + index + 1}` },
+  { title: $t('page.wms.location.columns.locationCode'), dataIndex: 'locationCode', key: 'locationCode', width: 140 },
+  { title: $t('page.wms.location.columns.locationName'), dataIndex: 'locationName', key: 'locationName', width: 160 },
+  { title: $t('page.wms.location.columns.warehouseName'), dataIndex: 'warehouseName', key: 'warehouseName', width: 160 },
+  { title: $t('page.wms.location.columns.locationType'), dataIndex: 'locationType', key: 'locationType', width: 120 },
+  { title: $t('page.common.status'), dataIndex: 'isEnabled', key: 'isEnabled', width: 110 },
+  { title: $t('page.common.createTime'), dataIndex: 'createTime', key: 'createTime', width: 180 },
+  { title: $t('page.common.operation'), key: 'action', fixed: 'right', width: 140 },
 ]);
 
 const rowSelection = computed(() => ({
@@ -434,7 +439,7 @@ async function loadData() {
   } catch (error: any) {
     tableData.value = [];
     pagination.total = 0;
-    message.error(error?.message || '库区列表加载失败');
+    message.error($t('page.wms.location.messages.loadFail'));
   } finally {
     loading.value = false;
   }
@@ -477,40 +482,40 @@ function handleEdit(record: LocationResult) {
 async function handleDelete(record: LocationResult) {
   try {
     await deleteLocation(record.id!);
-    message.success('删除成功');
+    message.success($t('page.wms.location.messages.deleteSuccess'));
     if (tableData.value.length === 1 && (pagination.current || 1) > 1) {
       pagination.current = (pagination.current || 1) - 1;
     }
     selectedRowKeys.value = selectedRowKeys.value.filter((key) => key !== record.id);
     await loadData();
   } catch (error: any) {
-    message.error(error?.message || '删除失败');
+    message.error($t('page.wms.location.messages.deleteFail'));
   }
 }
 
 async function handleBatchDelete() {
   if (selectedRowKeys.value.length === 0) {
-    message.warning('请先选择要删除的记录');
+    message.warning($t('page.wms.location.messages.selectToDelete'));
     return;
   }
   try {
     await Promise.all(selectedRowKeys.value.map((id) => deleteLocation(Number(id))));
-    message.success('删除成功');
+    message.success($t('page.wms.location.messages.deleteSuccess'));
     selectedRowKeys.value = [];
     pagination.current = 1;
     await loadData();
   } catch (error: any) {
-    message.error(error?.message || '批量删除失败');
+    message.error($t('page.wms.location.messages.batchDeleteFail'));
   }
 }
 
 async function handleToggleStatus(record: LocationResult, checked: boolean) {
   try {
     await toggleLocationStatus(record.id!, checked ? 1 : 0);
-    message.success(checked ? '启用成功' : '停用成功');
+    message.success(checked ? $t('page.wms.location.messages.enableSuccess') : $t('page.wms.location.messages.disableSuccess'));
     await loadData();
   } catch (error: any) {
-    message.error(error?.message || '状态切换失败');
+    message.error($t('page.wms.location.messages.statusToggleFail'));
     await loadData();
   }
 }
@@ -522,14 +527,14 @@ async function handleExport() {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `库区档案_${Date.now()}.xlsx`;
+    link.download = `${$t('page.system.location.title')}_${Date.now()}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    message.success('导出成功');
+    message.success($t('page.wms.location.messages.exportSuccess'));
   } catch (error: any) {
-    message.error(error?.message || '导出失败');
+    message.error($t('page.wms.location.messages.exportFail'));
   } finally {
     exporting.value = false;
   }

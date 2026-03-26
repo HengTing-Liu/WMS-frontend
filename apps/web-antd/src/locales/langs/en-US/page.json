@@ -744,12 +744,358 @@
     "confirmDelete": "Confirm delete material 「{name}」? Cannot be recovered!"
   },
   "wms": {
-    "filter": {
-      "allStatus": "All Status",
-      "addFilter": "Add Filter"
+    "supplier": {
+      "listTitle": "WMS0020 Supplier Management",
+      "listDescription": "Manage supplier basic info, contact details, etc.",
+      "add": "New Supplier",
+      "export": "Export",
+      "batchDeleteConfirm": "Confirm deleting selected supplier records?",
+      "deleteConfirm": "Confirm deleting this supplier record?",
+      "filter": {
+        "supplierCode": "Supplier Code",
+        "supplierName": "Supplier Name",
+        "contactPerson": "Contact Person",
+        "contactPhone": "Contact Phone"
+      },
+      "columns": {
+        "supplierCode": "Supplier Code",
+        "supplierName": "Supplier Name",
+        "contactPerson": "Contact Person",
+        "contactPhone": "Contact Phone",
+        "email": "Email",
+        "createTime": "Created At"
+      },
+      "status": {
+        "all": "All Status",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "stats": {
+        "total": "Total Suppliers",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "hasContact": "Has Contact"
+      },
+      "messages": {
+        "loadFail": "Failed to load supplier list",
+        "deleteSuccess": "Deleted successfully",
+        "deleteFail": "Delete failed",
+        "selectToDelete": "Please select records to delete first",
+        "batchDeleteFail": "Batch delete failed",
+        "enableSuccess": "Enabled successfully",
+        "disableSuccess": "Disabled successfully",
+        "statusToggleFail": "Failed to toggle status",
+        "exportSuccess": "Exported successfully",
+        "exportFail": "Export failed"
+      },
+      "searchPlaceholder": "Search supplier name..."
     },
-    "table": {
-      "totalRecords": "{total} records"
+    "material": {
+      "listTitle": "WMS0030 Material Management",
+      "listDescription": "Manage material basic info, specifications, units, categories, etc.",
+      "add": "New Material",
+      "export": "Export",
+      "batchDeleteConfirm": "Confirm deleting selected material records?",
+      "deleteConfirm": "Confirm deleting this material record?",
+      "filter": {
+        "materialCode": "Material Code",
+        "materialName": "Material Name",
+        "specification": "Specification",
+        "unit": "Unit",
+        "category": "Category"
+      },
+      "columns": {
+        "materialCode": "Material Code",
+        "materialName": "Material Name",
+        "specification": "Specification",
+        "unit": "Unit",
+        "category": "Category",
+        "createTime": "Created At"
+      },
+      "status": {
+        "all": "All Status",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "stats": {
+        "total": "Total Materials",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "category": "Categories"
+      },
+      "messages": {
+        "loadFail": "Failed to load material list",
+        "deleteSuccess": "Deleted successfully",
+        "deleteFail": "Delete failed",
+        "selectToDelete": "Please select records to delete first",
+        "batchDeleteFail": "Batch delete failed",
+        "enableSuccess": "Enabled successfully",
+        "disableSuccess": "Disabled successfully",
+        "statusToggleFail": "Failed to toggle status",
+        "exportSuccess": "Exported successfully",
+        "exportFail": "Export failed"
+      },
+      "searchPlaceholder": "Search material name..."
+    },
+    "customer": {
+      "listTitle": "WMS0040 Customer Management",
+      "listDescription": "Manage customer basic info, contact details, etc.",
+      "add": "New Customer",
+      "export": "Export",
+      "batchDeleteConfirm": "Confirm deleting selected customer records?",
+      "deleteConfirm": "Confirm deleting this customer record?",
+      "filter": {
+        "customerCode": "Customer Code",
+        "customerName": "Customer Name",
+        "contactPerson": "Contact Person",
+        "contactPhone": "Phone",
+        "mobile": "Mobile"
+      },
+      "columns": {
+        "customerCode": "Customer Code",
+        "customerName": "Customer Name",
+        "contactPerson": "Contact Person",
+        "mobile": "Mobile",
+        "contactPhone": "Phone",
+        "createTime": "Created At"
+      },
+      "status": {
+        "all": "All Status",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "stats": {
+        "total": "Total Customers",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "hasContact": "Has Contact"
+      },
+      "messages": {
+        "loadFail": "Failed to load customer list",
+        "deleteSuccess": "Deleted successfully",
+        "deleteFail": "Delete failed",
+        "selectToDelete": "Please select records to delete first",
+        "batchDeleteFail": "Batch delete failed",
+        "enableSuccess": "Enabled successfully",
+        "disableSuccess": "Disabled successfully",
+        "statusToggleFail": "Failed to toggle status",
+        "exportSuccess": "Exported successfully",
+        "exportFail": "Export failed"
+      },
+      "searchPlaceholder": "Search customer name..."
+    },
+    "storage": {
+      "listTitle": "WMS0060 Storage Location Management",
+      "listDescription": "Manage specific storage locations (shelves/storage slots) under warehouse areas",
+      "add": "New Storage",
+      "export": "Export",
+      "batchDeleteConfirm": "Confirm deleting selected storage records?",
+      "deleteConfirm": "Confirm deleting this storage record?",
+      "filter": {
+        "storageCode": "Storage Code",
+        "storageName": "Storage Name",
+        "warehouseId": "Warehouse",
+        "locationId": "Location Area",
+        "storageType": "Storage Type"
+      },
+      "columns": {
+        "storageCode": "Storage Code",
+        "storageName": "Storage Name",
+        "locationName": "Location Area",
+        "warehouseName": "Warehouse",
+        "storageType": "Storage Type",
+        "capacity": "Capacity",
+        "createTime": "Created At"
+      },
+      "status": {
+        "all": "All Status",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "stats": {
+        "total": "Total Storage",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "totalCapacity": "Total Capacity"
+      },
+      "messages": {
+        "loadFail": "Failed to load storage list",
+        "deleteSuccess": "Deleted successfully",
+        "deleteFail": "Delete failed",
+        "selectToDelete": "Please select records to delete first",
+        "batchDeleteFail": "Batch delete failed",
+        "enableSuccess": "Enabled successfully",
+        "disableSuccess": "Disabled successfully",
+        "statusToggleFail": "Failed to toggle status",
+        "exportSuccess": "Exported successfully",
+        "exportFail": "Export failed"
+      },
+      "searchPlaceholder": "Search storage name...",
+      "storageType": {
+        "PLANE": "Plane",
+        "STEREO": "Stereo",
+        "RACK": "Rack"
+      }
+    },
+    "location": {
+      "listTitle": "WMS0050 Location Area Management",
+      "listDescription": "Manage warehouse location areas including storage, picking, etc.",
+      "add": "New Location",
+      "export": "Export",
+      "batchDeleteConfirm": "Confirm deleting selected location records?",
+      "deleteConfirm": "Confirm deleting this location record?",
+      "filter": {
+        "locationCode": "Location Code",
+        "locationName": "Location Name",
+        "warehouseId": "Warehouse",
+        "locationType": "Location Type"
+      },
+      "columns": {
+        "locationCode": "Location Code",
+        "locationName": "Location Name",
+        "warehouseName": "Warehouse",
+        "locationType": "Location Type",
+        "createTime": "Created At"
+      },
+      "status": {
+        "all": "All Status",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "stats": {
+        "total": "Total Locations",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "storageArea": "Storage Area"
+      },
+      "messages": {
+        "loadFail": "Failed to load location list",
+        "deleteSuccess": "Deleted successfully",
+        "deleteFail": "Delete failed",
+        "selectToDelete": "Please select records to delete first",
+        "batchDeleteFail": "Batch delete failed",
+        "enableSuccess": "Enabled successfully",
+        "disableSuccess": "Disabled successfully",
+        "statusToggleFail": "Failed to toggle status",
+        "exportSuccess": "Exported successfully",
+        "exportFail": "Export failed"
+      },
+      "locationType": {
+        "STORAGE": "Storage Area",
+        "PICK": "Pick Area",
+        "COLLECT": "Collect Area",
+        "RETURN": "Return Area"
+      },
+      "searchPlaceholder": "Search location name..."
+    },
+    "dict": {
+      "listTitle": "WMS0070 Dictionary Management",
+      "listDescription": "Manage system dictionary types and data, support CRUD and status management",
+      "addType": "New Type",
+      "addData": "New Data",
+      "export": "Export",
+      "batchDeleteTypeConfirm": "Confirm deleting selected dictionary types?",
+      "batchDeleteDataConfirm": "Confirm deleting selected dictionary data?",
+      "deleteTypeConfirm": "Confirm deleting this dictionary type?",
+      "deleteDataConfirm": "Confirm deleting this dictionary data?",
+      "filter": {
+        "dictCode": "Dict Code",
+        "dictName": "Dict Name",
+        "dictType": "Dict Type",
+        "dictLabel": "Dict Label",
+        "dictValue": "Dict Value"
+      },
+      "columns": {
+        "dictCode": "Dict Code",
+        "dictName": "Dict Name",
+        "dictType": "Type",
+        "dictTypeName": "Dict Type",
+        "dictLabel": "Dict Label",
+        "dictValue": "Dict Value",
+        "sortOrder": "Sort",
+        "remark": "Remark",
+        "createTime": "Created At"
+      },
+      "status": {
+        "all": "All Status",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "stats": {
+        "type": {
+          "total": "Dict Types",
+          "enabled": "Enabled",
+          "disabled": "Disabled",
+          "customType": "Custom Types"
+        },
+        "data": {
+          "total": "Dict Data",
+          "enabled": "Enabled",
+          "disabled": "Disabled",
+          "type": "Dict Types"
+        }
+      },
+      "messages": {
+        "loadTypeFail": "Failed to load dictionary type list",
+        "loadDataFail": "Failed to load dictionary data list",
+        "deleteSuccess": "Deleted successfully",
+        "deleteFail": "Delete failed",
+        "selectToDelete": "Please select records to delete first",
+        "batchDeleteFail": "Batch delete failed",
+        "enableSuccess": "Enabled successfully",
+        "disableSuccess": "Disabled successfully",
+        "statusToggleFail": "Failed to toggle status",
+        "exportSuccess": "Exported successfully",
+        "exportFail": "Export failed"
+      },
+      "searchPlaceholder": "Search dict label..."
+    },
+    "user": {
+      "listTitle": "WMS0080 User Management",
+      "listDescription": "Manage system user basic info and role assignment",
+      "add": "New User",
+      "export": "Export",
+      "assignRole": "Assign Role",
+      "batchDeleteConfirm": "Confirm deleting selected user records?",
+      "deleteConfirm": "Confirm deleting this user record?",
+      "filter": {
+        "userName": "Username",
+        "nickName": "Full Name",
+        "phonenumber": "Phone Number"
+      },
+      "columns": {
+        "userId": "User ID",
+        "userName": "Username",
+        "nickName": "Full Name",
+        "phonenumber": "Phone",
+        "email": "Email",
+        "deptName": "Department",
+        "roleNames": "Roles",
+        "createTime": "Created At"
+      },
+      "status": {
+        "all": "All Status",
+        "normal": "Normal",
+        "disabled": "Disabled"
+      },
+      "stats": {
+        "total": "Total Users",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "hasMobile": "Has Mobile"
+      },
+      "messages": {
+        "loadFail": "Failed to load user list",
+        "deleteSuccess": "Deleted successfully",
+        "deleteFail": "Delete failed",
+        "selectToDelete": "Please select records to delete first",
+        "batchDeleteFail": "Batch delete failed",
+        "enableSuccess": "Enabled successfully",
+        "disableSuccess": "Disabled successfully",
+        "statusToggleFail": "Failed to toggle status",
+        "exportSuccess": "Exported successfully",
+        "exportFail": "Export failed"
+      }
     }
   }
 }
