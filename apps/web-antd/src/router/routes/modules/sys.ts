@@ -14,23 +14,16 @@ const routes: RouteRecordRaw[] = [
     path: '/sys',
     children: [
       {
-        meta: { title: '仓库', name: 'BaseWarehouse' },
+        meta: { title: '仓库档案' },
+        name: 'BaseWarehouseList',
         path: 'warehouse',
-        redirect: { name: 'BaseWarehouseList' },
-        children: [
-          {
-            meta: { title: '仓库档案' },
-            name: 'BaseWarehouseList',
-            path: '',
-            component: () => import('#/views/sys/warehouse/index.vue'),
-          },
-          {
-            meta: { title: '仓库编辑' },
-            name: 'BaseWarehouseEdit',
-            path: 'edit',
-            component: () => import('#/views/sys/warehouse/warehouse-edit.vue'),
-          },
-        ],
+        component: () => import('#/views/sys/warehouse/index.vue'),
+      },
+      {
+        meta: { title: '仓库编辑' },
+        name: 'BaseWarehouseEdit',
+        path: 'warehouse/edit',
+        component: () => import('#/views/sys/warehouse/warehouse-edit.vue'),
       },
       {
         meta: { title: '供应商管理' },
