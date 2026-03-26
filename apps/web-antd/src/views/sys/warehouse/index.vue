@@ -124,6 +124,22 @@ const exporting = ref(false);
 const tableData = ref<WarehouseResult[]>([]);
 const selectedRowKeys = ref<Array<number | string>>([]);
 
+const temperatureZoneOptions = [
+  { label: '常温', value: 'NORMAL' },
+  { label: '2-8℃', value: 'COLD' },
+  { label: '-20℃', value: 'FREEZE' },
+  { label: '-80℃', value: 'CONSTANT' },
+  { label: '液氮', value: 'LIQUID_NITROGEN' },
+];
+
+const qualityZoneOptions = [
+  { label: '合格区', value: 'QUALIFIED' },
+  { label: '待检区', value: 'PENDING' },
+  { label: '不合格区', value: 'UNQUALIFIED' },
+  { label: '隔离区', value: 'ISOLATION' },
+  { label: '退货区', value: 'RETURN' },
+];
+
 const filterFields = [
   { key: 'warehouseCode', label: '仓库编码', type: 'input' as const },
   { key: 'warehouseName', label: '仓库名称', type: 'input' as const },
@@ -175,22 +191,6 @@ const pagination = reactive<TablePaginationConfig>({
   showSizeChanger: true,
   showTotal: (total) => `共 ${total} 条`,
 });
-
-const temperatureZoneOptions = [
-  { label: '常温', value: 'NORMAL' },
-  { label: '2-8℃', value: 'COLD' },
-  { label: '-20℃', value: 'FREEZE' },
-  { label: '-80℃', value: 'CONSTANT' },
-  { label: '液氮', value: 'LIQUID_NITROGEN' },
-];
-
-const qualityZoneOptions = [
-  { label: '合格区', value: 'QUALIFIED' },
-  { label: '待检区', value: 'PENDING' },
-  { label: '不合格区', value: 'UNQUALIFIED' },
-  { label: '隔离区', value: 'ISOLATION' },
-  { label: '退货区', value: 'RETURN' },
-];
 
 
 const columns = computed<TableColumnsType<WarehouseResult>>(() => [
