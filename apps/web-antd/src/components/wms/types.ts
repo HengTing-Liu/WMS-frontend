@@ -1,12 +1,17 @@
 import type { Component } from 'vue';
 
-export interface StatConfig {
+export type WmsStatTone = 'blue' | 'green' | 'orange' | 'purple' | 'red';
+
+export interface WmsStatItem {
   key: string;
   label: string;
-  icon: Component;
-  color: string;
-  value: number | string | (() => number | string);
+  value: number | string;
+  icon?: Component;
+  tone?: WmsStatTone;
 }
+
+/** @deprecated 请改用 WmsStatItem */
+export type StatConfig = WmsStatItem;
 
 export interface WmsFilterFieldDef {
   key: string;

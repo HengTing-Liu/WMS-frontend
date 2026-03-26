@@ -79,52 +79,7 @@
     </template>
 
     <template #stats>
-      <div class="stats-row">
-        <Card class="stat-card stat-total" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-blue">
-              <Warehouse />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">总仓库数</p>
-              <p class="stat-value">{{ pagination.total }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-enabled" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-green">
-              <Power />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">已启用</p>
-              <p class="stat-value">{{ enabledCount }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-disabled" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-orange">
-              <MapPin />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">已停用</p>
-              <p class="stat-value">{{ disabledCount }}</p>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card stat-normal" :bordered="false">
-          <div class="stat-content">
-            <div class="stat-icon-wrap stat-icon-purple">
-              <Thermometer />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">常温仓库</p>
-              <p class="stat-value">{{ normalTempCount }}</p>
-            </div>
-          </div>
-        </Card>
-      </div>
+      <WmsStatsCards :items="statsCards" />
     </template>
 
     <template #table>
@@ -220,7 +175,7 @@ import {
   message,
 } from 'ant-design-vue';
 import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
-import { WmsPageLayout } from '#/components/wms';
+import { WmsPageLayout, WmsStatsCards } from '#/components/wms';
 import {
   deleteWarehouse,
   exportWarehouse,
@@ -364,6 +319,13 @@ const statusValueOptions = [
 const enabledCount = computed(() => tableData.value.filter((item) => item.isEnabled === 1).length);
 const disabledCount = computed(() => tableData.value.filter((item) => item.isEnabled === 0).length);
 const normalTempCount = computed(() => tableData.value.filter((item) => item.temperatureZone === 'NORMAL').length);
+
+const statsCards = computed(() => [
+  { key: 'total', label: '总仓库数', value: pagination.total || 0, icon: Warehouse, tone: 'blue' as const },
+  { key: 'enabled', label: '已启用', value: enabledCount.value, icon: Power, tone: 'green' as const },
+  { key: 'disabled', label: '已停用', value: disabledCount.value, icon: MapPin, tone: 'orange' as const },
+  { key: 'normal', label: '常温仓库', value: normalTempCount.value, icon: Thermometer, tone: 'purple' as const },
+]);
 
 const pagination = reactive<TablePaginationConfig>({
   current: 1,
@@ -684,78 +646,6 @@ onMounted(() => {
   color: #ef4444;
 }
 
-/* Stats Row */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.stat-card :deep(.ant-card-body) {
-  padding: 16px;
-}
-
-.stat-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.stat-icon-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-icon-wrap :deep(svg) {
-  width: 20px;
-  height: 20px;
-}
-
-.stat-icon-blue {
-  background-color: #eff6ff;
-  color: #2563eb;
-}
-
-.stat-icon-green {
-  background-color: #f0fdf4;
-  color: #16a34a;
-}
-
-.stat-icon-orange {
-  background-color: #fff7ed;
-  color: #ea580c;
-}
-
-.stat-icon-purple {
-  background-color: #faf5ff;
-  color: #9333ea;
-}
-
-.stat-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.stat-label {
-  font-size: 13px;
-  color: #6b7280;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.stat-value {
-  font-size: 22px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  line-height: 1.2;
-}
-
 /* Table Card */
 .table-card :deep(.ant-card-body) {
   padding: 0 16px 16px 16px;
@@ -767,16 +657,4 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .stats-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .stats-row {
-    grid-template-columns: 1fr;
-  }
-}
 </style>

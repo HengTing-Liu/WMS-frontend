@@ -8,7 +8,7 @@
     </template>
 
     <template #stats>
-      <WmsStatsCards :stats="statsCards" />
+      <WmsStatsCards :items="statsCards" />
     </template>
 
     <template #filters>
@@ -167,10 +167,10 @@ const hasContactCount = computed(() =>
 );
 
 const statsCards = computed(() => [
-  { key: 'total', label: '供应商总数', icon: Truck, color: '#2563eb', value: pagination.total || 0 },
-  { key: 'enabled', label: '已启用', icon: Power, color: '#16a34a', value: enabledCount.value },
-  { key: 'disabled', label: '已停用', icon: Ban, color: '#ea580c', value: disabledCount.value },
-  { key: 'contact', label: '有联系方式', icon: Phone, color: '#9333ea', value: hasContactCount.value },
+  { key: 'total', label: '供应商总数', icon: Truck, tone: 'blue' as const, value: pagination.total || 0 },
+  { key: 'enabled', label: '已启用', icon: Power, tone: 'green' as const, value: enabledCount.value },
+  { key: 'disabled', label: '已停用', icon: Ban, tone: 'orange' as const, value: disabledCount.value },
+  { key: 'contact', label: '有联系方式', icon: Phone, tone: 'purple' as const, value: hasContactCount.value },
 ]);
 
 const pagination = reactive<TablePaginationConfig>({
