@@ -9,11 +9,16 @@
 - 统计区 / 筛选区 / 表格区分段布局
 
 ```vue
-<WmsPageLayout title="WMS0020 供应商管理" description="管理供应商基本信息、联系方式等">
-  <template #actions>...</template>
+<WmsPageLayout
+  title="WMS0020 供应商管理"
+  description="管理供应商基本信息、联系方式等"
+  :actions="[{ label: '新建供应商', type: 'primary', icon: Plus, onClick: handleAdd }]"
+>
   <template #stats>...</template>
-  <template #filters>...</template>
-  <WmsDataTable ... />
+  <template #filter>...</template>
+  <template #table>
+    <WmsDataTable ... />
+  </template>
 </WmsPageLayout>
 ```
 

@@ -1,21 +1,10 @@
 <template>
-  <Page auto-content-height>
-    <div class="wms-warehouse-page">
-      <!-- Page Header -->
-      <div class="page-header">
-        <div class="header-left">
-          <h1 class="page-title">WMS0010 仓库档案</h1>
-          <p class="page-desc">管理仓库基本信息、温区、质检分区等</p>
-        </div>
-        <div class="header-right">
-          <Button type="primary" @click="handleAdd">
-            <template #icon><Plus /></template>
-            新建仓库
-          </Button>
-        </div>
-      </div>
-
-      <!-- Search & Filter Bar -->
+  <WmsPageLayout
+    title="WMS0010 仓库档案"
+    description="管理仓库基本信息、温区、质检分区等"
+    :actions="pageActions"
+  >
+    <template #filter>
       <Card class="filter-card" :bordered="false">
         <div class="filter-bar">
           <div class="search-input-wrap">
@@ -36,7 +25,6 @@
             :options="statusFilterOptions"
             @change="handleSearch"
           />
-          <!-- Persistent filter field tags -->
           <div class="filter-tags-wrap">
             <div
               v-for="field in activeFilterFields"
@@ -61,13 +49,9 @@
                 class="filter-tag-input"
                 @press-enter="handleSearch"
               />
-              <X
-                class="filter-tag-close"
-                @click="removeFilterField(field.key)"
-              />
+              <X class="filter-tag-close" @click="removeFilterField(field.key)" />
             </div>
           </div>
-          <!-- Add filter dropdown -->
           <Dropdown v-if="availableFields.length > 0" trigger="click">
             <Button>
               <template #icon><Plus /></template>
@@ -92,8 +76,9 @@
           </Button>
         </div>
       </Card>
+    </template>
 
-      <!-- Stats Cards -->
+    <template #stats>
       <div class="stats-row">
         <Card class="stat-card stat-total" :bordered="false">
           <div class="stat-content">
@@ -140,8 +125,9 @@
           </div>
         </Card>
       </div>
+    </template>
 
-      <!-- Data Table -->
+    <template #table>
       <Card :bordered="false" class="table-card">
         <div class="toolbar">
           <Space wrap>
@@ -184,11 +170,7 @@
             </template>
             <template v-else-if="column.key === 'action'">
               <Space>
-                <Button
-                  type="link"
-                  size="small"
-                  @click="handleEdit(record)"
-                >
+                <Button type="link" size="small" @click="handleEdit(record)">
                   编辑
                 </Button>
                 <Popconfirm
@@ -205,14 +187,13 @@
           </template>
         </Table>
       </Card>
-    </div>
-  </Page>
+    </template>
+  </WmsPageLayout>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { Page } from '@vben/common-ui';
 import {
   Plus,
   Search,
@@ -239,6 +220,7 @@ import {
   message,
 } from 'ant-design-vue';
 import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
+import { WmsPageLayout } from '#/components/wms';
 import {
   deleteWarehouse,
   exportWarehouse,
@@ -349,6 +331,15 @@ const availableFields = computed(() =>
 );
 
 const router = useRouter();
+
+const pageActions = computed(() => [
+  {
+    label: '新建仓库',
+    type: 'primary' as const,
+    icon: Plus,
+    onClick: handleAdd,
+  },
+]);
 
 const queryForm = reactive<WarehouseQuery>({
   warehouseCode: '',
