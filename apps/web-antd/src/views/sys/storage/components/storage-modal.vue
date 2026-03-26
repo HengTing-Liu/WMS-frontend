@@ -10,70 +10,70 @@
     <Form
       ref="formRef"
       :model="formData"
-      :rules="formRules"
+      :rules="localeFormRules"
       :label-col="{ span: 6 }"
       :wrapper-col="{ span: 16 }"
     >
-      <FormItem :label="'货位编码'" name="storageCode">
+      <FormItem :label="$t('page.wms.storage.storageCode')" name="storageCode">
         <Input
           v-model:value="formData.storageCode"
-          placeholder="请输入货位编码"
+          :placeholder="$t('page.wms.storage.storageCodePlaceholder')"
           :disabled="isEdit"
           :maxlength="50"
         />
       </FormItem>
-      <FormItem :label="'货位名称'" name="storageName">
+      <FormItem :label="$t('page.wms.storage.storageName')" name="storageName">
         <Input
           v-model:value="formData.storageName"
-          placeholder="请输入货位名称"
+          :placeholder="$t('page.wms.storage.storageNamePlaceholder')"
           :maxlength="100"
         />
       </FormItem>
-      <FormItem :label="'所属仓库'" name="warehouseId">
+      <FormItem :label="$t('page.wms.storage.warehouseId')" name="warehouseId">
         <Select
           v-model:value="formData.warehouseId"
-          placeholder="请选择所属仓库"
+          :placeholder="$t('page.wms.storage.warehouseIdPlaceholder')"
           :options="warehouseOptions"
           @change="handleWarehouseChange"
         />
       </FormItem>
-      <FormItem :label="'所属库区'" name="locationId">
+      <FormItem :label="$t('page.wms.storage.locationId')" name="locationId">
         <Select
           v-model:value="formData.locationId"
-          placeholder="请选择所属库区"
+          :placeholder="$t('page.wms.storage.locationIdPlaceholder')"
           :options="filteredLocationOptions"
           :disabled="!formData.warehouseId"
         />
       </FormItem>
-      <FormItem :label="'货位类型'" name="storageType">
+      <FormItem :label="$t('page.wms.storage.storageType')" name="storageType">
         <Select
           v-model:value="formData.storageType"
-          placeholder="请选择货位类型"
+          :placeholder="$t('page.wms.storage.storageTypePlaceholder')"
           :options="storageTypeOptions"
         />
       </FormItem>
-      <FormItem :label="'容量'" name="capacity">
+      <FormItem :label="$t('page.wms.storage.capacity')" name="capacity">
         <InputNumber
           v-model:value="formData.capacity"
-          placeholder="请输入容量"
+          :placeholder="$t('page.wms.storage.capacityPlaceholder')"
           :min="0"
           :max="999999"
           style="width: 100%"
         />
       </FormItem>
-      <FormItem :label="'状态'" name="isEnabled">
+      <FormItem :label="$t('page.common.status')" name="isEnabled">
         <Switch
           v-model:checked="formData.isEnabled"
           :checkedValue="1"
           :unCheckedValue="0"
-          checked-children="启用"
-          un-checked-children="停用"
+          :checked-children="$t('page.common.enabled')"
+          :un-checked-children="$t('page.common.disabled')"
         />
       </FormItem>
-      <FormItem :label="'备注'">
+      <FormItem :label="$t('page.common.remark')">
         <Textarea
           v-model:value="formData.remark"
-          placeholder="请输入备注"
+          :placeholder="$t('page.common.remarkPlaceholder')"
           :rows="3"
         />
       </FormItem>
@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import {
   Form,
   FormItem,
@@ -95,6 +95,7 @@ import {
   message,
 } from 'ant-design-vue';
 import type { FormInstance } from 'ant-design-vue/es/form';
+import { $t } from '@vben/locales';
 
 import {
   createStorage,
@@ -122,14 +123,32 @@ const loading = ref(false);
 const isEdit = computed(() => !!props.storageId);
 
 const modalTitle = computed(() =>
-  isEdit.value ? '编辑货位' : '新建货位'
+  isEdit.value ? $t('page.wms.storage.editTitle') : $t('page.wms.storage.addTitle')
 );
 
 const storageTypeOptions = [
-  { label: '平面', value: 'PLANE' },
-  { label: '立体', value: 'STEREO' },
-  { label: '货架', value: 'RACK' },
+  { label: $t('page.wms.storage.storageType.PLANE'), value: 'PLANE' },
+  { label: $t('page.wms.storage.storageType.STEREO'), value: 'STEREO' },
+  { label: $t('page.wms.storage.storageType.RACK'), value: 'RACK' },
 ];
+
+// i18n-aware form rules
+const localeFormRules = computed(() => ({
+  storageCode: [
+    { required: true, message: $t('page.wms.storage.storageCodeRequired'), trigger: 'blur' },
+    { max: 50, message: $t('page.wms.storage.storageCodeMaxLength'), trigger: 'blur' },
+  ],
+  storageName: [
+    { required: true, message: $t('page.wms.storage.storageNameRequired'), trigger: 'blur' },
+    { max: 100, message: $t('page.wms.storage.storageNameMaxLength'), trigger: 'blur' },
+  ],
+  warehouseId: [
+    { required: true, message: $t('page.wms.storage.warehouseIdRequired'), trigger: 'change' },
+  ],
+  storageType: [
+    { required: true, message: $t('page.wms.storage.storageTypeRequired'), trigger: 'change' },
+  ],
+}));
 
 const formData = reactive<Record<string, any>>({
   id: undefined,
@@ -146,34 +165,14 @@ const formData = reactive<Record<string, any>>({
 // Filtered location options based on selected warehouse
 const filteredLocationOptions = computed(() => {
   if (!formData.warehouseId) return [];
-  // Location options are already filtered by warehouseId in parent, but we can also filter here
   if (props.locationOptions) {
     return props.locationOptions.filter((opt) => {
-      // This is a simplification - in real scenario we'd need warehouseId on each location
       return true;
     });
   }
   return [];
 });
 
-const formRules = {
-  storageCode: [
-    { required: true, message: '请输入货位编码', trigger: 'blur' },
-    { max: 50, message: '货位编码最多50个字符', trigger: 'blur' },
-  ],
-  storageName: [
-    { required: true, message: '请输入货位名称', trigger: 'blur' },
-    { max: 100, message: '货位名称最多100个字符', trigger: 'blur' },
-  ],
-  warehouseId: [
-    { required: true, message: '请选择所属仓库', trigger: 'change' },
-  ],
-  storageType: [
-    { required: true, message: '请选择货位类型', trigger: 'change' },
-  ],
-};
-
-// Watch warehouse change to reset location
 function handleWarehouseChange() {
   formData.locationId = undefined;
 }
@@ -184,7 +183,7 @@ async function loadDetail(id: number) {
     const res = await getStorageDetail(id);
     Object.assign(formData, res);
   } catch {
-    message.error('加载货位详情失败');
+    message.error($t('page.wms.storage.loadDetailFailed'));
   }
 }
 
@@ -205,10 +204,10 @@ const handleSubmit = async () => {
 
     if (isEdit.value) {
       await updateStorage(formData);
-      message.success('更新成功');
+      message.success($t('page.message.updateSuccess'));
     } else {
       await createStorage(formData);
-      message.success('创建成功');
+      message.success($t('page.message.addSuccess'));
     }
 
     visible.value = false;

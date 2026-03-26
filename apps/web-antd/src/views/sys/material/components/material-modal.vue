@@ -10,57 +10,59 @@
     <Form
       ref="formRef"
       :model="formData"
-      :rules="formRules"
+      :rules="localeFormRules"
       :label-col="{ span: 6 }"
       :wrapper-col="{ span: 16 }"
     >
-      <FormItem label="物料编码" name="materialCode">
+      <FormItem :label="$t('page.material.materialCode')" name="materialCode">
         <Input
           v-model:value="formData.materialCode"
-          placeholder="请输入物料编码"
+          :placeholder="$t('page.material.materialCodePlaceholder')"
           :disabled="isEdit"
           :maxlength="50"
         />
       </FormItem>
-      <FormItem label="物料名称" name="materialName">
+      <FormItem :label="$t('page.material.materialName')" name="materialName">
         <Input
           v-model:value="formData.materialName"
-          placeholder="请输入物料名称"
+          :placeholder="$t('page.material.materialNamePlaceholder')"
           :maxlength="100"
         />
       </FormItem>
-      <FormItem label="规格">
+      <FormItem :label="$t('page.material.specification')">
         <Input
           v-model:value="formData.specification"
-          placeholder="请输入规格"
+          :placeholder="$t('page.material.specificationPlaceholder')"
           :maxlength="100"
         />
       </FormItem>
-      <FormItem label="单位">
+      <FormItem :label="$t('page.material.unit')">
         <Input
           v-model:value="formData.unit"
-          placeholder="请输入单位"
+          :placeholder="$t('page.material.unitPlaceholder')"
           :maxlength="20"
         />
       </FormItem>
-      <FormItem label="分类">
+      <FormItem :label="$t('page.material.category')">
         <Input
           v-model:value="formData.category"
-          placeholder="请输入物料分类"
+          :placeholder="$t('page.material.categoryPlaceholder')"
           :maxlength="50"
         />
       </FormItem>
-      <FormItem label="是否启用" name="isEnabled">
+      <FormItem :label="$t('page.material.isEnabled')" name="isEnabled">
         <Switch
           v-model:checked="formData.isEnabled"
           :checkedValue="1"
           :unCheckedValue="0"
+          :checked-children="$t('page.common.enabled')"
+          :un-checked-children="$t('page.common.disabled')"
         />
       </FormItem>
-      <FormItem label="备注">
+      <FormItem :label="$t('page.material.remark')">
         <Textarea
           v-model:value="formData.remark"
-          placeholder="请输入备注"
+          :placeholder="$t('page.material.remarkPlaceholder')"
           :rows="3"
         />
       </FormItem>
@@ -80,6 +82,8 @@ import {
   message,
 } from 'ant-design-vue';
 import type { FormInstance } from 'ant-design-vue/es/form';
+import { $t } from '@vben/locales';
+import type { Rule } from 'ant-design-vue/es/form';
 
 import {
   createMaterial,
@@ -104,8 +108,23 @@ const loading = ref(false);
 const isEdit = computed(() => !!props.materialId);
 
 const modalTitle = computed(() =>
-  isEdit.value ? '编辑物料' : '新增物料'
+  isEdit.value ? $t('page.material.editTitle') : $t('page.material.addTitle')
 );
+
+// i18n-aware form rules
+const localeFormRules = computed(() => ({
+  materialCode: [
+    { required: true, message: $t('page.material.codeRequired'), trigger: 'blur' },
+    { max: 50, message: $t('page.material.codeMaxLength'), trigger: 'blur' },
+  ],
+  materialName: [
+    { required: true, message: $t('page.material.nameRequired'), trigger: 'blur' },
+    { max: 100, message: $t('page.material.nameMaxLength'), trigger: 'blur' },
+  ],
+  isEnabled: [
+    { required: true, message: $t('page.material.statusRequired'), trigger: 'change' },
+  ],
+}));
 
 const formData = reactive<Record<string, any>>({
   id: undefined,
@@ -118,27 +137,13 @@ const formData = reactive<Record<string, any>>({
   remark: '',
 });
 
-const formRules = {
-  materialCode: [
-    { required: true, message: '请输入物料编码', trigger: 'blur' },
-    { max: 50, message: '物料编码最大50字符', trigger: 'blur' },
-  ],
-  materialName: [
-    { required: true, message: '请输入物料名称', trigger: 'blur' },
-    { max: 100, message: '物料名称最大100字符', trigger: 'blur' },
-  ],
-  isEnabled: [
-    { required: true, message: '请选择是否启用', trigger: 'change' },
-  ],
-};
-
 // 加载详情
 const loadDetail = async (id: number) => {
   try {
     const res = await getMaterialDetail(id);
     Object.assign(formData, res.data || res);
   } catch {
-    message.error('加载详情失败');
+    message.error($t('page.material.loadDetailFailed'));
   }
 };
 
@@ -159,10 +164,10 @@ const handleSubmit = async () => {
 
     if (isEdit.value) {
       await updateMaterial(formData);
-      message.success('更新成功');
+      message.success($t('page.message.updateSuccess'));
     } else {
       await createMaterial(formData);
-      message.success('创建成功');
+      message.success($t('page.message.addSuccess'));
     }
 
     visible.value = false;

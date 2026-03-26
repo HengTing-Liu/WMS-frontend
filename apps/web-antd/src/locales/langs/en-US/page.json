@@ -129,7 +129,10 @@
       "createBy": "Creator",
       "createTime": "Create Time",
       "updateTime": "Update Time",
-      "remark": "Remark"
+      "remark": "Remark",
+      "confirmDisableUser": "Confirm disabling this user?",
+      "confirmEnableUser": "Confirm enabling this user?",
+      "exportUserList": "User List"
     },
     "enum": {
       "title": "Enum Management",
@@ -548,7 +551,9 @@
     "saveFail": "Save failed",
     "requiredFieldsHint": "Please fill in required fields",
     "totalRecords": "{total} records",
-    "pleaseSelect": "Please select"
+    "pleaseSelect": "Please select",
+    "sysTip": "System Prompt",
+    "remarkPlaceholder": "Please enter remark"
   },
   "message": {
     "operationSuccess": "Operation successful",
@@ -566,7 +571,9 @@
     "saveSuccess": "Save successful",
     "saveFail": "Save failed",
     "loadFail": "Load failed",
-    "pleaseSelectFile": "Please select a file"
+    "pleaseSelectFile": "Please select a file",
+    "batchDeleteSuccess": "Batch deleted successfully",
+    "batchDeleteFail": "Batch delete failed"
   },
   "lowcode": {
     "meta": {
@@ -741,7 +748,13 @@
     "nameMaxLength": "Material name max 100 characters",
     "statusRequired": "Please select enabled",
     "loadDetailFailed": "Failed to load details",
-    "confirmDelete": "Confirm delete material 「{name}」? Cannot be recovered!"
+    "confirmDelete": "Confirm delete material 「{name}」? Cannot be recovered!",
+    "materialCodePlaceholder": "Please enter material code",
+    "materialNamePlaceholder": "Please enter material name",
+    "specificationPlaceholder": "Please enter specification",
+    "unitPlaceholder": "Please enter unit",
+    "categoryPlaceholder": "Please enter material category",
+    "remarkPlaceholder": "Please enter remark"
   },
   "wms": {
     "supplier": {
@@ -935,7 +948,23 @@
         "PLANE": "Plane",
         "STEREO": "Stereo",
         "RACK": "Rack"
-      }
+      },
+      "storageCodePlaceholder": "Please enter storage code",
+      "storageNamePlaceholder": "Please enter storage name",
+      "warehouseIdPlaceholder": "Please select warehouse",
+      "locationIdPlaceholder": "Please select location area",
+      "storageTypePlaceholder": "Please select storage type",
+      "loadDetailFailed": "Failed to load storage details",
+      "loadFail": "Failed to load storage list",
+      "addTitle": "Add Storage",
+      "editTitle": "Edit Storage",
+      "storageCodeRequired": "Please enter storage code",
+      "storageCodeMaxLength": "Storage code max 50 characters",
+      "storageNameRequired": "Please enter storage name",
+      "storageNameMaxLength": "Storage name max 100 characters",
+      "warehouseIdRequired": "Please select warehouse",
+      "storageTypeRequired": "Please select storage type",
+      "capacityPlaceholder": "Please enter capacity"
     },
     "location": {
       "listTitle": "WMS0050 Location Area Management",
@@ -986,7 +1015,19 @@
         "COLLECT": "Collect Area",
         "RETURN": "Return Area"
       },
-      "searchPlaceholder": "Search location name..."
+      "searchPlaceholder": "Search location name...",
+      "locationCodePlaceholder": "Please enter location code",
+      "locationNamePlaceholder": "Please enter location name",
+      "warehouseIdPlaceholder": "Please select warehouse",
+      "locationTypePlaceholder": "Please select location type",
+      "addTitle": "Add Location",
+      "editTitle": "Edit Location",
+      "loadDetailFailed": "Failed to load location details",
+      "loadFail": "Failed to load location list",
+      "locationCodeRequired": "Please enter location code",
+      "locationNameRequired": "Please enter location name",
+      "warehouseIdRequired": "Please select warehouse",
+      "locationTypeRequired": "Please select location type"
     },
     "dict": {
       "listTitle": "WMS0070 Dictionary Management",

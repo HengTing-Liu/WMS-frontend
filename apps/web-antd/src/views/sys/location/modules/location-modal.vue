@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { Modal, Form, Input, Select, Switch, message } from 'ant-design-vue';
 import { createLocation, updateLocation, type LocationResult } from '#/api/sys/location';
+import { $t } from '@vben/locales';
 
 const props = defineProps<{
   visible: boolean;
@@ -27,19 +28,19 @@ const formState = ref({
 });
 
 const locationTypeOptions = [
-  { label: '存储区', value: 'STORAGE' },
-  { label: '拣货区', value: 'PICK' },
-  { label: '集货区', value: 'COLLECT' },
-  { label: '退货区', value: 'RETURN' },
+  { label: $t('page.wms.location.locationType.STORAGE'), value: 'STORAGE' },
+  { label: $t('page.wms.location.locationType.PICK'), value: 'PICK' },
+  { label: $t('page.wms.location.locationType.COLLECT'), value: 'COLLECT' },
+  { label: $t('page.wms.location.locationType.RETURN'), value: 'RETURN' },
 ];
 
-const title = computed(() => (props.mode === 'add' ? '新建库区' : '编辑库区'));
+const title = computed(() => (props.mode === 'add' ? $t('page.wms.location.addTitle') : $t('page.wms.location.editTitle')));
 
 const rules = {
-  locationCode: [{ required: true, message: '请输入库区编码', trigger: 'blur' }],
-  locationName: [{ required: true, message: '请输入库区名称', trigger: 'blur' }],
-  warehouseId: [{ required: true, message: '请选择所属仓库', trigger: 'change' }],
-  locationType: [{ required: true, message: '请选择库区类型', trigger: 'change' }],
+  locationCode: [{ required: true, message: $t('page.wms.location.locationCodeRequired'), trigger: 'blur' }],
+  locationName: [{ required: true, message: $t('page.wms.location.locationNameRequired'), trigger: 'blur' }],
+  warehouseId: [{ required: true, message: $t('page.wms.location.warehouseIdRequired'), trigger: 'change' }],
+  locationType: [{ required: true, message: $t('page.wms.location.locationTypeRequired'), trigger: 'change' }],
 };
 
 watch(
@@ -85,15 +86,15 @@ async function handleSubmit() {
     const data = { ...formState.value };
     if (props.mode === 'add') {
       await createLocation(data);
-      message.success('新建成功');
+      message.success($t('page.message.addSuccess'));
     } else {
       await updateLocation({ id: props.record!.id, ...data });
-      message.success('编辑成功');
+      message.success($t('page.message.updateSuccess'));
     }
     emit('success');
     handleClose();
   } catch (error: any) {
-    message.error(error?.message || (props.mode === 'add' ? '新建失败' : '编辑失败'));
+    message.error(error?.message || $t('page.message.saveFail'));
   } finally {
     loading.value = false;
   }
@@ -106,8 +107,8 @@ async function handleSubmit() {
     :title="title"
     :confirm-loading="loading"
     width="560px"
-    ok-text="确定"
-    cancel-text="取消"
+    :ok-text="$t('page.common.confirm')"
+    :cancel-text="$t('page.common.cancel')"
     @ok="handleSubmit"
     @cancel="handleClose"
   >
@@ -118,39 +119,39 @@ async function handleSubmit() {
       :label-col="{ span: 6 }"
       :wrapper-col="{ span: 16 }"
     >
-      <Form.Item label="库区编码" name="locationCode">
-        <Input v-model:value="formState.locationCode" placeholder="请输入库区编码" :disabled="mode === 'edit'" />
+      <Form.Item :label="$t('page.wms.location.locationCode')" name="locationCode">
+        <Input v-model:value="formState.locationCode" :placeholder="$t('page.wms.location.locationCodePlaceholder')" :disabled="mode === 'edit'" />
       </Form.Item>
-      <Form.Item label="库区名称" name="locationName">
-        <Input v-model:value="formState.locationName" placeholder="请输入库区名称" />
+      <Form.Item :label="$t('page.wms.location.locationName')" name="locationName">
+        <Input v-model:value="formState.locationName" :placeholder="$t('page.wms.location.locationNamePlaceholder')" />
       </Form.Item>
-      <Form.Item label="所属仓库" name="warehouseId">
+      <Form.Item :label="$t('page.wms.location.warehouseId')" name="warehouseId">
         <Select
           v-model:value="formState.warehouseId"
-          placeholder="请选择所属仓库"
+          :placeholder="$t('page.wms.location.warehouseIdPlaceholder')"
           :options="warehouseOptions"
           allow-clear
         />
       </Form.Item>
-      <Form.Item label="库区类型" name="locationType">
+      <Form.Item :label="$t('page.wms.location.locationType')" name="locationType">
         <Select
           v-model:value="formState.locationType"
-          placeholder="请选择库区类型"
+          :placeholder="$t('page.wms.location.locationTypePlaceholder')"
           :options="locationTypeOptions"
           allow-clear
         />
       </Form.Item>
-      <Form.Item v-if="mode === 'edit'" label="状态" name="isEnabled">
+      <Form.Item v-if="mode === 'edit'" :label="$t('page.common.status')" name="isEnabled">
         <Switch
           v-model:checked="formState.isEnabled"
-          checked-children="启用"
-          un-checked-children="停用"
+          :checked-children="$t('page.common.enabled')"
+          :un-checked-children="$t('page.common.disabled')"
           :checked-value="1"
           :unchecked-value="0"
         />
       </Form.Item>
-      <Form.Item label="备注" name="remark">
-        <Input.TextArea v-model:value="formState.remark" placeholder="请输入备注" :rows="3" />
+      <Form.Item :label="$t('page.common.remark')" name="remark">
+        <Input.TextArea v-model:value="formState.remark" :placeholder="$t('page.common.remarkPlaceholder')" :rows="3" />
       </Form.Item>
     </Form>
   </Modal>

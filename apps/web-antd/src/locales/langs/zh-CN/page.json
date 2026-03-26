@@ -129,7 +129,10 @@
       "createBy": "创建者",
       "createTime": "创建时间",
       "updateTime": "更新时间",
-      "remark": "备注"
+      "remark": "备注",
+      "confirmDisableUser": "确认要停用该用户吗？",
+      "confirmEnableUser": "确认要启用该用户吗？",
+      "exportUserList": "用户列表"
     },
     "enum": {
       "title": "枚举管理",
@@ -640,7 +643,9 @@
     "saveFail": "保存失败",
     "requiredFieldsHint": "请填写必填字段",
     "totalRecords": "共 {total} 条",
-    "pleaseSelect": "请选择"
+    "pleaseSelect": "请选择",
+    "sysTip": "系统提示",
+    "remarkPlaceholder": "请输入备注"
   },
   "message": {
     "operationSuccess": "操作成功",
@@ -658,7 +663,9 @@
     "pleaseSelectFile": "请选择文件",
     "saveSuccess": "保存成功",
     "saveFail": "保存失败",
-    "loadFail": "加载失败"
+    "loadFail": "加载失败",
+    "batchDeleteSuccess": "批量删除成功",
+    "batchDeleteFail": "批量删除失败"
   },
   "lowcode": {
     "meta": {
@@ -833,7 +840,13 @@
     "nameMaxLength": "物料名称最大100字符",
     "statusRequired": "请选择是否启用",
     "loadDetailFailed": "加载详情失败",
-    "confirmDelete": "确认删除物料「{name}」吗？删除后不可恢复！"
+    "confirmDelete": "确认删除物料「{name}」吗？删除后不可恢复！",
+    "materialCodePlaceholder": "请输入物料编码",
+    "materialNamePlaceholder": "请输入物料名称",
+    "specificationPlaceholder": "请输入规格",
+    "unitPlaceholder": "请输入单位",
+    "categoryPlaceholder": "请输入物料分类",
+    "remarkPlaceholder": "请输入备注"
   },
   "wms": {
     "supplier": {
@@ -1027,7 +1040,23 @@
         "PLANE": "平面",
         "STEREO": "立体",
         "RACK": "货架"
-      }
+      },
+      "storageCodePlaceholder": "请输入货位编码",
+      "storageNamePlaceholder": "请输入货位名称",
+      "warehouseIdPlaceholder": "请选择所属仓库",
+      "locationIdPlaceholder": "请选择所属库区",
+      "storageTypePlaceholder": "请选择货位类型",
+      "loadDetailFailed": "加载货位详情失败",
+      "loadFail": "加载货位列表失败",
+      "addTitle": "新建货位",
+      "editTitle": "编辑货位",
+      "storageCodeRequired": "请输入货位编码",
+      "storageCodeMaxLength": "货位编码最多50个字符",
+      "storageNameRequired": "请输入货位名称",
+      "storageNameMaxLength": "货位名称最多100个字符",
+      "warehouseIdRequired": "请选择所属仓库",
+      "storageTypeRequired": "请选择货位类型",
+      "capacityPlaceholder": "请输入容量"
     },
     "location": {
       "listTitle": "WMS0050 库区管理",
@@ -1078,7 +1107,19 @@
         "COLLECT": "集货区",
         "RETURN": "退货区"
       },
-      "searchPlaceholder": "搜索库区名称..."
+      "searchPlaceholder": "搜索库区名称...",
+      "locationCodePlaceholder": "请输入库区编码",
+      "locationNamePlaceholder": "请输入库区名称",
+      "warehouseIdPlaceholder": "请选择所属仓库",
+      "locationTypePlaceholder": "请选择库区类型",
+      "addTitle": "新建库区",
+      "editTitle": "编辑库区",
+      "loadDetailFailed": "加载库区详情失败",
+      "loadFail": "加载库区列表失败",
+      "locationCodeRequired": "请输入库区编码",
+      "locationNameRequired": "请输入库区名称",
+      "warehouseIdRequired": "请选择所属仓库",
+      "locationTypeRequired": "请选择库区类型"
     },
     "dict": {
       "listTitle": "WMS0070 字典管理",

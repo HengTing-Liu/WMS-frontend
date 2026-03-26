@@ -22,8 +22,8 @@
             <Popconfirm
               v-access:code="'system:user:delete'"
               :title="$t('page.system.user.confirmBatchDelete')"
-              ok-text="$t('page.common.confirm')"
-              cancel-text="$t('page.common.cancel')"
+              :ok-text="$t('page.common.confirm')"
+              :cancel-text="$t('page.common.cancel')"
               @confirm="handleBatchDeleteUser"
             >
             <Button danger  class="mr-2 flex items-center" >
@@ -55,8 +55,8 @@
             <Popconfirm
                 v-access:code="'system:user:delete'"
                 :title="$t('page.system.user.confirmDelete')"
-                ok-text="$t('page.common.confirm')"
-                cancel-text="$t('page.common.cancel')"
+                :ok-text="$t('page.common.confirm')"
+                :cancel-text="$t('page.common.cancel')"
                 @confirm="handleDeleteUser(row.userId)"
               >
               <Button danger type="link">{{ $t('page.common.delete') }}</Button>
