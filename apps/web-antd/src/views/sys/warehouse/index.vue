@@ -5,77 +5,24 @@
     :actions="pageActions"
   >
     <template #filter>
-      <Card class="filter-card" :bordered="false">
-        <div class="filter-bar">
-          <div class="search-input-wrap">
-            <Search class="search-icon" />
-            <Input
-              v-model:value="queryForm.warehouseName"
-              allow-clear
-              placeholder="搜索仓库名称..."
-              class="search-input"
-              @press-enter="handleSearch"
-            />
-          </div>
-          <Select
-            v-model:value="queryForm.isEnabled"
-            allow-clear
-            placeholder="全部状态"
-            class="status-select"
-            :options="statusFilterOptions"
-            @change="handleSearch"
-          />
-          <div class="filter-tags-wrap">
-            <div
-              v-for="field in activeFilterFields"
-              :key="field.key"
-              class="filter-tag"
-            >
-              <span class="filter-tag-label">{{ field.label }}:</span>
-              <Select
-                v-if="field.type === 'select'"
-                v-model:value="queryForm[field.key as keyof WarehouseQuery]"
-                allow-clear
-                :placeholder="`请选择${field.label}`"
-                class="filter-tag-select"
-                :options="field.options"
-                @change="handleSearch"
-              />
-              <Input
-                v-else
-                v-model:value="queryForm[field.key as keyof WarehouseQuery]"
-                allow-clear
-                :placeholder="`请输入${field.label}`"
-                class="filter-tag-input"
-                @press-enter="handleSearch"
-              />
-              <X class="filter-tag-close" @click="removeFilterField(field.key)" />
-            </div>
-          </div>
-          <Dropdown v-if="availableFields.length > 0" trigger="click">
-            <Button>
-              <template #icon><Plus /></template>
-              添加筛选
-              <ChevronDown />
-            </Button>
-            <template #overlay>
-              <Menu>
-                <MenuItem
-                  v-for="item in availableFields"
-                  :key="item.key"
-                  @click="addFilterField(item.key)"
-                >
-                  {{ item.label }}
-                </MenuItem>
-              </Menu>
-            </template>
-          </Dropdown>
+      <WmsFilterBar
+        :query="queryForm"
+        search-key="warehouseName"
+        search-placeholder="搜索仓库名称..."
+        status-key="isEnabled"
+        :status-options="statusOptions"
+        :fields="filterFields"
+        storage-key="wms:filter:warehouse:activeFields"
+        :default-field-keys="['warehouseCode', 'warehouseName']"
+        @search="handleSearch"
+      >
+        <template #actions>
           <Button v-access:code="'base:warehouse:export'" :loading="exporting" @click="handleExport">
             <template #icon><Download /></template>
             导出
           </Button>
-        </div>
-      </Card>
+        </template>
+      </WmsFilterBar>
     </template>
 
     <template #stats>
@@ -150,23 +97,16 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import {
-  Plus,
-  Search,
   Download,
+  Plus,
   Warehouse,
   Power,
   MapPin,
   Thermometer,
-  ChevronDown,
-  X,
 } from 'lucide-vue-next';
 import {
   Button,
   Card,
-  Dropdown,
-  Input,
-  Menu,
-  MenuItem,
   Popconfirm,
   Select,
   Space,
@@ -175,7 +115,7 @@ import {
   message,
 } from 'ant-design-vue';
 import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
-import { WmsPageLayout, WmsStatsCards } from '#/components/wms';
+import { WmsFilterBar, WmsPageLayout, WmsStatsCards } from '#/components/wms';
 import {
   deleteWarehouse,
   exportWarehouse,
@@ -185,105 +125,18 @@ import {
   type WarehouseResult,
 } from '#/api/sys/warehouse';
 
-const STORAGE_KEY = 'warehouse_filter_fields';
-
 const loading = ref(false);
 const exporting = ref(false);
 const tableData = ref<WarehouseResult[]>([]);
 const selectedRowKeys = ref<Array<number | string>>([]);
 
-interface FilterFieldDef {
-  key: string;
-  label: string;
-  type: 'input' | 'select';
-  options?: Array<{ label: string; value: any }>;
-}
-
-const allFieldDefs: FilterFieldDef[] = [
-  { key: 'warehouseCode', label: '仓库编码', type: 'input' },
-  { key: 'warehouseName', label: '仓库名称', type: 'input' },
-  { key: 'company', label: '所属公司', type: 'input' },
-  { key: 'temperatureZone', label: '温区', type: 'select', options: [] },
-  { key: 'qualityZone', label: '质量区', type: 'select', options: [] },
+const filterFields = [
+  { key: 'warehouseCode', label: '仓库编码', type: 'input' as const },
+  { key: 'warehouseName', label: '仓库名称', type: 'input' as const },
+  { key: 'company', label: '所属公司', type: 'input' as const },
+  { key: 'temperatureZone', label: '温区', type: 'select' as const, options: temperatureZoneOptions },
+  { key: 'qualityZone', label: '质量区', type: 'select' as const, options: qualityZoneOptions },
 ];
-
-// Active filter fields shown as tags in the search bar
-const activeFilterFields = ref<FilterFieldDef[]>([]);
-
-function loadFilterFields() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const keys: string[] = JSON.parse(saved);
-      activeFilterFields.value = keys
-        .map((key) => allFieldDefs.find((f) => f.key === key))
-        .filter((f): f is FilterFieldDef => !!f)
-        .map((f) => ({
-          ...f,
-          options:
-            f.key === 'temperatureZone'
-              ? temperatureZoneOptions
-              : f.key === 'qualityZone'
-              ? qualityZoneOptions
-              : undefined,
-        }));
-    } else {
-      // Default: show warehouseCode and warehouseName
-      activeFilterFields.value = [
-        { ...allFieldDefs[0], options: undefined },
-        { ...allFieldDefs[1], options: undefined },
-      ];
-    }
-  } catch {
-    activeFilterFields.value = [
-      { ...allFieldDefs[0], options: undefined },
-      { ...allFieldDefs[1], options: undefined },
-    ];
-  }
-}
-
-function saveFilterFields() {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(activeFilterFields.value.map((f) => f.key))
-  );
-}
-
-function isFieldActive(key: string) {
-  return activeFilterFields.value.some((f) => f.key === key);
-}
-
-function addFilterField(key: string) {
-  if (isFieldActive(key)) return;
-  const def = allFieldDefs.find((f) => f.key === key);
-  if (!def) return;
-  const field: FilterFieldDef = {
-    ...def,
-    options:
-      def.key === 'temperatureZone'
-        ? temperatureZoneOptions
-        : def.key === 'qualityZone'
-        ? qualityZoneOptions
-        : undefined,
-  };
-  activeFilterFields.value.push(field);
-  saveFilterFields();
-}
-
-function removeFilterField(key: string) {
-  activeFilterFields.value = activeFilterFields.value.filter(
-    (f) => f.key !== key
-  );
-  // Clear the query form value
-  (queryForm as any)[key] = undefined;
-  saveFilterFields();
-  handleSearch();
-}
-
-// Available fields = not yet added
-const availableFields = computed(() =>
-  allFieldDefs.filter((f) => !isFieldActive(f.key))
-);
 
 const router = useRouter();
 
@@ -305,13 +158,7 @@ const queryForm = reactive<WarehouseQuery>({
   isEnabled: undefined,
 });
 
-const statusFilterOptions = [
-  { label: '全部状态', value: undefined },
-  { label: '启用', value: 1 },
-  { label: '停用', value: 0 },
-];
-
-const statusValueOptions = [
+const statusOptions = [
   { label: '启用', value: 1 },
   { label: '停用', value: 0 },
 ];
@@ -351,11 +198,6 @@ const qualityZoneOptions = [
   { label: '退货区', value: 'RETURN' },
 ];
 
-const companyOptions = [
-  { label: '母公司', value: 'PARENT' },
-  { label: '子公司A', value: 'CHILD_A' },
-  { label: '子公司B', value: 'CHILD_B' },
-];
 
 const columns = computed<TableColumnsType<WarehouseResult>>(() => [
   { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${((pagination.current || 1) - 1) * (pagination.pageSize || 10) + index + 1}` },
@@ -507,145 +349,11 @@ function formatQualityZone(value?: string) {
 }
 
 onMounted(() => {
-  loadFilterFields();
   loadData();
 });
 </script>
 
 <style scoped>
-.wms-warehouse-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Page Header */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0 16px 0;
-}
-
-.header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.page-desc {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 0;
-}
-
-.header-right :deep(.ant-btn-primary) {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Filter Card */
-.filter-card :deep(.ant-card-body) {
-  padding: 16px;
-}
-
-.filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.search-input-wrap {
-  position: relative;
-  flex: 1;
-  min-width: 280px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  color: #9ca3af;
-  z-index: 1;
-}
-
-.search-input {
-  padding-left: 36px !important;
-}
-
-.status-select {
-  width: 140px;
-}
-
-.filter-tags-wrap {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.filter-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  background-color: #f3f4f6;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  font-size: 13px;
-}
-
-.filter-tag-label {
-  color: #374151;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.filter-tag-input {
-  width: 120px;
-  height: 26px;
-}
-
-.filter-tag-select {
-  width: 120px;
-  height: 26px;
-}
-
-.filter-tag-select :deep(.ant-select-selector) {
-  height: 26px !important;
-  padding: 0 8px !important;
-}
-
-.filter-tag-select :deep(.ant-select-selection-search-input) {
-  height: 24px !important;
-}
-
-.filter-tag-close {
-  width: 14px;
-  height: 14px;
-  color: #9ca3af;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: color 0.2s;
-}
-
-.filter-tag-close:hover {
-  color: #ef4444;
-}
-
 /* Table Card */
 .table-card :deep(.ant-card-body) {
   padding: 0 16px 16px 16px;
@@ -656,5 +364,4 @@ onMounted(() => {
   justify-content: space-between;
   margin-bottom: 16px;
 }
-
 </style>
