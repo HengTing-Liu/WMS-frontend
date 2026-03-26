@@ -26,6 +26,8 @@ export interface SupplierResult {
   updateTime?: string;
 }
 
+const SUPPLIER_API_PREFIX = '/base/supplier';
+
 function normalizeSupplierRow(row: any): SupplierResult {
   return {
     ...row,
@@ -46,7 +48,7 @@ function normalizeSupplierRow(row: any): SupplierResult {
 }
 
 export async function listSupplierPage(params: SupplierQuery) {
-  const res = await requestClient.get('/base/supplier/list', { params });
+  const res = await requestClient.get(`${SUPPLIER_API_PREFIX}/list`, { params });
   const rawRows = res?.rows || res?.list || res?.data?.rows || res?.data?.list || [];
   return {
     rows: Array.isArray(rawRows) ? rawRows.map(normalizeSupplierRow) : [],
@@ -55,15 +57,27 @@ export async function listSupplierPage(params: SupplierQuery) {
 }
 
 export async function getSupplierDetail(id: number): Promise<SupplierResult> {
-  const res = await requestClient.get(`/base/supplier/${id}`);
+  const res = await requestClient.get(`${SUPPLIER_API_PREFIX}/${id}`);
   const data = res?.data || res;
   return normalizeSupplierRow(data);
 }
 
 export async function createSupplier(data: Partial<SupplierResult>) {
-  const { supplier_code, supplier_name, contact_person, contact_phone,
-          email, address, is_enabled, create_by, create_time, update_by, update_time, ...rest } = data as any;
-  return requestClient.post('/base/supplier', { ...rest });
+  const {
+    supplier_code,
+    supplier_name,
+    contact_person,
+    contact_phone,
+    email,
+    address,
+    is_enabled,
+    create_by,
+    create_time,
+    update_by,
+    update_time,
+    ...rest
+  } = data as any;
+  return requestClient.post(SUPPLIER_API_PREFIX, { ...rest });
 }
 
 export async function updateSupplier(data: Partial<SupplierResult>) {
@@ -71,21 +85,35 @@ export async function updateSupplier(data: Partial<SupplierResult>) {
   if (!id) {
     throw new Error('供应商ID不能为空');
   }
-  const { supplier_code, supplier_name, contact_person, contact_phone,
-          email, address, is_enabled, create_by, create_time, update_by, update_time, ...rest } = data as any;
-  return requestClient.put(`/base/supplier/${id}`, { ...rest });
+  const {
+    supplier_code,
+    supplier_name,
+    contact_person,
+    contact_phone,
+    email,
+    address,
+    is_enabled,
+    create_by,
+    create_time,
+    update_by,
+    update_time,
+    ...rest
+  } = data as any;
+  return requestClient.put(`${SUPPLIER_API_PREFIX}/${id}`, { ...rest });
 }
 
 export async function toggleSupplierStatus(id: number, enabled: number) {
-  return requestClient.patch(`/base/supplier/${id}/status`, null, { params: { enabled } });
+  return requestClient.patch(`${SUPPLIER_API_PREFIX}/${id}/status`, null, {
+    params: { enabled },
+  });
 }
 
 export async function deleteSupplier(id: number) {
-  return requestClient.delete(`/base/supplier/${id}`);
+  return requestClient.delete(`${SUPPLIER_API_PREFIX}/${id}`);
 }
 
 export async function exportSupplier(params: SupplierQuery) {
-  return requestClient.post('/base/supplier/export', params, {
+  return requestClient.post(`${SUPPLIER_API_PREFIX}/export`, params, {
     responseType: 'blob',
   });
 }

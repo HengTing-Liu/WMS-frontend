@@ -4,7 +4,7 @@ import type { BasicOption } from '@vben/types';
 
 import { computed, markRaw } from 'vue';
 
-import { AuthenticationLogin, SliderCaptcha, z } from '@vben/common-ui';
+import { AuthenticationLogin, z } from '@vben/common-ui';
 import { SUPPORT_LANGUAGES } from '@vben/constants';
 import { $t } from '@vben/locales';
 import { loadLocaleMessages } from '@vben/locales';

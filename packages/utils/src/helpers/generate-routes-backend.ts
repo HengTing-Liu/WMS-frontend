@@ -76,7 +76,7 @@ function convertRoutes(
     } else if (component && layoutMap[component]) {
       route.component = layoutMap[component];
       // 页面组件转换
-    } else if (component) {
+    } else if (typeof component === 'string' && component) {
       // 处理 #/views/... 路径
       const normalizedPath = normalizeViewPath(component);
       const pageKey = normalizedPath.endsWith('.vue')
@@ -94,7 +94,8 @@ function convertRoutes(
   });
 }
 
-function normalizeViewPath(path: string): string {
+function normalizeViewPath(path: unknown): string {
+  if (typeof path !== 'string') return '';
   // 处理 #/views/... 这种路径格式
   const pathWithoutHash = path.replace(/^#/, '');
 

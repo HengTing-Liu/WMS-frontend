@@ -1,7 +1,6 @@
 import type { RequestClientOptions } from '@vben/request';
 
 import { RequestClient } from '@vben/request';
-import { useAccessStore } from '@vben/stores';
 import { preferences } from '@vben/preferences';
 
 /**
@@ -16,8 +15,29 @@ export function createRequestClient(baseURL: string, options?: RequestClientOpti
   // 请求头处理
   client.addRequestInterceptor({
     fulfilled: async (config) => {
-      const accessStore = useAccessStore();
-      const token = accessStore.accessToken;
+      // Pinia 持久化 key 格式: {namespace}-{storeKey}
+      // storeKey 就是 store id，即 core-access
+      const namespace = import.meta.env.VITE_APP_NAMESPACE;
+      // 尝试多个可能的 key 格式，兼容不同环境
+      const env = import.meta.env.PROD ? 'prod' : 'dev';
+      const candidates = [
+        `${namespace}-core-access`,              // 无版本格式
+        `${namespace}-${import.meta.env.VITE_APP_VERSION || ''}-${env}-core-access`, // 可能格式
+        'core-access',                          // 最简格式
+      ];
+      let token: string | null = null;
+      for (const key of candidates) {
+        try {
+          const storeStr = localStorage.getItem(key);
+          if (storeStr) {
+            const store = JSON.parse(storeStr);
+            if (store.accessToken) {
+              token = store.accessToken;
+              break;
+            }
+          }
+        } catch {}
+      }
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

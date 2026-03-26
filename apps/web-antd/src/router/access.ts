@@ -67,25 +67,25 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
         // 转换格式
         const convertRoute = (route: any, parentPath: string = ''): any => {
           const hasChildren = route.children && route.children.length > 0;
-          const isTopLevel = route.parentId === 0 || !route.parentId;
-          
+          // 有 component 字符串的菜单应该用实际组件，不强制 BasicLayout
+          const hasComponent = route.component && typeof route.component === 'string';
           // 处理路径：去掉父路径前缀，只保留相对路径
           let routePath = route.path || '';
           if (parentPath && routePath.startsWith(parentPath + '/')) {
             routePath = routePath.substring(parentPath.length + 1);
           }
-          
-          // 如果路径为空且是目录，使用空字符串（Vue Router会处理）
-          if (!routePath && (isTopLevel || hasChildren)) {
+          if (!routePath) {
             routePath = route.routeName?.toLowerCase() || '';
           }
+          // component 字符串由 content.vue 解析为实际组件；无 component 时用 BasicLayout
+          const resolvedComponent = hasComponent
+            ? route.component
+            : (hasChildren || route.parentId === 0 ? 'BasicLayout' : 'BasicLayout');
           
           return {
             name: route.routeName || route.menuName,
             path: routePath,
-            component: isTopLevel || hasChildren 
-              ? 'BasicLayout' 
-              : (route.component || 'BasicLayout'),
+            component: resolvedComponent,
             meta: {
               title: route.menuName,
               icon: route.icon,
@@ -98,6 +98,24 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
         };
         
         const finalRoutes = tree.map((route: any) => convertRoute(route, ''));
+
+        const ensureSupplierMenu = (routes: any[]) => {
+          // pageMap 的 key 是 glob 相对路径，直接用它作为 component 字符串
+          // 这样 content.vue 能找到正确的组件
+          const supplierKey = pageMap['../views/sys/supplier/index.vue'];
+          routes.push({
+            name: 'BaseSupplier',
+            path: '/wms/supplier',
+            component: supplierKey || '../views/sys/supplier/index.vue',
+            meta: {
+              title: '供应商管理',
+              icon: 'material-symbols:local-shipping-outline',
+              keepAlive: true,
+            },
+          });
+        };
+
+        ensureSupplierMenu(finalRoutes);
         
         console.log('[Access] 处理后的菜单:', finalRoutes.length, '条');
         console.log('[Access] 第一条:', finalRoutes[0]?.name, finalRoutes[0]?.component);

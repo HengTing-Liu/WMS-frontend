@@ -10,7 +10,7 @@ import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
 import { notification,message } from 'ant-design-vue';
 import { defineStore } from 'pinia';
 
-import { getAccessCodesApi, getUserInfoApi, loginApi, logoutApi } from '#/api';
+import { decodeUserIdFromToken, getAccessCodesApi, getUserInfoApi, loginApi, logoutApi } from '#/api';
 import { $t } from '#/locales';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -171,11 +171,15 @@ export const useAuthStore = defineStore('auth', () => {
     //  console.log(userInfo,'userInfo');
     // userStore.setUserInfo(userInfo?.user)
     // return userInfo;
-    const data=await getUserInfoApi()
-    data.token=accessStore.accessToken
-    data.avatar=null
-    userStore.setUserInfo(data)
-    return data
+    const userId = decodeUserIdFromToken(accessStore.accessToken || '');
+    if (!userId) {
+      throw new Error('无法从 token 中解析用户 ID');
+    }
+    const data = await getUserInfoApi(userId);
+    data.token = accessStore.accessToken;
+    data.avatar = null;
+    userStore.setUserInfo(data);
+    return data;
   }
 
   function $reset() {

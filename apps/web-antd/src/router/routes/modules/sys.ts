@@ -11,7 +11,7 @@ const routes: RouteRecordRaw[] = [
       title: '基础设置',
     },
     name: 'WmsBase',
-    path: '/sys',
+    path: '/wms',
     children: [
       {
         meta: { title: '仓库档案' },
@@ -29,6 +29,7 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '供应商管理' },
         name: 'BaseSupplier',
         path: 'supplier',
+        // Vite # alias: resolves to packages/vite-config/ts absolute path
         component: () => import('#/views/sys/supplier/index.vue'),
       },
       {
