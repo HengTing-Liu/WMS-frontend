@@ -67,6 +67,9 @@ function defineApplicationConfig(userConfigPromise?: DefineApplicationOptions) {
         },
         target: 'es2015',
       },
+      ssr: {
+        external: ['jiti'],
+      },
       css: createCssOptions(injectGlobalScss),
       esbuild: {
         drop: isBuild
