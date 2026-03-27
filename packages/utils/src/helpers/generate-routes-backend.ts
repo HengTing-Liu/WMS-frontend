@@ -79,11 +79,22 @@ function convertRoutes(
     } else if (typeof component === 'string' && component) {
       // 处理 #/views/... 路径
       const normalizedPath = normalizeViewPath(component);
-      const pageKey = normalizedPath.endsWith('.vue')
+      let pageKey = normalizedPath.endsWith('.vue')
         ? normalizedPath
         : `${normalizedPath}.vue`;
-      if (pageMap[pageKey]) {
-        route.component = pageMap[pageKey];
+
+      // 尝试多种可能的路径组合
+      const possibleKeys = [pageKey];
+
+      // 如果不是以 .vue 结尾，尝试添加 /index.vue
+      if (!normalizedPath.endsWith('.vue')) {
+        possibleKeys.push(`${normalizedPath}/index.vue`);
+      }
+
+      // 尝试查找匹配的组件
+      let foundKey = possibleKeys.find((key) => pageMap[key]);
+      if (foundKey) {
+        route.component = pageMap[foundKey];
       } else {
         console.error(`route component is invalid: ${pageKey}`, route);
         route.component = pageMap['/_core/fallback/not-found.vue'];
