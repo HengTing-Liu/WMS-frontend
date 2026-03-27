@@ -595,6 +595,8 @@
     "disabled": "停用",
     "count": "数量",
     "reset": "重置",
+    "refresh": "刷新",
+    "clearFilters": "清除筛选",
     "createTime": "创建时间",
     "yes": "是",
     "no": "否",

@@ -4,6 +4,18 @@
       <!-- 工具栏插槽 -->
       <template #toolbar-tools>
         <div class="flex gap-2">
+          <!-- 刷新按钮 -->
+          <Button @click="handleRefresh">
+            <IconifyIcon icon="material-symbols:refresh" class="size-4" />
+            {{ $t('page.common.refresh') || '刷新' }}
+          </Button>
+          
+          <!-- 清除筛选按钮 -->
+          <Button @click="handleClearFilters">
+            <IconifyIcon icon="material-symbols:filter-alt-off" class="size-4" />
+            {{ $t('page.common.clearFilters') || '清除筛选' }}
+          </Button>
+          
           <Button
             v-if="showAdd"
             v-access:code="`${permPrefix}:add`"
@@ -235,6 +247,15 @@ const gridColumns = computed(() => {
 // Grid配置
 const gridOptions = computed<VxeTableGridOptions>(() => ({
   columns: gridColumns.value,
+  pagerConfig: {
+    enabled: true,
+    pageSize: 20,
+    pageSizes: [10, 20, 50, 100],
+  },
+  sortConfig: {
+    multiple: true,
+    trigger: 'cell',
+  },
   proxyConfig: {
     ajax: {
       query: async ({ page }, formValues) => {
@@ -451,6 +472,19 @@ async function handleExport() {
     console.error($t('page.common.exportFailed'), error);
     message.error($t('page.common.exportFailed'));
   }
+}
+
+// 刷新表格
+function handleRefresh() {
+  gridApi.reload();
+}
+
+// 清除筛选（重置表单）
+async function handleClearFilters() {
+  // 重置表单
+  await gridApi.formApi?.resetForm?.();
+  // 重新加载数据
+  gridApi.reload();
 }
 
 // 状态变更

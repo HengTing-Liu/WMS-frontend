@@ -228,6 +228,7 @@ export function generateTableColumns(fieldMetas: FieldMeta[]) {
       title: field.fieldName,
       minWidth: 120,
       showOverflow: 'tooltip',
+      sortable: true, // 启用列排序功能
     };
 
     // 日期格式化
