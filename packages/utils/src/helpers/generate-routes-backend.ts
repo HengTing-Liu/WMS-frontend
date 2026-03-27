@@ -118,7 +118,10 @@ function normalizeViewPath(path: unknown): string {
     ? normalizedPath
     : `/${normalizedPath}`;
 
+  // wms/ → sys/ 路径映射
+  const wmsToSysPath = viewPath.replace(/^\/wms\//, '/sys/');
+
   // 这里耦合了vben-admin的目录结构
-  return viewPath.replace(/^\/views/, '');
+  return wmsToSysPath.replace(/^\/views/, '');
 }
 export { generateRoutesByBackend };
