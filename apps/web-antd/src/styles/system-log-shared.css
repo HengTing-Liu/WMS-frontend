@@ -1,0 +1,31 @@
+.operlog-page .btn-danger.ant-btn,
+.logininfor-page .btn-danger.ant-btn {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+  color: #fff;
+  margin-right: 8px;
+}
+
+.operlog-page .btn-danger.ant-btn:hover,
+.logininfor-page .btn-danger.ant-btn:hover {
+  background-color: #ff7875;
+  border-color: #ff7875;
+  color: #fff;
+  margin-right: 8px;
+}
+
+.operlog-page .btn-export.ant-btn,
+.logininfor-page .btn-export.ant-btn {
+  background-color: #faad14;
+  border-color: #faad14;
+  color: #fff;
+  margin-right: 8px;
+}
+
+.operlog-page .btn-export.ant-btn:hover,
+.logininfor-page .btn-export.ant-btn:hover {
+  background-color: #ffc53d;
+  border-color: #ffc53d;
+  color: #fff;
+  margin-right: 8px;
+}

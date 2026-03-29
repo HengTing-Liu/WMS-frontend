@@ -1,0 +1,140 @@
+/**
+ * 布局主题扩展：
+ * - 深色侧边栏 / 深色顶栏 打开时，统一使用 #2B2500 背景
+ * - 侧边栏菜单高亮：背景 #FFE900，文字 #2B2500；未高亮文字为白色
+ */
+
+/* 深色侧边栏：aside 会带上类名 dark + bg-sidebar */
+aside.bg-sidebar.dark {
+  background-color: #2b2500 !important;
+}
+
+/* 深色顶栏：header 带上类名 dark + bg-header，背景为黄色 #FFE900，文字为黑色 */
+header.bg-header.dark {
+  background-color: #ffe900 !important;
+  color: #000000 !important;
+}
+
+/* 深色顶栏下：所有顶部文字统一改为黑色（不动其它样式） */
+header.bg-header.dark .text-foreground,
+header.bg-header.dark .text-muted-foreground,
+header.bg-header.dark .vben-breadcrumb,
+header.bg-header.dark .vben-breadcrumb * {
+  color: #000000 !important;
+}
+
+/* 只改 icon：深色顶栏下，顶部所有 svg / 图标统一为黑色，其余保持默认样式 */
+header.bg-header.dark svg,
+header.bg-header.dark .vben-icon {
+  color: #000000 !important;
+  fill: #000000 !important;
+  stroke: #000000 !important;
+}
+
+/* 顶栏刷新按钮：改为圆角矩形，不要圆形 */
+header.bg-header.dark .vben-icon-button {
+  border-radius: 6px !important;
+}
+
+/* 顶栏主题切换（月亮/太阳）按钮形状与刷新一致：圆角矩形 */
+header.bg-header.dark .theme-toggle .vben-button {
+  border-radius: 6px !important;
+}
+
+/* 顶栏主题切换（月亮/太阳）图标颜色与其它图标统一为黑色 */
+header.bg-header.dark .theme-toggle svg,
+header.bg-header.dark .theme-toggle .theme-toggle__sun,
+header.bg-header.dark .theme-toggle .theme-toggle__sun-beams,
+header.bg-header.dark .theme-toggle__moon {
+  fill: #000000 !important;
+  stroke: #000000 !important;
+}
+
+/* 顶部搜索栏：参考截图，黄底顶部上的白色圆角搜索条，黑色放大镜和文字 */
+header.bg-header.dark .group.h-8.cursor-pointer {
+  background-color: #ffffff !important;
+  border-radius: 999px !important;
+  padding-inline: 12px !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+header.bg-header.dark .group.h-8.cursor-pointer .text-muted-foreground {
+  color: #000000 !important;
+}
+
+header.bg-header.dark .group.h-8.cursor-pointer svg {
+  color: #000000 !important;
+  fill: #000000 !important;
+}
+
+/* 顶部搜索栏右侧快捷键提示（Ctrl K 小黑块）删除掉 */
+header.bg-header.dark .group.h-8.cursor-pointer span.bg-background {
+  display: none !important;
+}
+
+/* 侧边栏内菜单（仅深色主题时） */
+aside.bg-sidebar.dark .vben-menu.is-dark {
+  --menu-background-color: #2b2500;
+  --menu-item-background-color: #2b2500;
+  --menu-item-color: #ffffff;
+  --menu-item-hover-color: #ffffff;
+  --menu-item-hover-background-color: #3d3520;
+  --menu-item-active-color: #2b2500;
+  --menu-item-active-background-color: #ffe900;
+  --menu-submenu-background-color: #2b2500;
+  --menu-submenu-hover-color: #ffffff;
+  --menu-submenu-hover-background-color: #3d3520;
+  --menu-submenu-active-color: #2b2500;
+  --menu-submenu-active-background-color: #ffe900;
+}
+
+/* 选中项：保证高亮背景/文字生效（默认规则） */
+aside.bg-sidebar.dark .vben-menu.is-dark .vben-menu-item.is-active,
+aside.bg-sidebar.dark .vben-menu.is-dark .vben-sub-menu.is-active > .vben-sub-menu-content {
+  color: #2b2500 !important;
+  background: #ffe900 !important;
+  fill: #2b2500 !important;
+}
+
+/* 覆盖：只有当有 children 的菜单本身处于激活状态（例如其中一个子级当前选中）时，才高亮为“一级标题”样式 */
+aside.bg-sidebar.dark .vben-menu.is-dark .vben-sub-menu.is-active > .vben-sub-menu-content {
+  color: #ffe900 !important;
+  fill: #ffe900 !important;
+  background: transparent !important;
+  font-weight: 600;
+}
+
+/* 二级菜单的黄色选中条为直角块状，不要圆角 */
+aside.bg-sidebar.dark .vben-menu.is-dark .vben-menu-item,
+aside.bg-sidebar.dark .vben-menu.is-dark .vben-sub-menu-content {
+  border-radius: 0 !important;
+}
+
+/* 未选中项：白色文字与图标 */
+aside.bg-sidebar.dark .vben-menu.is-dark .vben-menu-item,
+aside.bg-sidebar.dark .vben-menu.is-dark .vben-sub-menu-content {
+  color: #ffffff;
+  fill: #ffffff;
+}
+
+/* 悬停：保持白字，略亮背景 */
+aside.bg-sidebar.dark .vben-menu.is-dark .vben-menu-item:hover,
+aside.bg-sidebar.dark .vben-menu.is-dark .vben-sub-menu-content:hover {
+  color: #ffffff !important;
+  background: #3d3520 !important;
+  fill: #ffffff !important;
+}
+
+/* 全局隐藏浏览器右侧滚动条（仍然允许滚动） */
+html,
+body {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* IE/Edge 旧版 */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
