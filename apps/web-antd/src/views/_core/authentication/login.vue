@@ -32,7 +32,7 @@ const MOCK_USER_OPTIONS: BasicOption[] = [
 
 const usernameDefault = computed(() => {
   const username = route.query.username as string | undefined;
-  return username || 'ry';
+  return username || 'admin';
 });
 
 const passwordDefault = computed(() => {

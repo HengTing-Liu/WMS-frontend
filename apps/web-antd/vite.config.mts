@@ -11,9 +11,7 @@ export default defineConfig(async () => {
         proxy: {
           '/api': {
             changeOrigin: true,
-            rewrite: (path) => path.replace(/^\/api/, ''),
-            target: 'http://39.96.207.148:8080/api',
-            // target: 'http://192.168.110.74:8080/api',
+            target: 'http://192.168.184.136:8080',
             ws: true,
           },
         },

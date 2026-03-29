@@ -24,36 +24,30 @@ export namespace AuthApi {
  * 登录
  */
 export async function loginApi(data: AuthApi.LoginParams) {
-  // 以前的错误：仅返回结果，没有启动有效期倒计时
-  return requestClient.post<AuthApi.LoginResult>('/api/login', data);
+  // 直接返回完整响应，让调用方处理
+  const result = await requestClient.post<any>('/api/login', data);
+  console.log('[Auth] loginApi raw result:', result);
+  return result;
 }
 
 /**
- * 刷新accessToken
+ * 刷新 Token（暂未实现，后端可能不需要）
  */
 export async function refreshTokenApi() {
-  return baseRequestClient.post<AuthApi.RefreshTokenResult>('/auth/refresh', {
-    withCredentials: true,
-  });
+  // TODO: 实现刷新 token 逻辑
+  return null;
 }
 
 /**
- * 退出登录
- */
-export async function logoutApi() {
-  const accessStore = useAccessStore();
-  const token = accessStore.accessToken;
-  return baseRequestClient.delete('/api/logout', {
-    withCredentials: true,
-    headers: {
-      Authorization: token ? `Bearer ${token}` : '',
-    },
-  });
-}
-
-/**
- * 获取用户权限码
+ * 获取权限码列表（暂未实现）
  */
 export async function getAccessCodesApi() {
-  return requestClient.get<string[]>('/auth/codes');
+  return [];
+}
+
+/**
+ * 登出（暂未实现）
+ */
+export async function logoutApi() {
+  return true;
 }

@@ -63,6 +63,8 @@ export async function getAllMenusApi() {
   // 5. 注入前端需要的“隐藏”子路由（不依赖后端菜单是否配置），避免分配角色/分配用户/数据权限 报 No match
   const hiddenRoutes: RouteRecordStringComponent[] = [
     {
+    },
+    {
       name: 'UserAssignRole',
       path: '/user/assignRole/:userId',
       component: '/system/user/assignRole',

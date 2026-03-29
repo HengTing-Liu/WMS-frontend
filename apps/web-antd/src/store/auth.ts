@@ -59,7 +59,21 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       loginLoading.value = true;
       const res = await loginApi(params);
-      const { access_token, expires_in } = res;
+      
+      // 防御性检查：确保 res 存在
+      if (!res) {
+        console.error('[Auth] Login API returned undefined');
+        loginLoading.value = false;
+        return;
+      }
+      
+      console.log('[Auth] loginApi result:', res);
+      
+      // requestClient 已经处理了响应，直接从 res 取数据
+      // 后端返回 { code: 200, data: { access_token, expires_in } }
+      // requestClient.post 返回的是整个响应体
+      const loginData = res.data || res;
+      const { access_token, expires_in } = loginData;
       const accessToken = access_token;
       // 如果成功获取到 accessToken
       if (accessToken) {

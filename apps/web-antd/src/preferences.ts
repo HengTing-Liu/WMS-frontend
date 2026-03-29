@@ -14,7 +14,7 @@ export const overridesPreferences = defineOverridesPreferences({
     // accessMode:'frontend',
     accessMode: 'backend',
     // 登录后默认首页：优先使用后端返回的第一个菜单路径，无菜单时用此兜底
-    defaultHomePath: '/system/user',
+    defaultHomePath: '/dashboard/workspace',
   },
   // 全局 logo 配置：使用本地图片，侧边栏与顶部统一
   logo: {
