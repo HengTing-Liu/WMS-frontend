@@ -68,10 +68,10 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
             'system/serial/index',
             'basicArchive/productCategory/index',
             // 新创建的页面
+            'base/permission/index',
             'base/warehouse/index',
             'base/location/index',
             'base/user/index',
-            'base/permission/index',
             'base/dict/index',
             'lowcode/meta/index',
             'sys/supplier/index',
@@ -125,8 +125,7 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
         console.log('[Router] Mapped routes:', routes?.length || 0);
         
         // 备注：写入缓存，供后续刷新直接使用
-        routes.push({ name: "BasePermission", path: "/base/permission", component: "../views/base/permission/index.vue", meta: { hideInMenu: true, title: "权限管理" } });
-        routes.push({ name: "BaseLocation", path: "/base/location", component: "../views/base/location/index.vue", meta: { hideInMenu: true, title: "库位档案" } });
+        
         return routes;
       },
       // 可以指定没有权限跳转403页面

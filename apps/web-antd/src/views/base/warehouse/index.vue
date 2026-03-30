@@ -1,9 +1,10 @@
 <template>
   <Page auto-content-height>
+    <div style="display:none" data-page="warehouse">Warehouse Page Loaded</div>
     <div class="p-4">
       <!-- 搜索栏 -->
       <Card class="mb-4">
-        <Form :model="searchForm" layout="inline">
+        <Form :model="searchForm" layout="inline" @submit.prevent>
           <FormItem label="仓库编码" name="warehouseCode">
             <Input v-model:value="searchForm.warehouseCode" placeholder="请输入仓库编码" style="width: 150px" />
           </FormItem>
@@ -18,10 +19,10 @@
           </FormItem>
           <FormItem>
             <Space>
-              <Button type="primary" @click="handleSearch">
+              <Button type="primary" @click.stop="handleSearch">
                 <IconifyIcon icon="material-symbols:search" class="mr-1" /> 搜索
               </Button>
-              <Button @click="handleReset">
+              <Button @click.stop="handleReset">
                 <IconifyIcon icon="material-symbols:refresh" class="mr-1" /> 重置
               </Button>
             </Space>
