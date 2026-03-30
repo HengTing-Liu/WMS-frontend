@@ -199,7 +199,7 @@
             <div class="w-24">
               <Progress 
                 :percent="record.usageRate || 0" 
-                :size=""small""
+                size="small"
                 :status="getUsageStatus(record.usageRate)"
                 :stroke-color="getUsageColor(record.usageRate)"
               />
