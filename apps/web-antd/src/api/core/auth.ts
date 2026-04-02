@@ -1,42 +1,53 @@
-import type { AuthApi } from '@vben/types';
-
+import { baseRequestClient, requestClient } from '#/api/request';
 import { useAccessStore } from '@vben/stores';
 
-import { baseRequestClient, requestClient } from '#/api/request';
+export namespace AuthApi {
+  /** 登录接口参数 */
+  export interface LoginParams {
+    password?: string;
+    username?: string;
+  }
+
+  /** 登录接口返回值 */
+  export interface LoginResult {
+    access_token: string;
+    expires_in: number;
+  }
+
+  export interface RefreshTokenResult {
+    data: string;
+    status: number;
+  }
+}
 
 /**
  * 登录
  */
-export function loginApi(data: AuthApi.LoginParams) {
-  return requestClient.post<AuthApi.LoginResult>('/login', data);
+export async function loginApi(data: AuthApi.LoginParams) {
+  // 直接返回完整响应，让调用方处理
+  const result = await requestClient.post<any>('/api/login', data);
+  console.log('[Auth] loginApi raw result:', result);
+  return result;
 }
 
 /**
- * 刷新accessToken
+ * 刷新 Token（暂未实现，后端可能不需要）
  */
-export function refreshTokenApi() {
-  return baseRequestClient.post<AuthApi.RefreshTokenResult>('/auth/refresh', {
-    withCredentials: true,
-  });
+export async function refreshTokenApi() {
+  // TODO: 实现刷新 token 逻辑
+  return null;
 }
 
 /**
- * 退出登录
+ * 获取权限码列表（暂未实现）
  */
-export function logoutApi() {
-  const accessStore = useAccessStore();
-  const token = accessStore.accessToken;
-  return baseRequestClient.delete('/logout', {
-    withCredentials: true,
-    headers: {
-      Authorization: token ? `Bearer ${token}` : '',
-    },
-  });
+export async function getAccessCodesApi() {
+  return [];
 }
 
 /**
- * 获取用户权限码
+ * 登出（暂未实现）
  */
-export function getAccessCodesApi() {
-  return requestClient.get<string[]>('/auth/codes');
+export async function logoutApi() {
+  return true;
 }

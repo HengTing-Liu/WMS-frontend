@@ -31,8 +31,8 @@ async function handleUpdate(value: string | undefined) {
       :model-value="preferences.app.locale"
       @update:model-value="handleUpdate"
     >
-      <VbenIconButton class="hover:animate-[shrink_0.3s_ease-in-out]">
-        <Languages class="text-foreground size-4" />
+      <VbenIconButton class="header-icon-btn hover:animate-[shrink_0.3s_ease-in-out]">
+        <Languages class="header-icon-icon size-4" />
       </VbenIconButton>
     </VbenDropdownRadioMenu>
   </div>

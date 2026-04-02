@@ -3,19 +3,17 @@ import type { VbenFormSchema } from '@vben/common-ui';
 import type { BasicOption } from '@vben/types';
 
 import { computed, markRaw } from 'vue';
+import { useRoute } from 'vue-router';
 
-import { AuthenticationLogin, z } from '@vben/common-ui';
-import { SUPPORT_LANGUAGES } from '@vben/constants';
+import { AuthenticationLogin, SliderCaptcha, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
-import { loadLocaleMessages } from '@vben/locales';
-import { preferences, updatePreferences } from '@vben/preferences';
-import { VbenDropdownRadioMenu } from '@vben-core/shadcn-ui';
 
 import { useAuthStore } from '#/store';
 
 defineOptions({ name: 'Login' });
 
 const authStore = useAuthStore();
+const route = useRoute();
 
 const MOCK_USER_OPTIONS: BasicOption[] = [
   {
@@ -32,8 +30,51 @@ const MOCK_USER_OPTIONS: BasicOption[] = [
   },
 ];
 
+const usernameDefault = computed(() => {
+  const username = route.query.username as string | undefined;
+  return username || 'admin';
+});
+
+const passwordDefault = computed(() => {
+  const fromChangePwd = route.query.fromChangePwd === '1';
+  const passwordFromQuery = route.query.password as string | undefined;
+  if (fromChangePwd) {
+    // 修改密码场景，强制清空密码
+    return '';
+  }
+  // 普通退出登录场景，优先使用上次真正登录时输入的密码
+  if (passwordFromQuery) {
+    return passwordFromQuery;
+  }
+  // 首次进入或没有记录时，使用默认密码
+  return 'admin123';
+});
+
+// 当路由 query（username、password、fromChangePwd）变化时，强制重新挂载登录组件
+const loginKey = computed(() => {
+  return JSON.stringify({
+    username: route.query.username ?? '',
+    password: route.query.password ?? '',
+    fromChangePwd: route.query.fromChangePwd ?? '',
+  });
+});
+
 const formSchema = computed((): VbenFormSchema[] => {
   return [
+    // {
+    //   component: 'VbenSelect',
+    //   componentProps: {
+    //     options: MOCK_USER_OPTIONS,
+    //     placeholder: $t('authentication.selectAccount'),
+    //   },
+    //   fieldName: 'selectAccount',
+    //   label: $t('authentication.selectAccount'),
+    //   rules: z
+    //     .string()
+    //     .min(1, { message: $t('authentication.selectAccount') })
+    //     .optional()
+    //     .default('vben'),
+    // },
     {
       component: 'VbenInput',
       componentProps: {
@@ -58,7 +99,7 @@ const formSchema = computed((): VbenFormSchema[] => {
       fieldName: 'username',
       label: $t('authentication.username'),
       rules: z.string().min(1, { message: $t('authentication.usernameTip') }),
-      defaultValue: 'admin',
+      defaultValue: usernameDefault.value,
     },
     {
       component: 'VbenInputPassword',
@@ -68,51 +109,31 @@ const formSchema = computed((): VbenFormSchema[] => {
       fieldName: 'password',
       label: $t('authentication.password'),
       rules: z.string().min(1, { message: $t('authentication.passwordTip') }),
-      defaultValue: 'admin123',
+      defaultValue: passwordDefault.value,
 
     },
+    // {
+    //   component: markRaw(SliderCaptcha),
+    //   fieldName: 'captcha',
+    //   rules: z.boolean().refine((value) => value, {
+    //     message: $t('authentication.verifyRequiredTip'),
+    //   }),
+    // },
   ];
 });
-
-// 语言切换处理
-async function handleLanguageChange(value: string | undefined) {
-  if (!value) return;
-  updatePreferences({
-    app: {
-      locale: value,
-    },
-  });
-  await loadLocaleMessages(value);
-}
 </script>
 
 <template>
-  <div class="relative">
-    <!-- 语言选择器 - 右上角 -->
-    <div class="absolute right-0 top-0 z-10">
-      <VbenDropdownRadioMenu
-        :menus="SUPPORT_LANGUAGES"
-        :model-value="preferences.app.locale"
-        @update:model-value="handleLanguageChange"
-      >
-        <div class="flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800">
-          <span class="icon-[material-symbols--language] text-lg"></span>
-          <span>{{ SUPPORT_LANGUAGES.find(item => item.value === preferences.app.locale)?.label || $t('page.common.chinese') }}</span>
-          <span class="icon-[material-symbols--keyboard-arrow-down] text-lg"></span>
-        </div>
-      </VbenDropdownRadioMenu>
-    </div>
-
-    <AuthenticationLogin
-      :form-schema="formSchema"
-      :loading="authStore.loginLoading"
-      @submit="authStore.authLogin"
-      :showCodeLogin="false"
-      :showForgetPassword="false"
-      :showRegister="false"
-      :showRememberMe="false"
-      :showQrcodeLogin="false"
-      :showThirdPartyLogin="false"
-    />
-  </div>
+  <AuthenticationLogin
+    :key="loginKey"
+    :form-schema="formSchema"
+    :loading="authStore.loginLoading"
+    @submit="authStore.authLogin"
+    :showCodeLogin="false"
+    :showForgetPassword="false"
+    :showRegister="false"
+    :showRememberMe="false"
+    :showQrcodeLogin="false"
+    :showThirdPartyLogin="false"
+  />
 </template>

@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { useVbenModal } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 import { useVbenForm, z } from '#/adapter/form';
-import {getUser, getUserId,userAdd,userEdit, getDeptTree } from '#/api';
+import {getUser, getUserId,getDeptTree,userAdd,userEdit } from '#/api';
 
 const data = ref();
 const title = ref<string>();
@@ -12,7 +12,7 @@ const rolesArr = ref<{label:string,value:number}[]>([]);
 // 获取用户和角色信息
 const getRoleInfoList=async()=> {
     let res
-    if(data.value?.isAdd){
+    if(data.value.title=='用户新增'){
        res=await getUser();
     }else{
        res=await getUserId(data.value?.userId);
@@ -53,18 +53,22 @@ const [Modal, modalApi] = useVbenModal({
     if (isOpen) {
       modalApi.setState({ loading: true });
       data.value = modalApi.getData<Record<string, any>>();
-      title.value = data.value?.isAdd ? $t('page.system.user.addTitle') : $t('page.system.user.editTitle'); isAdd.value = data.value?.isAdd ?? false;
+      title.value = data.value?.title ;
       getRoleInfoList()
       formApi.setValues({
         ...data.value,
       });
+      const isAdd = data.value.title === '用户新增';
       formApi.updateSchema([
         {
-          disabled: !isAdd.value,
           fieldName: 'userName',
-        }, {
-          disabled: !isAdd.value,
+          disabled: !isAdd,
+          rules: isAdd ? 'required' : undefined,
+        },
+        {
           fieldName: 'password',
+          disabled: !isAdd,
+          rules: isAdd ? 'required' : undefined,
         },
       ]);
       modalApi.setState({ loading: false });
@@ -74,14 +78,14 @@ const [Modal, modalApi] = useVbenModal({
 const onSubmit=async(values: Record<string, any>) => {
   modalApi.lock();
   let res
-  if(data.value?.isAdd){
+  if(data.value.title=='用户新增'){
       res=await userAdd(values);
     }else{
       values.userId=data.value.userId
       res=await userEdit(values);
     }
   if(res.code==200){
-    message.success($t('page.message.operationSuccess'));
+    message.success('操作成功');
     data.value?.onSuccess?.();
     modalApi.close();
   }else{
@@ -104,10 +108,10 @@ const [Form, formApi] = useVbenForm({
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
       componentProps: {
-        placeholder: () => $t('page.common.pleaseInput'),
+        placeholder: '请输入',
       },
       fieldName: 'nickName',
-      label: () => $t('page.system.user.nickName'),
+      label: '用户昵称',
       rules: 'required',
     },
      {
@@ -119,27 +123,26 @@ const [Form, formApi] = useVbenForm({
         childrenField: 'children',
       },
       fieldName: 'deptId',
-      label: () => $t('page.common.belongDept'),
+      label: '归属部门',
     },
   
     {
       component: 'InputNumber',
-      componentProps: {
-      },
+      componentProps: {},
       fieldName: 'phonenumber',
-      label: () => $t('page.system.user.phonenumber'),
-      rules: z.coerce.string().regex(/^1[3-9]\d{9}$/, { message: $t('page.common.validPhone') }),
+      label: '手机号码',
+      // 已取消必填与格式校验，由后端兜底
     },
     {
       component: 'Input',
       fieldName: 'email',
-      label: () => $t('page.common.email'),
-      rules: z.string().email({ message: $t('page.common.validEmail') }),
+      label: '邮箱',
+      // 已取消必填与格式校验，由后端兜底
     },
      {
       component: 'Input',
       fieldName: 'userName',
-      label: () => $t('page.system.user.userName'),
+      label: '用户名称',
       componentProps: {
         autocomplete: 'new-password',
         name: 'new-username',
@@ -148,7 +151,7 @@ const [Form, formApi] = useVbenForm({
     {
       component: 'InputPassword',
       fieldName: 'password',
-      label: () => $t('page.common.userPassword'),
+      label: '用户密码',
       componentProps: {
         autocomplete: 'new-password',
         name: 'new-password',
@@ -159,18 +162,21 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         options: [
           {
-            label: () => $t('page.system.user.sex_0'),
+            label: '男',
+            value: '0',
           },
           {
-            label: () => $t('page.system.user.sex_1'),
+            label: '女',
+            value: '1',
           }, 
           {
-            label: () => $t('page.system.user.sex_2'),
+            label: '未知',
+            value: '2',
           },
         ],
      },
       fieldName: 'sex',
-      label: () => $t('page.system.user.sex'),
+      label: '用户性别',
       // rules: 'required',
     },
      {
@@ -178,46 +184,48 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         options: [
           {
-            label: () => $t('page.system.user.status_0'),
+            label: '正常',
+            value: '0',
           },
           {
-            label: () => $t('page.system.user.status_1'),
+            label: '停用',
+            value: '1',
           },
         ],
       },
       fieldName: 'status',
-      label: () => $t('page.common.status'),
+      label: '状态',
     },
      {
       component: 'Select',
       componentProps: {
-        placeholder: () => $t('page.common.pleaseInput'),
+        placeholder: '请输入',
         options: postsArr,
         mode: 'multiple',
       },
    
       fieldName: 'postIds',
-      label: () => $t('page.common.post'),
+      label: '岗位',
       // rules: 'required',
     },
      {
       component: 'Select',
      componentProps: {
-        placeholder: () => $t('page.common.pleaseInput'),
+        placeholder: '请输入',
         options: rolesArr,
         mode: 'multiple',
       },
       fieldName: 'roleIds',
-      label: () => $t('page.common.role'),
+      label: '角色',
     },
     {
       component: 'Textarea',
       componentProps: {
-        placeholder: () => $t('page.common.pleaseInput'),
+        placeholder: '请输入',
       },
        formItemClass: 'col-span-2 items-baseline',
       fieldName: 'remark',
-      label: () => $t('page.common.remark'),
+      label: '备注',
     },
     
   ],

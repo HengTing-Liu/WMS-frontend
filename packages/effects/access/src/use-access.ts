@@ -27,15 +27,8 @@ function useAccess() {
    * @param codes
    */
   function hasAccessByCodes(codes: string[]) {
-    const userCodes = accessStore.accessCodes;
+    const userCodesSet = new Set(accessStore.accessCodes);
 
-    // 检查是否拥有通配符权限 *:*:*（管理员拥有所有权限）
-    if (userCodes.includes('*:*:*')) {
-      return true;
-    }
-
-    // 检查具体权限码
-    const userCodesSet = new Set(userCodes);
     const intersection = codes.filter((item) => userCodesSet.has(item));
     return intersection.length > 0;
   }

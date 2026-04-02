@@ -1,73 +1,79 @@
-import type { MenuApi } from '#/api';
-import type { Recordable } from '@vben/types';
-
 import { requestClient } from '#/api/request';
 
-/**
- * 获取菜单列表
- */
-export async function getMenuList(params?: Recordable<any>) {
-  const res = await requestClient.get('/menu/list', { params });
-  return {
-    total: res?.total || 0,
-    rows: res?.rows || [],
-  };
+export interface MenuItem {
+  menuId: number;
+  menuName: string;
+  parentId: number;
+  parentName?: string | null;
+  orderNum: number;
+  path: string;
+  component: string | null;
+  query?: string | null;
+  routeName?: string | null;
+  isFrame: string;
+  isCache: string;
+  menuType: string;
+  visible: string;
+  status: string;
+  perms: string;
+  icon: string;
+  createTime?: string | null;
+  children?: MenuItem[];
+  [key: string]: any;
 }
 
 /**
- * 获取角色菜单树（包含已勾选菜单）
+ * 菜单列表
+ * GET /api/menu/list
  */
-export async function getRoleMenuTree(roleId: number | string) {
-  const res = await requestClient.get<any>(`/menu/roleMenuTreeselect/${roleId}`, {
-    responseReturn: 'body',
-  });
-  if (res?.code === 200) {
-    return {
-      checkedKeys: res.checkedKeys || [],
-      menus: res.menus || [],
-    };
-  }
-  return { checkedKeys: [], menus: [] };
+async function getMenuList(params?: Record<string, any>) {
+  return requestClient.get<{ code?: number; msg?: string; data?: MenuItem[] }>(
+    '/api/menu/list',
+    { params, responseReturn: 'body' },
+  );
 }
 
 /**
- * 根据ID获取菜单详情
+ * 菜单详情（回显）
+ * GET /api/menu/:id
  */
-export async function getMenuById(menuId: number | string) {
-  return requestClient.get(`/menu/${menuId}`);
+async function getMenuDetail(menuId: number | string) {
+  return requestClient.get<{ code?: number; msg?: string; data?: MenuItem }>(
+    `/api/menu/${menuId}`,
+    { responseReturn: 'body' },
+  );
 }
 
 /**
  * 新增菜单
+ * POST /api/menu
  */
-export async function addMenu(data: Partial<MenuApi.Menu>) {
-  return requestClient.post('/menu', data);
+async function addMenu(data: Record<string, any>) {
+  return requestClient.post<{ code?: number; msg?: string }>('/api/menu/add', data, {
+    responseReturn: 'body',
+  });
 }
 
 /**
  * 修改菜单
+ * PUT /api/menu
  */
-export async function editMenu(data: Partial<MenuApi.Menu>) {
-  return requestClient.put('/menu', data);
-}
-
-/**
- * 修改菜单状态
- */
-export async function changeMenuStatus(data: { menuId: number; status: string }) {
-  return requestClient.put('/menu/changeStatus', data);
-}
-
-/**
- * 修改菜单显示状态
- */
-export async function changeMenuVisible(data: { menuId: number; visible: string }) {
-  return requestClient.put('/menu/changeVisible', data);
+async function updateMenu(data: Record<string, any>) {
+  return requestClient.put<{ code?: number; msg?: string }>('/api/menu/edit', data, {
+    responseReturn: 'body',
+  });
 }
 
 /**
  * 删除菜单
+ * DELETE /api/menu/:id
  */
-export async function deleteMenu(menuId: number | string) {
-  return requestClient.delete(`/menu/${menuId}`);
+async function deleteMenu(menuId: number | string) {
+  return requestClient.delete<{ code?: number; msg?: string }>(
+    `/api/menu/remove/${menuId}`,
+    { responseReturn: 'body' },
+  );
 }
+
+export { getMenuList, getMenuDetail, addMenu, updateMenu, deleteMenu };
+

@@ -1,237 +1,338 @@
 <template>
-  <Page auto-content-height>
-    <Grid>
-      <template #toolbar-tools>
-        <Button v-access:code="'system:menu:add'" type="primary" class="mr-2" @click="handleAdd">
-          <IconifyIcon icon="material-symbols:add" class="size-5" />
-          {{ $t('page.common.add') }}
-        </Button>
-        <Button class="mr-2" @click="handleExpandAll">
-          <IconifyIcon icon="material-symbols:expand-all" class="size-5" />
-          {{ $t('page.system.menu.expandAll') }}
-        </Button>
-        <Button @click="handleCollapseAll">
-          <IconifyIcon icon="material-symbols:collapse-all" class="size-5" />
-          {{ $t('page.system.menu.collapseAll') }}
-        </Button>
-      </template>
+    <div class="p-5 bg-white">
+        <!-- 搜索区 -->
+        <div class="mb-4 flex flex-wrap items-end gap-4">
+            <div class="flex items-center gap-2">
+                <span class="search-label">菜单名称</span>
+                <Input v-model:value="queryParams.menuName" placeholder="请输入菜单名称" allow-clear class="w-[220px]" />
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="search-label">状态</span>
+                <Select v-model:value="queryParams.status" placeholder="菜单状态" allow-clear class="w-[160px]"
+                    :options="statusOptions" />
+            </div>
+            <Button type="primary" class="btn-search" @click="handleSearch">
+                <IconifyIcon icon="ant-design:search-outlined" class="mr-1" />
+                搜索
+            </Button>
+            <Button class="btn-reset" @click="handleReset">
+                <IconifyIcon icon="ant-design:reload-outlined" class="mr-1" />
+                重置
+            </Button>
+        </div>
+        <!-- 工具栏 -->
+        <div class="mb-4 flex items-center gap-2">
+            <Button class="btn-add" @click="handleAdd()">
+                <IconifyIcon icon="material-symbols:add" class="mr-1" />
+                新增
+            </Button>
+            <Button class="btn-expand" @click="toggleExpandAll">
+                <IconifyIcon icon="mingcute:align-justify-fill" class="mr-1" />
+                展开/折叠
+            </Button>
+        </div>
+        <!-- 菜单表格（树形） -->
+        <Table :columns="columns" :data-source="dataList" :loading="loading" row-key="menuId" :pagination="false"
+            :expanded-row-keys="expandedRowKeys" class="menu-table" @expand="onRowExpand">
+            <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'icon'">
+                    <IconifyIcon
+                        :icon="record.icon || 'mdi:checkbox-blank-circle-outline'" />
+                </template>
+                <template v-else-if="column.key === 'status'">
+                    <Tag :color="record.status === '0' ? 'processing' : 'default'">
+                        {{ record.status === '0' ? '正常' : '停用' }}
+                    </Tag>
+                </template>
+                <template v-else-if="column.key === 'action'">
+                    <span class="cell-action">
+                        <Button type="link" class="p-0 link-edit" @click="handleEdit(record)">编辑</Button>
+                        <Button type="link" class="p-0 link-add" @click="handleAdd(record)">新增</Button>
+                        <Popconfirm
+                            title="是否确认删除该菜单及子菜单？"
+                            ok-text="确认"
+                            cancel-text="取消"
+                            @confirm="handleDelete(record)"
+                        >
+                            <Button type="link" danger class="p-0 link-delete">删除</Button>
+                        </Popconfirm>
+                    </span>
+                </template>
+            </template>
+        </Table>
 
-      <template #icon="{ row }">
-        <IconifyIcon v-if="row.icon" :icon="row.icon" class="size-5" />
-        <span v-else>-</span>
-      </template>
-
-      <template #menuType="{ row }">
-        <Tag v-if="row.menuType === 'M'" color="blue">{{ $t('page.system.menu.typeDirectory') }}</Tag>
-        <Tag v-else-if="row.menuType === 'C'" color="green">{{ $t('page.system.menu.typeMenu') }}</Tag>
-        <Tag v-else color="orange">{{ $t('page.system.menu.typeButton') }}</Tag>
-      </template>
-
-      <template #visible="{ row }">
-        <Switch
-          v-if="row.menuId !== 1"
-          v-access:code="'system:menu:edit'"
-          :checked="row.visible"
-          :checkedValue="'0'"
-          :unCheckedValue="'1'"
-          @change="() => handleVisibleChange(row)"
-        />
-        <span v-else>-</span>
-      </template>
-
-      <template #status="{ row }">
-        <Switch
-          v-if="row.menuId !== 1"
-          v-access:code="'system:menu:edit'"
-          :checked="row.status"
-          :checkedValue="'0'"
-          :unCheckedValue="'1'"
-          @change="() => handleStatusChange(row)"
-        />
-        <span v-else>-</span>
-      </template>
-
-      <template #action="{ row }">
-        <Button v-if="row.menuType !== 'F'" v-access:code="'system:menu:add'" type="link" @click="handleAddChild(row)">{{ $t('page.system.menu.addChild') }}</Button>
-        <Button v-access:code="'system:menu:edit'" type="link" @click="handleEdit(row)">{{ $t('page.common.edit') }}</Button>
-        <Button v-if="row.menuId !== 1" v-access:code="'system:menu:delete'" type="link" danger @click="handleDelete(row)">{{ $t('page.common.delete') }}</Button>
-      </template>
-    </Grid>
-
-    <MenuModal ref="modalRef" :menu-tree="menuTreeData" @success="handleReload" />
-  </Page>
+        <MenuModal ref="menuModalRef" @success="loadMenuList" />
+    </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Page } from '@vben/common-ui';
-import { message, Button, Switch, Tag, Modal } from 'ant-design-vue';
+import { ref, onMounted, computed } from 'vue';
+import { Table, Input, Select, Button, Tag, Popconfirm } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
-import { $t } from '@vben/locales';
-import type { VbenFormProps } from '#/adapter/form';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { getMenuList, changeMenuStatus, changeMenuVisible, deleteMenu } from '#/api';
-import MenuModal from './modules/menu-modal.vue';
+import { message } from 'ant-design-vue';
+import { getMenuList, deleteMenu, type MenuItem } from '#/api';
+import MenuModal from './modules/menuModal.vue';
 
-const modalRef = ref();
-const menuTreeData = ref<any[]>([]);
-const expandState = ref(false);
+const loading = ref(false);
+const rawList = ref<MenuItem[]>([]);
 
-const formOptions: VbenFormProps = {
-  collapsed: false,
-  showCollapseButton: false,
-  submitOnChange: false,
-  submitOnEnter: true,
-  schema: [
-    {
-      component: 'Input',
-      fieldName: 'menuName',
-      label: $t('page.system.menu.menuName'),
-    },
-    {
-      component: 'Select',
-      fieldName: 'status',
-      label: $t('page.common.status'),
-      componentProps: {
-        allowClear: true,
-        options: [
-          { label: $t('page.common.enabled'), value: '0' },
-          { label: $t('page.common.disabled'), value: '1' },
-        ],
-      },
-    },
-  ],
-};
+const queryParams = ref<{
+    menuName?: string;
+    status?: string;
+}>({
+    menuName: '',
+    status: undefined,
+});
 
-const gridOptions = {
-  columns: [
-    { type: 'seq' as const, width: 60, title: $t('page.common.seq') },
-    { field: 'menuName', title: $t('page.system.menu.menuName'), treeNode: true, minWidth: 200 },
-    { field: 'icon', title: $t('page.system.menu.icon'), width: 80, slots: { default: 'icon' }, align: 'center' as const },
-    { field: 'orderNum', title: $t('page.system.menu.orderNum'), width: 80, align: 'center' as const },
-    { field: 'path', title: $t('page.system.menu.path'), minWidth: 150 },
-    { field: 'component', title: $t('page.system.menu.component'), minWidth: 200 },
-    { field: 'perms', title: $t('page.system.menu.perms'), minWidth: 150 },
-    { field: 'menuType', title: $t('page.system.menu.menuType'), width: 100, slots: { default: 'menuType' } },
-    { field: 'visible', title: $t('page.system.menu.visible'), width: 100, slots: { default: 'visible' } },
-    { field: 'status', title: $t('page.common.status'), width: 100, slots: { default: 'status' } },
-    { field: 'action', title: $t('page.common.operation'), fixed: 'right' as const, slots: { default: 'action' }, width: 200 },
-  ],
-  height: 'auto',
-  treeConfig: {
-    transform: false,
-    rowField: 'menuId',
-    parentField: 'parentId',
-    childrenField: 'children',
-    expandAll: true,
-  },
-  pagerConfig: {
-    enabled: false,
-  },
-  proxyConfig: {
-    ajax: {
-      query: async ({ page }: any, formValues: any) => {
-        const res = await getMenuList({
-          pageNum: page?.currentPage,
-          pageSize: page?.pageSize,
-          ...formValues,
+const statusOptions = [
+    { label: '正常', value: '0' },
+    { label: '停用', value: '1' },
+];
+
+const columns = [
+    { title: '菜单名称', dataIndex: 'menuName', key: 'menuName', width: 200 },
+    { title: '图标', dataIndex: 'icon', key: 'icon', width: 80, align: 'center' as const },
+    { title: '排序', dataIndex: 'orderNum', key: 'orderNum', width: 80, align: 'center' as const },
+    { title: '权限标识', dataIndex: 'perms', key: 'perms', width: 200 },
+    { title: '组件路径', dataIndex: 'component', key: 'component', width: 260 },
+    { title: '状态', dataIndex: 'status', key: 'status', width: 100, align: 'center' as const },
+    { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
+    { title: '操作', key: 'action', width: 160, align: 'center' as const },
+];
+
+// 将后端 data 扁平列表组装成树（根据 parentId）
+function buildTree(list: MenuItem[]): MenuItem[] {
+    const map = new Map<number, MenuItem & { children: MenuItem[] }>();
+    list.forEach((item) => {
+        map.set(item.menuId, { ...item, children: [] });
+    });
+    const roots: (MenuItem & { children: MenuItem[] })[] = [];
+    map.forEach((item) => {
+        if (!item.parentId || !map.has(item.parentId)) {
+            roots.push(item);
+        } else {
+            map.get(item.parentId)!.children.push(item);
+        }
+    });
+    return roots;
+}
+
+const dataList = computed(() => buildTree(filteredList.value));
+
+const filteredList = computed(() => {
+    const name = queryParams.value.menuName?.trim();
+    const status = queryParams.value.status;
+    return rawList.value.filter((item) => {
+        if (name && !item.menuName.includes(name)) return false;
+        if (status && item.status !== status) return false;
+        return true;
+    });
+});
+
+const expandAll = ref(true);
+const expandedRowKeys = ref<(string | number)[]>([]);
+
+function collectAllMenuIds(nodes: MenuItem[]): (string | number)[] {
+    const ids: (string | number)[] = [];
+    function walk(list: MenuItem[]) {
+        list.forEach((item) => {
+            ids.push(item.menuId);
+            if (item.children?.length) {
+                walk(item.children);
+            }
         });
-        // API 返回 { total, rows }，rows 是扁平数组
-        // 需要转换成树形结构
-        const treeData = buildTree(res.rows || []);
-        menuTreeData.value = treeData;
-        return { rows: treeData };
-      },
-    },
-  },
-};
-
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
-
-// 构建树形结构
-const buildTree = (menus: any[]) => {
-  const menuMap = new Map();
-  const tree: any[] = [];
-
-  // 先构建map
-  menus.forEach((menu) => {
-    menuMap.set(menu.menuId, { ...menu, children: [] });
-  });
-
-  // 再构建树
-  menus.forEach((menu) => {
-    const node = menuMap.get(menu.menuId);
-    if (menu.parentId === 0 || !menuMap.has(menu.parentId)) {
-      tree.push(node);
-    } else {
-      const parent = menuMap.get(menu.parentId);
-      if (parent) {
-        parent.children.push(node);
-      }
     }
-  });
+    walk(buildTree(rawList.value));
+    return ids;
+}
 
-  return tree;
-};
+function toggleExpandAll() {
+    expandAll.value = !expandAll.value;
+    expandedRowKeys.value = expandAll.value ? collectAllMenuIds(rawList.value) : [];
+}
 
-const handleAdd = () => modalRef.value?.open();
-const handleEdit = (row: any) => modalRef.value?.open(row);
-const handleAddChild = (row: any) => modalRef.value?.open({ parentId: row.menuId });
-const handleReload = () => gridApi.reload();
+function onRowExpand(expanded: boolean, record: MenuItem) {
+    const id = record.menuId;
+    if (expanded) {
+        if (!expandedRowKeys.value.includes(id)) {
+            expandedRowKeys.value = [...expandedRowKeys.value, id];
+        }
+    } else {
+        expandedRowKeys.value = expandedRowKeys.value.filter((key) => key !== id);
+    }
+}
 
-// 展开/收起全部
-const handleExpandAll = () => {
-  expandState.value = true;
-  gridApi.grid?.setAllTreeExpand(true);
-};
+async function loadMenuList() {
+    loading.value = true;
+    try {
+        const res = (await getMenuList()) as any;
+        let list: MenuItem[] = [];
+        if (Array.isArray(res)) {
+            list = res;
+        } else if (Array.isArray(res?.data)) {
+            list = res.data;
+        } else if (Array.isArray(res?.data?.data)) {
+            list = res.data.data;
+        }
+        rawList.value = list ?? [];
+    } catch (e: any) {
+        message.error(e?.message ?? '加载菜单列表失败');
+    } finally {
+        loading.value = false;
+    }
+}
 
-const handleCollapseAll = () => {
-  expandState.value = false;
-  gridApi.grid?.setAllTreeExpand(false);
-};
+function handleSearch() {
+    loadMenuList();
+}
 
-// 修改显示状态
-const handleVisibleChange = async (row: any) => {
-  // :checked 已经改变了 row.visible，直接使用
-  const nextVisible = row.visible;
-  try {
-    await changeMenuVisible({ menuId: row.menuId, visible: nextVisible });
-    message.success($t('page.message.operationSuccess'));
-    gridApi.reload();
-  } catch (error) {
-    message.error($t('page.message.operationFail'));
-  }
-};
+function handleReset() {
+    queryParams.value = { menuName: '', status: undefined };
+    loadMenuList();
+}
 
-// 修改启用状态
-const handleStatusChange = async (row: any) => {
-  // :checked 已经改变了 row.status，直接使用
-  const nextStatus = row.status;
-  Modal.confirm({
-    title: $t('page.common.confirm'),
-    content: $t(nextStatus === '1' ? 'page.system.menu.confirmDisable' : 'page.system.menu.confirmEnable', { name: row.menuName }),
-    async onOk() {
-      try {
-        await changeMenuStatus({ menuId: row.menuId, status: nextStatus });
-        message.success($t('page.message.operationSuccess'));
-        gridApi.reload();
-      } catch (error) {
-        message.error($t('page.message.operationFail'));
-      }
-    },
-  });
-};
+const menuModalRef = ref<InstanceType<typeof MenuModal> | null>(null);
 
-// 删除
-const handleDelete = async (row: any) => {
-  Modal.confirm({
-    title: $t('page.common.confirmDelete'),
-    content: $t('page.system.menu.confirmDelete', { name: row.menuName }),
-    async onOk() {
-      await deleteMenu(row.menuId);
-      message.success($t('page.message.deleteSuccess'));
-      gridApi.reload();
-    },
-  });
-};
+function handleAdd(parentRow?: MenuItem) {
+    // 使用 setData + open，确保 onSuccess 等回调在 modal 内部能正确拿到
+    menuModalRef.value?.modalApi
+        ?.setData({
+            isEdit: false,
+            parentRow,
+            onSuccess: () => loadMenuList(),
+        })
+        .open();
+}
+
+function handleEdit(record: MenuItem) {
+    menuModalRef.value?.modalApi
+        ?.setData({
+            isEdit: true,
+            menuId: record.menuId,
+            onSuccess: () => loadMenuList(),
+        })
+        .open();
+}
+
+async function handleDelete(record: MenuItem) {
+    try {
+        const res = (await deleteMenu(record.menuId)) as { code?: number; msg?: string };
+        if (res?.code === 200) {
+            message.success(res?.msg ?? '删除成功');
+            loadMenuList();
+        } else {
+            message.error(res?.msg ?? '删除失败');
+        }
+    } catch (e: any) {
+        message.error(e?.message ?? '删除失败');
+    }
+}
+
+onMounted(() => {
+    loadMenuList();
+});
 </script>
+
+<style scoped>
+.tab-btn.ant-btn {
+    border-radius: 0;
+    border-color: #d9d9d9;
+}
+
+.tab-btn.active.ant-btn-primary {
+    background-color: #1890ff;
+    border-color: #1890ff;
+}
+
+.search-label {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.65);
+}
+
+.btn-search.ant-btn-primary {
+    background-color: #1890ff;
+    border-color: #1890ff;
+    color: #fff;
+}
+
+.btn-search.ant-btn-primary:hover {
+    background-color: #40a9ff;
+    border-color: #40a9ff;
+    color: #fff;
+}
+
+.btn-reset.ant-btn {
+    background: #fff;
+    border-color: #d9d9d9;
+    color: rgba(0, 0, 0, 0.65);
+}
+
+.btn-reset.ant-btn:hover {
+    border-color: #40a9ff;
+    color: #40a9ff;
+}
+
+.btn-add.ant-btn {
+    background-color: #40a9ff;
+    border-color: #40a9ff;
+    color: #fff;
+}
+
+.btn-add.ant-btn:hover {
+    background-color: #69c0ff;
+    border-color: #69c0ff;
+    color: #fff;
+}
+
+.btn-expand.ant-btn {
+    background-color: #fff;
+    border-color: #d9d9d9;
+    color: rgba(0, 0, 0, 0.65);
+}
+
+.btn-expand.ant-btn:hover {
+    border-color: #40a9ff;
+    color: #40a9ff;
+}
+
+.menu-table :deep(.ant-table-thead > tr > th),
+.menu-table :deep(.ant-table-tbody > tr > td) {
+    padding: 12px 16px;
+    color: rgba(0, 0, 0, 0.65);
+}
+
+.menu-table :deep(.ant-table-thead > tr > th) {
+    font-weight: 600;
+    background: #fafafa;
+}
+
+.cell-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.link-edit.ant-btn-link {
+    color: #1890ff;
+}
+
+.link-edit.ant-btn-link:hover {
+    color: #40a9ff;
+}
+
+.link-delete.ant-btn-link {
+    color: #ff4d4f;
+}
+
+.link-delete.ant-btn-link:hover {
+    color: #ff7875;
+}
+
+.link-add.ant-btn-link {
+    color: #1890ff;
+}
+
+.link-add.ant-btn-link:hover {
+    color: #40a9ff;
+}
+</style>

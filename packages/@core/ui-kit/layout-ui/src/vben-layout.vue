@@ -557,11 +557,19 @@ const idMainContent = ELEMENT_ID_MAIN_CONTENT;
           <template #toggle-button>
             <VbenIconButton
               v-if="showHeaderToggleButton"
-              class="my-0 mr-1 rounded-md"
+              class="header-icon-btn my-0 mr-1"
               @click="handleHeaderToggle"
             >
-              <IconifyIcon v-if="showSidebar" icon="ep:fold" />
-              <IconifyIcon v-else icon="ep:expand" />
+              <IconifyIcon
+                v-if="showSidebar"
+                class="header-icon-icon"
+                icon="ep:fold"
+              />
+              <IconifyIcon
+                v-else
+                class="header-icon-icon"
+                icon="ep:expand"
+              />
             </VbenIconButton>
           </template>
           <slot name="header"></slot>

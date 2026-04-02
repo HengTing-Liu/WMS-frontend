@@ -6,8 +6,6 @@ import { setupVbenVxeTable, useVbenVxeGrid } from '@vben/plugins/vxe-table';
 
 import { Button, Image } from 'ant-design-vue';
 
-import dayjs from 'dayjs';
-
 import { $t } from '#/locales';
 import { useVbenForm } from './form';
 
@@ -28,9 +26,9 @@ setupVbenVxeTable({
         proxyConfig: {
           autoLoad: true,
           response: {
-            result: 'rows',
+            result: 'items',
             total: 'total',
-            list: 'rows',
+            list: 'items',
           },
           showActiveMsg: true,
           showResponseMsg: false,
@@ -77,9 +75,9 @@ setupVbenVxeTable({
                     code: opt,
                     text:
                       opt === 'edit'
-                        ? $t('page.common.edit')
+                        ? $t('common.edit')
                         : opt === 'delete'
-                          ? $t('page.common.delete')
+                          ? $t('common.delete')
                           : opt,
                     disabled: false,
                   }
@@ -103,37 +101,7 @@ setupVbenVxeTable({
     });
 
     // 这里可以自行扩展 vxe-table 的全局配置，比如自定义格式化
-    // 自定义日期格式化: yyyy-MM-dd HH:mm:ss
-    if (!vxeUI.formats.get('formatDateTime')) {
-      vxeUI.formats.add('formatDateTime', {
-        tableCellFormatMethod({ cellValue }) {
-          if (!cellValue || cellValue === 'null' || cellValue === 'undefined') return '';
-          try {
-            const date = dayjs(cellValue);
-            if (!date.isValid()) return '';
-            return date.format('YYYY-MM-DD HH:mm:ss');
-          } catch (e) {
-            return '';
-          }
-        },
-      });
-    }
-
-    // 注册全局格式化器 {YYYY-MM-DD HH:mm:ss}
-    if (!vxeUI.formats.get('{YYYY-MM-DD HH:mm:ss}')) {
-      vxeUI.formats.add('{YYYY-MM-DD HH:mm:ss}', {
-        tableCellFormatMethod({ cellValue }) {
-          if (!cellValue || cellValue === 'null' || cellValue === 'undefined') return '';
-          try {
-            const date = dayjs(cellValue);
-            if (!date.isValid()) return '';
-            return date.format('YYYY-MM-DD HH:mm:ss');
-          } catch (e) {
-            return '';
-          }
-        },
-      });
-    }
+    // vxeUI.formats.add
   },
   useVbenForm,
 });

@@ -10,7 +10,7 @@ import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
 import { notification,message } from 'ant-design-vue';
 import { defineStore } from 'pinia';
 
-import { decodeUserIdFromToken, getAccessCodesApi, getUserInfoApi, loginApi, logoutApi } from '#/api';
+import { getAccessCodesApi, getUserInfoApi, loginApi, logoutApi } from '#/api';
 import { $t } from '#/locales';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -42,6 +42,8 @@ export const useAuthStore = defineStore('auth', () => {
   //   sessionExpireTimer = setTimeout(handleSessionExpired, time);
   // }
 
+  const lastPassword = ref<string | null>(null);
+
   /**
    * 异步处理登录操作
    * Asynchronously handle the login process
@@ -57,11 +59,27 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       loginLoading.value = true;
       const res = await loginApi(params);
-      const { access_token, expires_in } = res;
+      
+      // 防御性检查：确保 res 存在
+      if (!res) {
+        console.error('[Auth] Login API returned undefined');
+        loginLoading.value = false;
+        return;
+      }
+      
+      console.log('[Auth] loginApi result:', res);
+      
+      // requestClient 已经处理了响应，直接从 res 取数据
+      // 后端返回 { code: 200, data: { access_token, expires_in } }
+      // requestClient.post 返回的是整个响应体
+      const loginData = res.data || res;
+      const { access_token, expires_in } = loginData;
       const accessToken = access_token;
       // 如果成功获取到 accessToken
       if (accessToken) {
         accessStore.setAccessToken(accessToken);
+        // 记录本次登录使用的密码
+        lastPassword.value = params.password as string;
         // startSessionTimer(expires_in*60000)
       // 设置有效期
   
@@ -70,12 +88,8 @@ export const useAuthStore = defineStore('auth', () => {
         //   fetchUserInfo(),
         //   getAccessCodesApi(),
         // ]);
-        userInfo = await fetchUserInfo();
-        const codes = userInfo?.permissions ||[];
-        
-        // 优先使用后端返回的default_page，否则使用前端配置的默认首页
-        const defaultPage = userInfo.default_page || preferences.app.defaultHomePath || '/query/material';
-        userInfo.homePath = defaultPage;
+        const userInfo = await fetchUserInfo();
+       const codes = userInfo?.permissions ||[];
 
         userStore.setUserInfo(userInfo);
         accessStore.setAccessCodes(codes);
@@ -83,45 +97,11 @@ export const useAuthStore = defineStore('auth', () => {
         if (accessStore.loginExpired) {
           accessStore.setLoginExpired(false);
         } else {
-          // 检查是否有重定向参数（兼容 hash 模式）
-          let redirectPath: string | undefined;
-          
-          // 从 window.location.hash 中获取 query 参数
-          const hash = window.location.hash;
-          if (hash && hash.includes('?')) {
-            const queryString = hash.split('?')[1];
-            const params = new URLSearchParams(queryString);
-            redirectPath = params.get('redirect') || undefined;
-          }
-          
-          // 如果没找到，再尝试从 router 中获取
-          if (!redirectPath) {
-            const currentRoute = router.currentRoute.value;
-            redirectPath = currentRoute.query.redirect as string;
-          }
-          
-          // 过滤掉可能404的系统路由和auth路由
-          const systemPaths = ['/dashboard', '/analytics', '/workspace', '/auth'];
-          if (redirectPath && systemPaths.some(p => redirectPath?.startsWith(p))) {
-            console.log('[Auth] 过滤系统重定向路径:', redirectPath);
-            redirectPath = undefined;
-          }
-          
-          // 如果redirect是根路径，也使用默认首页
-          if (redirectPath === '/' || redirectPath === '') {
-            redirectPath = undefined;
-          }
-          
-          // 优先使用后端返回的default_page，其次使用前端配置的默认首页
-          const targetPath = redirectPath || userInfo.default_page || preferences.app.defaultHomePath || '/query/material';
-          
-          console.log('[Auth] 登录跳转:', targetPath);
-          
+          const targetPath = preferences.app.defaultHomePath || '/system/user';
           if (onSuccess) {
             await onSuccess();
           } else {
-            // 使用 replace 避免历史记录问题
-            await router.replace(targetPath);
+            await router.push(targetPath);
           }
         }
         if (userInfo?.token) {
@@ -140,7 +120,7 @@ export const useAuthStore = defineStore('auth', () => {
     };
   }
   const loggingOut = ref(false);//添加登出标志
-  async function logout(redirect: boolean = true) {
+  async function logout(redirect: boolean = true, options?: { fromChangePwd?: boolean }) {
     if (loggingOut.value) return;
 
     loggingOut.value = true;  
@@ -150,17 +130,24 @@ export const useAuthStore = defineStore('auth', () => {
       // 不做任何处理
     }
    
+    const lastUsername = userStore.userInfo?.username;
+    const password = !options?.fromChangePwd ? lastPassword.value : null;
     // clearSessionTimer();
     resetAllStores();
     accessStore.setLoginExpired(false);
     // 回登录页带上当前路由地址
     await router.replace({
       path: LOGIN_PATH,
-      query: redirect
-        ? {
-            redirect: encodeURIComponent(router.currentRoute.value.fullPath),
-          }
-        : {},
+      query: {
+        ...(redirect
+          ? {
+              redirect: encodeURIComponent(router.currentRoute.value.fullPath),
+            }
+          : {}),
+        ...(lastUsername ? { username: lastUsername } : {}),
+        ...(password ? { password } : {}),
+        ...(options?.fromChangePwd ? { fromChangePwd: '1' } : {}),
+      },
     });
     loggingOut.value = false;
   }
@@ -171,15 +158,11 @@ export const useAuthStore = defineStore('auth', () => {
     //  console.log(userInfo,'userInfo');
     // userStore.setUserInfo(userInfo?.user)
     // return userInfo;
-    const userId = decodeUserIdFromToken(accessStore.accessToken || '');
-    if (!userId) {
-      throw new Error('无法从 token 中解析用户 ID');
-    }
-    const data = await getUserInfoApi(userId);
-    data.token = accessStore.accessToken;
-    data.avatar = null;
-    userStore.setUserInfo(data);
-    return data;
+    const data=await getUserInfoApi()
+    data.token=accessStore.accessToken
+    data.avatar=null
+    userStore.setUserInfo(data)
+    return data
   }
 
   function $reset() {

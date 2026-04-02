@@ -16,6 +16,8 @@ import {
 } from '@vben/layouts';
 import { preferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
+import sidebarLogo from '#/assets/logos-2.png';
+import darkSidebarLogo from '#/assets/logo.png';
 import { openWindow } from '@vben/utils';
 
 import { $t } from '#/locales';
@@ -147,6 +149,13 @@ function remove(id: number | string) {
 function handleMakeAll() {
   notifications.value.forEach((item) => (item.isRead = true));
 }
+
+// 仅深色侧边栏开关：用于切换 logo（深色顶栏不影响）
+const isDarkBar = computed(() => {
+  return preferences.theme.semiDarkSidebar;
+});
+
+const logoSrc = computed(() => (isDarkBar.value ? darkSidebarLogo : sidebarLogo));
 watch(
   () => ({
     enable: preferences.app.watermark,
@@ -171,6 +180,21 @@ watch(
 
 <template>
   <BasicLayout @clear-preferences-and-logout="handleLogout">
+    <!-- 自定义 logo：图片占满整块区域，点击回首页 -->
+    <template #logo>
+      <div
+        class="app-logo-full"
+        role="button"
+        tabindex="0"
+        @click="router.push(preferences.app.defaultHomePath || '/')"
+      >
+        <img
+          :src="logoSrc"
+          alt="logo"
+          class="app-logo-img"
+        >
+      </div>
+    </template>
     <template #user-dropdown>
       <UserDropdown
         :avatar
@@ -203,4 +227,24 @@ watch(
       <LockScreen :avatar @to-login="handleLogout" />
     </template>
   </BasicLayout>
-</template>
+ </template>
+
+<style scoped>
+/* Logo 区域：图片占满侧边栏顶部整块 */
+.app-logo-full {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.app-logo-img {
+  width: 95%;
+  height: 95%;
+  object-fit: contain;
+  display: block;
+}
+</style>

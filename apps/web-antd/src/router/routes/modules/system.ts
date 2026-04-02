@@ -1,7 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router';
 
-import { $t } from '#/locales';
-
 const routes: RouteRecordRaw[] = [
   {
     meta: {
@@ -23,95 +21,114 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
-          title: $t('page.system.role.title'),
+          title: '产品分类',
         },
-        name: 'Role',
-        path: '/role',
-        component: () => import('#/views/system/role/index.vue'),
+        name: 'ProductCategory',
+        path: '/productCategory',
+        component: () => import('#/views/system/productCategory/index.vue'),
       },
       {
         meta: {
-          title: $t('page.system.dict.title'),
+          title: '部门管理',
         },
-        name: 'Dict',
-        path: '/dict',
-        component: () => import('#/views/system/dict/index.vue'),
-      },
-
-      {
-        meta: {
-          title: $t('page.system.serial.title'),
-        },
-        name: 'Serial',
-        path: '/serial',
-        component: () => import('#/views/system/serial/index.vue'),
-      },
-      {
-        meta: {
-          title: $t('page.system.menu.title'),
-        },
-        name: 'Menu',
-        path: '/menu',
-        component: () => import('#/views/system/menu/index.vue'),
-      },
-      {
-        meta: {
-          title: $t('page.system.dept.title'),
-        },
-        name: 'Dept',
-        path: '/dept',
+        name: 'DepartmentManager',
+        path: '/departmentManager',
         component: () => import('#/views/system/dept/index.vue'),
       },
       {
         meta: {
-          icon: 'mdi:shield-account',
-          title: $t('page.system.dataPermission.title'),
-          roles: ['admin'],
+          title: '角色管理',
         },
-        name: 'DataPermission',
-        path: '/data-permission',
+        name: 'RoleManager',
+        path: '/roleManager',
+        component: () => import('#/views/system/roleManager/index.vue'),
+      },
+      {
+        meta: {
+          title: '菜单管理',
+        },
+        name: 'Management',
+        path: '/management',
+        component: () => import('#/views/system/menu/index.vue'),
+      },
+      {
+        meta: {
+          title: '字典管理',
+        },
+        name: 'DictionaryManagement',
+        path: '/dictionaryManagement',
+        component: () => import('#/views/system/dict/index.vue'),
+      },
+      {
+        meta: {
+          title: '日志管理',
+        },
+        name: 'LogManager',
+        path: '/log',
         children: [
           {
             meta: {
-              title: $t('page.system.dataPermission.userPermission'),
-              roles: ['admin'],
+              title: '操作日志',
             },
-            name: 'UserPermission',
-            path: '/data-permission/user',
-            component: () =>
-              import('#/views/sys/data-permission/user-permission.vue'),
+            name: 'OperLog',
+            path: '/log/oper',
+            component: () => import('#/views/system/operlog/index.vue'),
           },
           {
             meta: {
-              title: $t('page.system.dataPermission.deptPermission'),
-              roles: ['admin'],
+              title: '登录日志',
             },
-            name: 'DeptPermission',
-            path: '/data-permission/dept',
-            component: () =>
-              import('#/views/sys/data-permission/dept-permission.vue'),
-          },
-          {
-            meta: {
-              title: $t('page.system.dataPermission.rolePermission'),
-              roles: ['admin'],
-            },
-            name: 'RolePermission',
-            path: '/data-permission/role',
-            component: () =>
-              import('#/views/sys/data-permission/role-permission.vue'),
-          },
-          {
-            meta: {
-              title: $t('page.system.dataPermission.companyPermission'),
-              roles: ['admin'],
-            },
-            name: 'CompanyPermission',
-            path: '/data-permission/company',
-            component: () =>
-              import('#/views/sys/data-permission/company-permission.vue'),
+            name: 'LoginLog',
+            path: '/log/login',
+            // component: () => import('#/views/system/LogManager/loginLog/index.vue'),
+            component: () => import('#/views/system/logininfor/index.vue'),
           },
         ],
+      },
+      {
+        meta: {
+          title: '测试数据',
+        },
+        name: 'Testing',
+        path: '/Testing',
+        component: () => import('#/views/system/Testing/index.vue'),
+      },
+      {
+        meta: {
+          hideInMenu: true,
+          title: '数据权限',
+        },
+        name: 'RoleDataScope',
+        path: '/roleManager/dataScope/:roleId',
+        component: () => import('#/views/system/roleManager/dataScope.vue'),
+      },
+      {
+        meta: {
+          hideInMenu: true,
+          ignoreAccess: true,
+          title: '分配用户',
+        },
+        name: 'RoleAssignUser',
+        path: '/roleManager/assignUser/:roleId',
+        component: () => import('#/views/system/roleManager/assignUser.vue'),
+      },
+      {
+        meta: {
+          hideInMenu: true,
+          title: '分配角色',
+        },
+        name: 'UserAssignRole',
+        path: '/user/assignRole/:userId',
+        component: () => import('#/views/system/user/assignRole.vue'),
+      },
+      {
+        meta: {
+          hideInMenu: true,
+          title: '产品分类-新增',
+        },
+        name: 'ProductCategoryAdd',
+        path: 'productCategory/add',
+        component: () => import('#/views/system/productCategory/add.vue'),
       },
     ],
   },

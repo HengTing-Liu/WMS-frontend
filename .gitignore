@@ -1,41 +1,52 @@
-# Dependencies
-node_modules/
-.pnpm-store/
-pnpm-lock.yaml
-
-# Build outputs
-dist/
-.turbo/
-.output/
-*.tsbuildinfo
-
-# Logs
-*.log
-npm-debug.log*
-pnpm-debug.log*
-
-# OS
+node_modules
 .DS_Store
-Thumbs.db
+dist
+dist-ssr
+dist.zip
+dist.tar
+dist.war
+.nitro
+.output
+*-dist.zip
+*-dist.tar
+*-dist.war
+coverage
+*.local
+**/.vitepress/cache
+.cache
+.turbo
+.temp
+dev-dist
+.stylelintcache
+yarn.lock
+package-lock.json
+.VSCodeCounter
+**/backend-mock/data
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Test
-coverage/
-.nyc_output/
-
-# Local env files
+# local env files
 .env.local
 .env.*.local
+.eslintcache
 
-# Vite
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
-packages/@core/composables/node_modules
-packages/@core/ui-kit/*/node_modules
-internal/vite-config/node_modules
-internal/*/node_modules
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+vite.config.mts.*
+vite.config.mjs.*
+vite.config.js.*
+vite.config.ts.*
+
+# Editor directories and files
+.idea
+# .vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.history
+.cursor

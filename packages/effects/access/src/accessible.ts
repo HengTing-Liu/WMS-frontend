@@ -16,10 +16,6 @@ import {
   isString,
   mapTree,
 } from '@vben/utils';
-
-// 记录 backend 模式下添加的动态路由，用于清理
-const dynamicRouteNames = new Set<string>();
-
 async function generateAccessible(
   mode: AccessModeType,
   options: GenerateMenuAndRoutesOptions,
@@ -30,72 +26,47 @@ async function generateAccessible(
   // 生成路由
   const accessibleRoutes = await generateRoutes(mode, options);
 
-  // backend 模式下，先清理之前添加的动态路由
-  if (mode === 'backend') {
-    dynamicRouteNames.forEach((name) => {
-      if (router.hasRoute(name)) {
-        router.removeRoute(name);
-      }
-    });
-    dynamicRouteNames.clear();
-  }
-
-  // 获取根路由
   const root = router.getRoutes().find((item) => item.path === '/');
 
   // 获取已有的路由名称列表
-  const existingNames = root?.children?.map((item) => item.name) ?? [];
+  const names = root?.children?.map((item) => item.name) ?? [];
 
-  // 添加路由
+  // 动态添加到router实例内
   accessibleRoutes.forEach((route) => {
-    // 检查 component 是否有效
-    if (!route.component && !route.children) {
-      console.error('路由缺少 component:', route.path, route.name);
-    }
-    
-    if (mode === 'backend') {
-      // backend 模式：使用 addRoute 直接添加，不检查重复
-      if (!route.meta?.noBasicLayout && root) {
-        // 删除顶级路由的 component，避免 Layout 嵌套
-        // root 本身已经是 BasicLayout，子路由不需要再包装 Layout
-        const routeToAdd = { ...route };
-        if (routeToAdd.children && routeToAdd.children.length > 0) {
-          delete routeToAdd.component;
-        }
-        router.addRoute(root.name as string, routeToAdd);
-      } else {
-        router.addRoute(route);
+    if (root && !route.meta?.noBasicLayout) {
+      // 为了兼容之前的版本用法，如果包含子路由，则将component移除，以免出现多层BasicLayout
+      // 如果你的项目已经跟进了本次修改，移除了所有自定义菜单首级的BasicLayout，可以将这段if代码删除
+      if (route.children && route.children.length > 0) {
+        delete route.component;
       }
-      // 记录添加的路由
-      if (route.name) {
-        dynamicRouteNames.add(route.name as string);
+      // 根据router name判断，如果路由已经存在，则不再添加
+      if (names?.includes(route.name)) {
+        // 找到已存在的路由索引并更新，不更新会造成切换用户时，一级目录未更新，homePath 在二级目录导致的404问题
+        const index = root.children?.findIndex(
+          (item) => item.name === route.name,
+        );
+        if (index !== undefined && index !== -1 && root.children) {
+          root.children[index] = route;
+        }
+      } else {
+        root.children?.push(route);
       }
     } else {
-      // frontend/mixed 模式：原逻辑，检查重复
-      if (root && !route.meta?.noBasicLayout) {
-        if (route.children && route.children.length > 0 && route.component) {
-          if (existingNames?.includes(route.name)) {
-            delete route.component;
-          }
-        }
-        if (existingNames?.includes(route.name)) {
-          const index = root.children?.findIndex(
-            (item) => item.name === route.name,
-          );
-          if (index !== undefined && index !== -1 && root.children) {
-            root.children[index] = route;
-          }
-        } else {
-          root.children?.push(route);
-        }
-      } else {
-        router.addRoute(route);
-      }
+      router.addRoute(route);
     }
   });
 
+  if (root) {
+    if (root.name) {
+      router.removeRoute(root.name);
+    }
+    router.addRoute(root);
+  }
+
   // 生成菜单
   const accessibleMenus = generateMenus(accessibleRoutes, options.router);
+  // console.log(accessibleMenus, 'accessibleMenus--菜单');
+  // console.log(accessibleRoutes, 'accessibleRoutes--路由');
 
   return { accessibleMenus, accessibleRoutes };
 }
@@ -114,6 +85,7 @@ async function generateRoutes(
   let resultRoutes: RouteRecordRaw[] = routes;
   switch (mode) {
     case 'backend': {
+   
       resultRoutes = await generateRoutesByBackend(options);
       break;
     }

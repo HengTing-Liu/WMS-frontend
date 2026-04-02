@@ -4,7 +4,7 @@ import type { BreadcrumbStyleType } from '@vben/types';
 import type { IBreadcrumb } from '@vben-core/shadcn-ui';
 
 import { computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 
 import { $t } from '@vben/locales';
 
@@ -24,7 +24,6 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const route = useRoute();
-const router = useRouter();
 
 const breadcrumbs = computed((): IBreadcrumb[] => {
   const matched = route.matched;
@@ -58,17 +57,21 @@ const breadcrumbs = computed((): IBreadcrumb[] => {
 
   return resultBreadcrumb;
 });
-
-function handleSelect(path: string) {
-  router.push(path);
-}
 </script>
 <template>
   <VbenBreadcrumbView
     :breadcrumbs="breadcrumbs"
     :show-icon="showIcon"
     :style-type="type"
-    class="ml-2"
-    @select="handleSelect"
+    class="ml-2 breadcrumb-disabled"
   />
 </template>
+
+<style scoped>
+/* 禁用面包屑：显示禁用光标，且不可点击 */
+.breadcrumb-disabled :deep(.vben-breadcrumb a),
+.breadcrumb-disabled :deep(.vben-breadcrumb button) {
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+</style>

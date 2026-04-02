@@ -93,12 +93,12 @@ function navigateTo(
   >
     <template #trigger>
       <div class="flex-center mr-2 h-full" @click.stop="toggle()">
-        <VbenIconButton class="bell-button text-foreground relative">
+        <VbenIconButton class="header-icon-btn bell-button relative">
           <span
             v-if="dot"
             class="bg-primary absolute right-0.5 top-0.5 h-2 w-2 rounded"
           ></span>
-          <Bell class="size-4" />
+          <Bell class="header-icon-icon size-4" />
         </VbenIconButton>
       </div>
     </template>
@@ -111,7 +111,7 @@ function navigateTo(
           :tooltip="$t('ui.widgets.markAllAsRead')"
           @click="handleMakeAll"
         >
-          <MailCheck class="size-4" />
+          <MailCheck class="header-icon-icon size-4" />
         </VbenIconButton>
       </div>
       <VbenScrollbar v-if="notifications.length > 0">

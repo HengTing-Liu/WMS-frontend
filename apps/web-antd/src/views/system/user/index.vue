@@ -1,77 +1,76 @@
 <template>
   <div>
     <Row>
-    <Col :span="6">    
-      <Page auto-content-height>
-        <deptTree v-if="treeData" :treeData="treeData"  @select="handleSelect"/>
-      </Page>
-    </Col>
-    <Col :span="18">
-      <Page auto-content-height>
-        <Grid>
-          <template #toolbar-tools>
-            <!-- 按钮和图标垂直居中 -->
-            <Button v-access:code="'system:user:add'" type="primary"  class="mr-2 flex items-center" @click="handleEdit()">
-              <IconifyIcon icon="material-symbols:add" class="size-5" /> {{ $t('page.common.add') }}
-            </Button> 
-            
-            <Button v-access:code="'system:user:edit'" type="primary"  class="mr-2 flex items-center" :disabled="selectedCount !== 1" @click="handleBatchEdit">
-              <IconifyIcon icon="ep:edit" class="size-5" /> {{ $t('page.system.user.batchEdit') }}
-            </Button>
-           
-            <Popconfirm
-              v-access:code="'system:user:delete'"
-              :title="$t('page.system.user.confirmBatchDelete')"
-              :ok-text="$t('page.common.confirm')"
-              :cancel-text="$t('page.common.cancel')"
-              @confirm="handleBatchDeleteUser"
-            >
-            <Button danger  class="mr-2 flex items-center" >
-                <IconifyIcon icon="material-symbols:delete" class="size-5" /> {{ $t('page.common.delete') }}
-            </Button>
-            </Popconfirm>
-             <Button v-access:code="'system:user:export'" type="primary" class="mr-2 flex items-center" @click="handleExport">
-              <IconifyIcon icon="bx:export" class="size-5" /> {{ $t('page.common.export') }}
-            </Button>
-                <Button v-access:code="'system:user:import'" type="primary" class="mr-2 flex items-center" @click="handleImport">
-              <IconifyIcon icon="bx:import" class="size-5" /> {{ $t('page.common.import') }}
-            </Button>
-          </template>
-          <template #dept="{ row }">
-            {{ row?.dept?.deptName || $t('page.system.user.noDept') }}
-          </template>
-          <template #status="{ row }">
-            <Switch
-              :checked="row.status"
-              :checkedValue="'0'"
-              :unCheckedValue="'1'"
-              @change="() => handleChangeStatus(row)"
-              :checked-children="$t('page.system.user.enabled')"
-              :un-checked-children="$t('page.system.user.disabled')"
-            />
-          </template>
-          <template #action="{ row }">
-            <Button v-access:code="'system:user:edit'" type="link" @click="handleEdit(row)">{{ $t('page.common.edit') }}</Button>  
-            <Popconfirm
-                v-access:code="'system:user:delete'"
-                :title="$t('page.system.user.confirmDelete')"
-                :ok-text="$t('page.common.confirm')"
-                :cancel-text="$t('page.common.cancel')"
-                @confirm="handleDeleteUser(row.userId)"
-              >
-              <Button danger type="link">{{ $t('page.common.delete') }}</Button>
-            </Popconfirm>
-          </template>
-        </Grid>
-      </Page> 
-    </Col>
-  </Row>
-  <ModalReg />
-  <ModalImportReg />
-</div>
+      <Col :span="6">
+        <Page auto-content-height>
+          <deptTree v-if="treeData" :treeData="treeData" @select="handleSelect" />
+        </Page>
+      </Col>
+      <Col :span="18">
+        <Page auto-content-height>
+          <Grid>
+            <template #toolbar-tools>
+              <!-- 按钮和图标垂直居中 -->
+              <Button type="primary" class="mr-2 flex items-center" @click="handleEdit()">
+                <IconifyIcon icon="material-symbols:add" class="size-5" /> 新增
+              </Button>
+
+              <!-- <Button type="primary"  class="mr-2 flex items-center" :disabled="selectedCount !== 1" @click="handleBatchEdit">
+              <IconifyIcon icon="ep:edit" class="size-5" />批量编辑  
+            </Button> -->
+
+              <Popconfirm title="是否确认批量删除选中用户?" ok-text="确认" cancel-text="取消" @confirm="handleBatchDeleteUser">
+                <Button danger class="mr-2 flex items-center">
+                  <IconifyIcon icon="material-symbols:delete" class="size-5" /> 删除
+                </Button>
+              </Popconfirm>
+              <Button type="primary" class="mr-2 flex items-center" @click="handleExport">
+                <IconifyIcon icon="bx:export" class="size-5" /> 导出
+              </Button>
+              <Button type="primary" class="mr-2 flex items-center" @click="handleImport">
+                <IconifyIcon icon="bx:import" class="size-5" /> 导入
+              </Button>
+            </template>
+            <template #dept="{ row }">
+              {{ row?.deptName ?? row?.dept?.deptName ?? '无' }}
+            </template>
+            <template #status="{ row }">
+              <Switch :checked="row.status !== '1'" @change="(checked) => handleChangeStatus(row, checked)"
+                checked-children="已启用" un-checked-children="已禁用" />
+            </template>
+            <template #action="{ row }">
+              <Button type="link" @click="handleEdit(row)">修改</Button>
+              <Popconfirm title="是否确认删除?" ok-text="确认" cancel-text="取消" @confirm="handleDeleteUser(row.userId)">
+                <Button danger type="link">删除</Button>
+              </Popconfirm>
+              <Dropdown :trigger="['click']">
+                <Button type="link">更多</Button>
+                <template #overlay>
+                  <Menu>
+                    <MenuItem @click="openResetPwdModal(row)">重置密码</MenuItem>
+                    <MenuItem @click="handleAssignRole(row)">分配角色</MenuItem>
+                  </Menu>
+                </template>
+              </Dropdown>
+            </template>
+          </Grid>
+        </Page>
+      </Col>
+    </Row>
+    <ModalReg />
+    <ModalImportReg />
+    <Modal v-model:open="resetPwdModalVisible" title="提示" ok-text="确定" cancel-text="取消" @ok="handleConfirmResetPwd"
+      @cancel="handleCancelResetPwd">
+      <p style="margin-bottom: 12px">
+        请输入“{{ resetPwdUser?.userName || '' }}”的新密码
+      </p>
+      <Input v-model:value="resetPwdValue" type="password" placeholder="请输入新密码" allow-clear />
+    </Modal>
+  </div>
 </template>
 <script lang="ts" setup>
-import { onMounted,nextTick, ref } from 'vue';
+import { onMounted, nextTick, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { Page } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
@@ -87,14 +86,18 @@ import {
   Col,
   Switch,
   Popconfirm,
-  Modal
+  Modal,
+  Dropdown,
+  Menu,
+  Input,
 } from 'ant-design-vue';
-import { getUserList, changeUserStatus, deleteUser, exportUser } from '#/api';
-import { getDeptTree } from '#/api/system/dept';
+import { getUserList, updateUserStatus, getDeptTree, deleteUser, exportUser, resetUserPwd } from '#/api';
 import type { UserApi } from '#/api';
 import deptTree from './modules/deptTree.vue';
 import userEditModal from './modules/userEditModal.vue';
 import userBatcnImportModal from './modules/userBatcnImportModal.vue';
+const { Item: MenuItem } = Menu;
+const router = useRouter();
 type RowType = UserApi.User;
 type TreeNode = UserApi.TreeNode;
 // // 组合类型
@@ -102,6 +105,9 @@ type TreeNode = UserApi.TreeNode;
 //   selected: boolean;
 // }
 const selectedCount = ref(0);
+const resetPwdModalVisible = ref(false);
+const resetPwdUser = ref<RowType | null>(null);
+const resetPwdValue = ref('');
 const [ModalReg, modalApi] = useVbenModal({
   // 连接抽离的组件
   connectedComponent: userEditModal,
@@ -118,7 +124,7 @@ const formOptions: VbenFormProps = {
   fieldMappingTime: [['createTime', ['params[beginTime]', 'params[endTime]']]],
   // 设置查询表单整体为网格布局的列数（小屏3列，中屏及以上4列）
   wrapperClass: 'grid-cols-5',
-// 控制表单是否显示折叠按钮
+  // 控制表单是否显示折叠按钮
   showCollapseButton: false,
   // 是否在字段值改变时提交表单
   submitOnChange: false,
@@ -128,16 +134,16 @@ const formOptions: VbenFormProps = {
     {
       component: 'Input',
       fieldName: 'userName',
-      label: () => $t('page.system.user.userName'),
+      label: '用户名称',
       formItemClass: 'col-span-1',
       labelWidth: 80,
-    },  
+    },
     {
       component: 'Input',
       fieldName: 'phonenumber',
-      label: () => $t('page.system.user.phonenumber'),
+      label: '手机号码',
       formItemClass: 'col-span-1',
-       labelWidth: 80,
+      labelWidth: 80,
     },
     {
       component: 'Select',
@@ -145,18 +151,18 @@ const formOptions: VbenFormProps = {
         allowClear: true,
         options: [
           {
-            label: () => $t('page.system.user.enabled'),
-      value: '0',
+            label: '正常',
+            value: '0',
           },
           {
-            label: () => $t('page.system.user.disabled'),
-      value: '1',
+            label: '停用',
+            value: '1',
           },
         ],
-        placeholder: () => $t('page.common.pleaseSelect'),
+        placeholder: '请选择',
       },
       fieldName: 'status',
-      label: () => $t('page.common.status'),
+      label: '状态',
       formItemClass: 'col-span-1',
       labelWidth: 60,
     },
@@ -164,13 +170,13 @@ const formOptions: VbenFormProps = {
       component: 'RangePicker',
       // defaultValue: [dayjs().subtract(7, 'days'), dayjs()],
       fieldName: 'createTime',
-      label: () => $t('page.common.createTime'),
+      label: '创建时间',
       // 时间范围较宽，设置占2列
       formItemClass: 'col-span-2',
-       labelWidth: 60,
+      labelWidth: 60,
     },
   ],
-  
+
 };
 
 
@@ -181,19 +187,19 @@ const gridOptions: VxeTableGridOptions<RowType> = {
   },
   columns: [
     // { title: '序号', type: 'seq', width: 50 },
-    {  type: 'checkbox' as const, width: 30 },
-    { field: 'userId', title: () => $t('page.system.user.userId') },
-    { field: 'userName', title: () => $t('page.system.user.userName') },
-    { field: 'nickName', title: () => $t('page.system.user.nickName') },
-    { field: 'dept', title: () => $t('page.system.user.deptId'), slots: { default: 'dept' },},
-    { field: 'phonenumber', title: () => $t('page.system.user.phonenumber') },
-    { field: 'status', title: () => $t('page.common.status') , slots: { default: 'status' },},
-    { field: 'createTime', title: () => $t('page.common.createTime'),formatter: 'formatDateTime', },
+    { type: 'checkbox', width: 30 },
+    { field: 'userId', title: '用户编号' },
+    { field: 'userName', title: '用户名称' },
+    { field: 'nickName', title: '用户昵称' },
+    { field: 'dept', title: '部门', slots: { default: 'dept' }, },
+    { field: 'phonenumber', title: '手机号码' },
+    { field: 'status', title: '状态', slots: { default: 'status' }, },
+    { field: 'createTime', title: '创建时间', formatter: 'formatDateTime', },
     {
       field: 'action',
-      fixed: 'right' as const,
+      fixed: 'right',
       slots: { default: 'action' },
-      title: () => $t('page.common.operation'),
+      title: '操作',
       width: 200,
     },
   ],
@@ -202,10 +208,6 @@ const gridOptions: VxeTableGridOptions<RowType> = {
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
-    response: {
-      total: 'total',
-      result: 'rows',
-    },
     ajax: {
       query: async ({ page }, formValues) => {
         lastPageInfo.value = {
@@ -217,7 +219,10 @@ const gridOptions: VxeTableGridOptions<RowType> = {
           pageSize: page.pageSize,
           ...formValues,
         });
-        return res;
+        return {
+          total: res.total,
+          items: res.rows,
+        }
       },
     },
   },
@@ -232,82 +237,115 @@ const gridOptions: VxeTableGridOptions<RowType> = {
   // },
 };
 const [Grid, gridApi] = useVbenVxeGrid<RowType>({
-    formOptions,
-    gridOptions,
-    gridEvents:{
-      checkboxChange: (params:any) => {
-        selectedCount.value = Array.isArray(params?.records) ? params.records.length : (gridApi.grid?.getCheckboxRecords?.()?.length ?? 0);
-      },
-      checkboxAll: (params:any) => {
-        selectedCount.value = Array.isArray(params?.records) ? params.records.length : (gridApi.grid?.getCheckboxRecords?.()?.length ?? 0);
-      },
-    } 
+  formOptions,
+  gridOptions,
+  gridEvents: {
+    checkboxChange: (params: any) => {
+      selectedCount.value = Array.isArray(params?.records) ? params.records.length : (gridApi.grid?.getCheckboxRecords?.()?.length ?? 0);
+    },
+    checkboxAll: (params: any) => {
+      selectedCount.value = Array.isArray(params?.records) ? params.records.length : (gridApi.grid?.getCheckboxRecords?.()?.length ?? 0);
+    },
+  }
 });
 
-const handleChangeStatus = async (row: RowType) => {
-  const nextStatus = row.status;
+const openResetPwdModal = (row: RowType) => {
+  resetPwdUser.value = row;
+  resetPwdValue.value = '';
+  resetPwdModalVisible.value = true;
+};
+
+const handleConfirmResetPwd = async () => {
+  if (!resetPwdUser.value) {
+    resetPwdModalVisible.value = false;
+    return;
+  }
+  const pwd = resetPwdValue.value.trim();
+  if (!pwd) {
+    message.warning('请输入新密码');
+    return;
+  }
+  const res = await resetUserPwd({ userId: resetPwdUser.value.userId, password: pwd });
+  if (res?.code === 200) {
+    message.success(res?.msg ?? '密码重置成功');
+    resetPwdModalVisible.value = false;
+  } else {
+    message.error(res?.msg ?? '密码重置失败');
+  }
+};
+
+const handleCancelResetPwd = () => {
+  resetPwdModalVisible.value = false;
+};
+
+const handleAssignRole = (row: RowType) => {
+  router.push({ name: 'UserAssignRole', params: { userId: String(row.userId) } });
+};
+
+const handleChangeStatus = async (row: RowType, checked: any) => {
+  const nextStatus = checked ? '0' : '1';
   Modal.confirm({
-    title: $t('page.common.sysTip'),
-    content: nextStatus === '1' ? $t('page.system.user.confirmDisableUser') : $t('page.system.user.confirmEnableUser'),
-    okText: $t('page.common.confirm'),
-    cancelText: $t('page.common.cancel'),
+    title: '系统提示',
+    content: `确认要${nextStatus === '1' ? '停用' : '启用'}"${row.userName}"用户吗？`,
+    okText: '确认',
+    cancelText: '取消',
     async onOk() {
-      const res = await changeUserStatus({ userId: row.userId, status: nextStatus });
+      const res = await updateUserStatus({ userId: row.userId, status: nextStatus });
       if (res.code == 200) {
-        message.success($t('page.message.operationSuccess'));
+        message.success('操作成功');
         gridApi.reload();
       } else {
-        message.error(res.msg || $t('page.message.operationFail'));
+        message.error(res.msg || '操作失败');
       }
     },
   });
 }
-const handleEdit = (row?:RowType) => {
-  let data;
+const handleEdit = (row?: RowType) => {
+  let data
   if (row) {
     data = {
       ...row,
-      isAdd: false,
+      title: `${row?.userName}用户修改`,
       onSuccess: () => {
         gridApi.reload();
       },
-    };
+    }
   } else {
     data = {
-      isAdd: true,
+      title: `用户新增`,
       onSuccess: () => {
         gridApi.reload();
       },
-    };
+    }
   }
   modalApi.setData(data).open();
 }
 // 树节点点击事件
-const handleSelect = async (deptId:string) => {
+const handleSelect = async (deptId: string) => {
   await gridApi.query({ deptId });
 }
-const handleDeleteUser = async(userId:string | number) => {
-  const res=  await deleteUser(userId);
-  if(res.code==200){
+const handleDeleteUser = async (userId: string | number) => {
+  const res = await deleteUser(userId);
+  if (res.code == 200) {
     message.success(res.data);
     gridApi.reload();
-  }else{
+  } else {
     message.error(res.msg);
   }
 };
 const handleBatchDeleteUser = async () => {
   const rows = gridApi.grid?.getCheckboxRecords?.() ?? [];
   if (!rows.length) {
-    message.warning($t('page.system.user.selectDelete'));
+    message.warning('请勾选需要删除的用户');
     return;
   }
   const userIds = rows.map((r: RowType) => r.userId)
   const res = await deleteUser(userIds.join(','));
   if (res?.code === 200) {
-    message.success($t('page.message.batchDeleteSuccess'));
+    message.success('批量删除成功');
     gridApi.reload();
   } else {
-    message.error(res?.msg || $t('page.message.batchDeleteFail'));
+    message.error(res?.msg || '批量删除失败');
   }
 };
 const handleBatchEdit = () => {
@@ -322,18 +360,18 @@ const handleExport = async () => {
     pageNum: currentPage,
     pageSize,
   });
-  downloadFileFromBlob({ fileName: `${$t('page.system.user.exportUserList')}${nowTimestamp()}.xlsx`, source: blob });
+  downloadFileFromBlob({ fileName: `导出用户列表${nowTimestamp()}.xlsx`, source: blob });
 };
 const [ModalImportReg, importModalApi] = useVbenModal({
   // 连接抽离的组件
   connectedComponent: userBatcnImportModal,
 });
 const handleImport = async () => {
-   importModalApi.setData({}).open();
+  importModalApi.setData().open();
 };
-onMounted(async() => {
+onMounted(async () => {
   await nextTick();
-  treeData.value= await getDeptTree()
+  treeData.value = await getDeptTree()
 });
 
 </script>

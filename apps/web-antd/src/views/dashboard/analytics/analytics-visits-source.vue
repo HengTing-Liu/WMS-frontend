@@ -24,10 +24,10 @@ onMounted(() => {
         avoidLabelOverlap: false,
         color: ['#5ab1ef', '#b6a2de', '#67e0e3', '#2ec7c9'],
         data: [
-          { name: $t('page.dashboard.analytics.searchEngine'), value: 1048 },
-          { name: $t('page.dashboard.analytics.directAccess'), value: 735 },
-          { name: $t('page.dashboard.analytics.emailMarketing'), value: 580 },
-          { name: $t('page.dashboard.analytics.unionAd'), value: 484 },
+          { name: '搜索引擎', value: 1048 },
+          { name: '直接访问', value: 735 },
+          { name: '邮件营销', value: 580 },
+          { name: '联盟广告', value: 484 },
         ],
         emphasis: {
           label: {
@@ -37,6 +37,7 @@ onMounted(() => {
           },
         },
         itemStyle: {
+          // borderColor: '#fff',
           borderRadius: 10,
           borderWidth: 2,
         },
@@ -47,7 +48,7 @@ onMounted(() => {
         labelLine: {
           show: false,
         },
-        name: $t('page.dashboard.analytics.visitSource'),
+        name: '访问来源',
         radius: ['40%', '65%'],
         type: 'pie',
       },

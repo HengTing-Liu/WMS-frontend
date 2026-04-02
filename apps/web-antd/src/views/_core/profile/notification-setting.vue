@@ -8,20 +8,20 @@ const formSchema = computed(() => {
     {
       value: true,
       fieldName: 'accountPassword',
-      label: () => $t('page.profile.accountPassword'),
-      description: () => $t('page.profile.accountPasswordDesc'),
+      label: '账户密码',
+      description: '其他用户的消息将以站内信的形式通知',
     },
     {
       value: true,
       fieldName: 'systemMessage',
-      label: () => $t('page.profile.systemMessage'),
-      description: () => $t('page.profile.systemMessageDesc'),
+      label: '系统消息',
+      description: '系统消息将以站内信的形式通知',
     },
     {
       value: true,
       fieldName: 'todoTask',
-      label: () => $t('page.profile.todoTask'),
-      description: () => $t('page.profile.todoTaskDesc'),
+      label: '待办任务',
+      description: '待办任务将以站内信的形式通知',
     },
   ];
 });

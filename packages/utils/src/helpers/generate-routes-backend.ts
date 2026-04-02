@@ -31,11 +31,29 @@ async function generateRoutesByBackend(
       normalizePageMap[normalizeViewPath(key)] = value;
     }
     const routes = convertRoutes(menuRoutes, layoutMap, normalizePageMap);
+
     return routes;
   } catch (error) {
     console.error(error);
     throw error;
   }
+}
+
+/** 后端菜单常漏传 name（如 ParentView/RouteView 父级），Vue Router 动态 addRoute 会异常，需兜底生成 */
+function ensureRouteName(node: RouteRecordStringComponent, route: RouteRecordRaw): string {
+  const existing = (node as any).name ?? (route as any).name;
+  if (existing != null && String(existing).trim() !== '') {
+    return String(existing);
+  }
+  const pathStr = String((node as any).path ?? '').trim();
+  const slug = pathStr
+    .replace(/^\//, '')
+    .replace(/:([^/]+)/g, '_$1')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  const generated = slug ? `Auto_${slug}` : `Auto_route_${Math.random().toString(36).slice(2, 11)}`;
+  (route as any).name = generated;
+  return generated;
 }
 
 function convertRoutes(
@@ -45,56 +63,21 @@ function convertRoutes(
 ): RouteRecordRaw[] {
   return mapTree(routes, (node) => {
     const route = node as unknown as RouteRecordRaw;
-    const { component, name, redirect } = node;
+    const { component } = node;
 
-    if (!name) {
-      console.error('route name is required', route);
-    }
+    ensureRouteName(node, route);
 
-    // 处理 redirect 字段
-    if (redirect && typeof redirect === 'string') {
-      route.redirect = redirect;
-    }
-
-    // 处理 component 为 null、undefined 或 "#" 的情况
-    if (!component || component === '#' || component === '') {
-      // 如果有子菜单，说明是目录，不设置 component
-      // 如果没有子菜单，设置为 404
-      if (!route.children || route.children.length === 0) {
-        route.component = pageMap['/_core/fallback/not-found.vue'];
-      }
-      return route;
-    }
-
-    // layout转换 - 支持 "Layout" 映射到 BasicLayout
-    if (component === 'Layout' || component === 'BasicLayout') {
-      if (layoutMap['BasicLayout']) {
-        route.component = layoutMap['BasicLayout'];
-      } else if (layoutMap['Layout']) {
-        route.component = layoutMap['Layout'];
-      }
-    } else if (component && layoutMap[component]) {
+    // layout转换
+    if (component && layoutMap[component]) {
       route.component = layoutMap[component];
       // 页面组件转换
-    } else if (typeof component === 'string' && component) {
-      // 处理 #/views/... 路径
-      const normalizedPath = normalizeViewPath(component);
-      let pageKey = normalizedPath.endsWith('.vue')
-        ? normalizedPath
-        : `${normalizedPath}.vue`;
-
-      // 尝试多种可能的路径组合
-      const possibleKeys = [pageKey];
-
-      // 如果不是以 .vue 结尾，尝试添加 /index.vue
-      if (!normalizedPath.endsWith('.vue')) {
-        possibleKeys.push(`${normalizedPath}/index.vue`);
-      }
-
-      // 尝试查找匹配的组件
-      let foundKey = possibleKeys.find((key) => pageMap[key]);
-      if (foundKey) {
-        route.component = pageMap[foundKey];
+    } else if (component) {
+      const normalizePath = normalizeViewPath(component);
+      const pageKey = normalizePath.endsWith('.vue')
+        ? normalizePath
+        : `${normalizePath}.vue`;
+      if (pageMap[pageKey]) {
+        route.component = pageMap[pageKey];
       } else {
         console.error(`route component is invalid: ${pageKey}`, route);
         route.component = pageMap['/_core/fallback/not-found.vue'];
@@ -105,23 +88,16 @@ function convertRoutes(
   });
 }
 
-function normalizeViewPath(path: unknown): string {
-  if (typeof path !== 'string') return '';
-  // 处理 #/views/... 这种路径格式
-  const pathWithoutHash = path.replace(/^#/, '');
-
+function normalizeViewPath(path: string): string {
   // 去除相对路径前缀
-  const normalizedPath = pathWithoutHash.replace(/^(\.\/|\.\.\/)+/, '');
+  const normalizedPath = path.replace(/^(\.\/|\.\.\/)+/, '');
 
   // 确保路径以 '/' 开头
   const viewPath = normalizedPath.startsWith('/')
     ? normalizedPath
     : `/${normalizedPath}`;
 
-  // wms/ → sys/ 路径映射
-  const wmsToSysPath = viewPath.replace(/^\/wms\//, '/sys/');
-
   // 这里耦合了vben-admin的目录结构
-  return wmsToSysPath.replace(/^\/views/, '');
+  return viewPath.replace(/^\/views/, '');
 }
 export { generateRoutesByBackend };

@@ -2,7 +2,7 @@ import type { Preferences } from './types';
 
 const defaultPreferences: Preferences = {
   app: {
-    accessMode: 'backend',
+    accessMode: 'frontend',
     authPageLayout: 'panel-right',
     checkUpdatesInterval: 1,
     colorGrayMode: false,
@@ -117,8 +117,8 @@ const defaultPreferences: Preferences = {
     mode: 'dark',
     radius: '0.5',
     fontSize: 16,
-    semiDarkHeader: false,
-    semiDarkSidebar: false,
+    semiDarkHeader: true,
+    semiDarkSidebar: true,
   },
   transition: {
     enable: true,

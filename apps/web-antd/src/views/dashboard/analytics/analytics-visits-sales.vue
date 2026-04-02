@@ -20,14 +20,14 @@ onMounted(() => {
         center: ['50%', '50%'],
         color: ['#5ab1ef', '#b6a2de', '#67e0e3', '#2ec7c9'],
         data: [
-          { name: $t('page.dashboard.analytics.outsource'), value: 500 },
-          { name: $t('page.dashboard.analytics.custom'), value: 310 },
-          { name: $t('page.dashboard.analytics.techSupport'), value: 274 },
-          { name: $t('page.dashboard.analytics.remote'), value: 400 },
+          { name: '外包', value: 500 },
+          { name: '定制', value: 310 },
+          { name: '技术支持', value: 274 },
+          { name: '远程', value: 400 },
         ].toSorted((a, b) => {
           return a.value - b.value;
         }),
-        name: $t('page.dashboard.analytics.businessRatio'),
+        name: '商业占比',
         radius: '80%',
         roseType: 'radius',
         type: 'pie',

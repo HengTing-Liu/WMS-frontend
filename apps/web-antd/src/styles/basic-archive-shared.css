@@ -1,0 +1,32 @@
+.product-category-page .vxe-toolbar .vxe-tools--operate {
+  gap: 8px;
+}
+
+.btn-yellow {
+  background-color: #ffe900 !important;
+  border-color: #ffe900 !important;
+  color: #000000 !important;
+}
+
+.btn-yellow:hover {
+  background-color: #ffef3d !important;
+  border-color: #ffef3d !important;
+  color: #000000 !important;
+}
+
+.btn-gray {
+  background-color: #f2f2f2 !important;
+  border-color: #d9d9d9 !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+}
+
+.btn-gray:hover {
+  background-color: #e9e9e9 !important;
+  border-color: #cfcfcf !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+}
+
+.btn-gray[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

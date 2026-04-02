@@ -35,9 +35,8 @@ export default defineEventHandler(async (event) => {
 
   setRefreshTokenCookie(event, refreshToken);
 
-  // Return with access_token (snake_case) for frontend compatibility
   return useResponseSuccess({
     ...findUser,
-    access_token: accessToken,
+    accessToken,
   });
 });

@@ -1,10 +1,10 @@
 {
-  "welcomeBack": "欢迎回来",
+  "welcomeBack": "产品信息管理系统",
   "pageTitle": "欢迎使用产品管理系统",
   "pageDesc": " ",
   "loginSuccess": "登录成功",
   "loginSuccessDesc": "欢迎回来",
-  "loginSubtitle": "请输入您的帐户信息以开始管理您的项目",
+  "loginSubtitle": "",
   "selectAccount": "快速选择账号",
   "username": "账号",
   "password": "密码",

@@ -38,7 +38,7 @@ onMounted(() => {
       trigger: 'axis',
     },
     xAxis: {
-      data: Array.from({ length: 12 }).map((_item, index) => `${index + 1}${$t('page.dashboard.analytics.monthLabel')}`),
+      data: Array.from({ length: 12 }).map((_item, index) => `${index + 1}月`),
       type: 'category',
     },
     yAxis: {

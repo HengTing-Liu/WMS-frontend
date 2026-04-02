@@ -126,8 +126,11 @@ function clearPreferencesAndLogout() {
   >
     <slot :name="slot.name">
       <template v-if="slot.name === 'refresh'">
-        <VbenIconButton class="my-0 mr-1 rounded-md" @click="refresh">
-          <RotateCw class="size-4" />
+        <VbenIconButton
+          class="header-icon-btn my-0 mr-1"
+          @click="refresh"
+        >
+          <RotateCw class="header-icon-icon size-4" />
         </VbenIconButton>
       </template>
     </slot>
@@ -171,7 +174,7 @@ function clearPreferencesAndLogout() {
           <LanguageToggle class="mr-1" />
         </template>
         <template v-else-if="slot.name === 'fullscreen'">
-          <VbenFullScreen class="mr-1" />
+          <VbenFullScreen class="header-icon-btn mr-1" />
         </template>
         <template v-else-if="slot.name === 'timezone'">
           <TimezoneButton class="mr-1 mt-[2px]" />
@@ -191,5 +194,27 @@ function clearPreferencesAndLogout() {
 
 .menu-align-end {
   --menu-align: end;
+}
+</style>
+
+<!-- 顶部栏统一图标样式：默认透明背景 + 深色图标，悬停白底深色图标 -->
+<style lang="scss">
+.header-icon-btn {
+  border-radius: 9999px;
+  background-color: transparent;
+  color: #000000;
+}
+
+.header-icon-icon {
+  color: #000000;
+}
+
+.header-icon-btn:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.header-icon-btn:hover .header-icon-icon {
+  color: #000000;
 }
 </style>

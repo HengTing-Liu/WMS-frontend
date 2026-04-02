@@ -2,11 +2,13 @@ import type { RouteRecordRaw } from 'vue-router';
 
 import { LOGIN_PATH } from '@vben/constants';
 import { preferences } from '@vben/preferences';
+import { useAccessStore } from '@vben/stores';
 
 import { $t } from '#/locales';
 
 const BasicLayout = () => import('#/layouts/basic.vue');
 const AuthPageLayout = () => import('#/layouts/auth.vue');
+const ProfilePage = () => import('#/views/_core/profile/index.vue');
 /** 全局404页面 */
 const fallbackNotFoundRoute: RouteRecordRaw = {
   component: () => import('#/views/_core/fallback/not-found.vue'),
@@ -26,7 +28,6 @@ const coreRoutes: RouteRecordRaw[] = [
    * 根路由
    * 使用基础布局，作为所有页面的父级容器，子级就不必配置BasicLayout。
    * 此路由必须存在，且不应修改
-   * 注意：不设置 redirect，让路由守卫来控制重定向逻辑
    */
   {
     component: BasicLayout,
@@ -36,7 +37,19 @@ const coreRoutes: RouteRecordRaw[] = [
     },
     name: 'Root',
     path: '/',
-    children: [],
+    // 默认首页 = 后端返回的第一个菜单路径（不写死）
+    redirect: () => useAccessStore().getFirstMenuPath?.() ?? preferences.app.defaultHomePath,
+    children: [
+      {
+        name: 'Profile',
+        path: '/profile',
+        component: ProfilePage,
+        meta: {
+          title: $t('page.auth.profile'),
+          hideInMenu: true,
+        },
+      },
+    ],
   },
   {
     component: AuthPageLayout,

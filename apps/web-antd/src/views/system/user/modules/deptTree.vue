@@ -67,14 +67,14 @@
 <template>
    <div class="bg-white p-4 rounded-md ">
     <div class="mb-4">
-      <Input v-model:value="searchValue" :placeholder="$t('page.common.inputDeptName')">
+      <Input v-model:value="searchValue"  placeholder="请输入部门名称"  >
         <template #prefix>
-          <IconifyIcon icon="icon-park-outline:search" />
+          <IconifyIcon icon="icon-park-outline:search" /> 
         </template>
       </Input>
     </div>
       <Tree
-        :title="$t('page.common.orgStructure')"
+        title="组织机构"
         toolbar
         search
         defaultExpandAll

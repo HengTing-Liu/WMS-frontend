@@ -96,7 +96,7 @@ defineExpose({
     <slot name="title">
       <Title>
         <slot name="title">
-          {{ title || `${$t('authentication.welcomeBack')} 👋🏻` }}
+          {{ title || `${$t('authentication.welcomeBack')}` }}
         </slot>
         <template #desc>
           <span class="text-muted-foreground">
@@ -135,6 +135,7 @@ defineExpose({
     <VbenButton
       :class="{
         'cursor-wait': loading,
+        'login-submit-btn': true,
       }"
       :loading="loading"
       aria-label="login"
@@ -184,3 +185,23 @@ defineExpose({
     </slot>
   </div>
 </template>
+
+<style scoped>
+.login-submit-btn {
+  background-color: #ffe900;
+  border-color: #ffe900;
+  color: #000000;
+}
+
+.login-submit-btn:hover {
+  background-color: #ffe900;
+  border-color: #ffe900;
+  color: #000000;
+  filter: brightness(1.03);
+}
+
+.login-submit-btn:focus-visible {
+  outline: 2px solid #ffc800;
+  outline-offset: 1px;
+}
+</style>

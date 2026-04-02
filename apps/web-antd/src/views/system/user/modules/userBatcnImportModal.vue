@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useVbenModal } from '@vben/common-ui';
-import { message, Upload, Button, Progress } from 'ant-design-vue';
+import { message, Upload, Button, Table, Progress } from 'ant-design-vue';
 import { downloadFileFromBlob } from '@vben/utils';
 import {importTemplate, importUsers } from '#/api';
+import type { UploadChangeParam, UploadProps } from 'ant-design-vue';
 
 const fileList = ref<any[]>([]);
 const uploading = ref(false);
@@ -17,6 +18,7 @@ const importResult = ref<{
 
 const beforeUpload = async (file: File) => {
   fileList.value = [file];
+  // 重置状态
   progressPercent.value = 0;
   importResult.value = null;
 };
@@ -30,7 +32,7 @@ const [Modal, modalApi] = useVbenModal({
   showConfirmButton: true,
   openAutoFocus: false,
   draggable: true,
-  destroyOnClose: true,
+  destroyOnClose:true,
   centered: true,
   fullscreenButton: false,
   onCancel() {
@@ -38,14 +40,14 @@ const [Modal, modalApi] = useVbenModal({
   },
   onConfirm: async () => {
     if (!fileList.value.length) {
-      message.warning($t('page.message.pleaseSelectFile'));
+      message.warning('请选择要导入的文件');
       return;
     }
-
+    
     uploading.value = true;
     progressPercent.value = 0;
     importResult.value = null;
-
+    
     try {
       const file = fileList.value[0].originFileObj || fileList.value[0];
       const res = await importUsers(file, (progressEvent) => {
@@ -54,38 +56,42 @@ const [Modal, modalApi] = useVbenModal({
         }
       });
       if (res?.code === 200) {
-        message.success($t('page.message.importSuccess'));
+      //  importResult={}
+        message.success('导入成功');
       } else {
-        message.error(res?.msg || $t('page.message.importFail'));
+        //  importResult={}
+        message.error(res?.msg || '导入失败');
       }
     } catch (error: any) {
       importResult.value = {
         total: 0,
         success: 0,
         failed: 0,
-        message: error.message || $t('page.message.importFail'),
+        message: error.message || '导入失败'
       };
-      message.error($t('page.message.importFail'));
+      message.error('导入失败');
     } finally {
       uploading.value = false;
     }
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
+      // 重置状态
       fileList.value = [];
       progressPercent.value = 0;
       importResult.value = null;
       uploading.value = false;
     }
   },
-  confirmText: () => $t('page.common.import'),
-  title: () => $t('page.system.user.batchImportTitle'),
+  confirmText: '导入',
+  title: '批量导入用户',
 });
 
 const download = async () => {
   const blob = await importTemplate();
+  console.log(blob,'blob');
   downloadFileFromBlob({
-    fileName: `${$t('page.system.user.importTemplate')}.xlsx`,
+    fileName: `用户列表导入模板.xlsx`,
     source: blob,
   });
 };
@@ -108,31 +114,33 @@ const download = async () => {
         <span class="text-3xl">📄</span>
       </p>
       <div v-if="fileList.length === 0">
-        <p class="ant-upload-text">{{ $t('page.common.clickOrDragExcel') }}</p>
-        <p class="ant-upload-hint">{{ $t('page.common.onlySupportExcel') }}</p>
+        <p class="ant-upload-text">点击或拖拽Excel文件到此区域上传</p>
+        <p class="ant-upload-hint">仅支持 .xls / .xlsx</p>
       </div>
       <div v-else>
         <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
           <div class="flex items-center">
+            <!-- <span class="text-3xl mr-2">📄</span> -->
             <span>{{ fileList[0]?.name }}</span>
           </div>
           <Button type="text" size="small" @click="onRemove" :disabled="uploading">
-            {{ $t('page.common.delete') }}
+            删除
           </Button>
         </div>
-
+        
+        <!-- 上传进度 -->
         <div v-if="uploading" class="mt-2 px-2">
-           <div>{{ $t('page.common.progress') }}{{ progressPercent }}</div>
+           <div>进度{{ progressPercent }}</div>
           <Progress :percent="progressPercent" status="active" />
         </div>
       </div>
       <div v-if="importResult">
-        <div>{{ $t('page.common.result') }}{{ importResult }}</div>
+        <div>结果{{ importResult }}</div>
       </div>
     </Upload.Dragger>
     <div>
       <Button type="link" class="mr-2 flex items-center" @click="download">
-        {{ $t('page.common.downloadTemplate') }}
+        模板下载
       </Button>
     </div>
   </Modal>

@@ -12,16 +12,28 @@ onMounted(() => {
   renderEcharts({
     legend: {
       bottom: 0,
-      data: [$t('page.dashboard.analytics.visit'), $t('page.dashboard.analytics.trend')],
+      data: ['访问', '趋势'],
     },
     radar: {
       indicator: [
-        { name: $t('page.dashboard.analytics.web') },
-        { name: $t('page.dashboard.analytics.mobile') },
-        { name: 'Ipad' },
-        { name: $t('page.dashboard.analytics.client') },
-        { name: $t('page.dashboard.analytics.thirdParty') },
-        { name: $t('page.dashboard.analytics.other') },
+        {
+          name: '网页',
+        },
+        {
+          name: '移动端',
+        },
+        {
+          name: 'Ipad',
+        },
+        {
+          name: '客户端',
+        },
+        {
+          name: '第三方',
+        },
+        {
+          name: '其它',
+        },
       ],
       radius: '60%',
       splitNumber: 8,
@@ -37,17 +49,25 @@ onMounted(() => {
         },
         data: [
           {
-            itemStyle: { color: '#b6a2de' },
-            name: $t('page.dashboard.analytics.visit'),
+            itemStyle: {
+              color: '#b6a2de',
+            },
+            name: '访问',
             value: [90, 50, 86, 40, 50, 20],
           },
           {
-            itemStyle: { color: '#5ab1ef' },
-            name: $t('page.dashboard.analytics.trend'),
+            itemStyle: {
+              color: '#5ab1ef',
+            },
+            name: '趋势',
             value: [70, 75, 70, 76, 20, 85],
           },
         ],
-        itemStyle: { borderRadius: 10, borderWidth: 2 },
+        itemStyle: {
+          // borderColor: '#fff',
+          borderRadius: 10,
+          borderWidth: 2,
+        },
         symbolSize: 0,
         type: 'radar',
       },

@@ -33,13 +33,8 @@ const mounted = (el: Element, binding: DirectiveBinding<string | string[]>) => {
   isAccessible(el, binding);
 };
 
-const updated = (el: Element, binding: DirectiveBinding<string | string[]>) => {
-  isAccessible(el, binding);
-};
-
 const authDirective: Directive = {
   mounted,
-  updated,
 };
 
 export function registerAccessDirective(app: App) {

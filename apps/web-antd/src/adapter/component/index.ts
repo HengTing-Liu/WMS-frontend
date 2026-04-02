@@ -83,6 +83,9 @@ const TimePicker = defineAsyncComponent(
 const TreeSelect = defineAsyncComponent(
   () => import('ant-design-vue/es/tree-select'),
 );
+const RoleMenuPermissionBlock = defineAsyncComponent(
+  () => import('#/views/system/roleManager/modules/RoleMenuPermissionBlock.vue'),
+);
 const Cascader = defineAsyncComponent(
   () => import('ant-design-vue/es/cascader'),
 );
@@ -504,6 +507,7 @@ export type ComponentType =
   | 'RadioGroup'
   | 'RangePicker'
   | 'Rate'
+  | 'RoleMenuPermissionBlock'
   | 'Select'
   | 'Space'
   | 'Switch'
@@ -567,6 +571,7 @@ async function initComponentAdapter() {
     RadioGroup,
     RangePicker,
     Rate,
+    RoleMenuPermissionBlock,
     Select: withDefaultPlaceholder(Select, 'select'),
     Space,
     Switch,

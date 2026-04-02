@@ -1,17 +1,8 @@
-<script setup lang="ts">
-import BaseUser from '../../sys/user/index.vue';
-
-defineOptions({
-  inheritAttrs: false,
-});
-
-defineProps({
-  // Props passed through
-});
-
-const component = BaseUser;
-</script>
-
 <template>
-  <component :is="component" v-bind="$attrs" />
+  <div class="base-user-container">
+    <h1>用户管理</h1>
+  </div>
 </template>
+<script setup lang="ts">
+// 用户管理页面
+</script>

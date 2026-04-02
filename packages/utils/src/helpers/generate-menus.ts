@@ -18,9 +18,9 @@ function generateMenus(
   routes: RouteRecordRaw[],
   router: Router,
 ): MenuRecordRaw[] {
-  // 将路由列表转换为一个以 name 为键的对象映射
+  // 将路由列表转换为一个以 name 为键的对象映射（过滤无 name 的路由，避免 [undefined, path] 导致后续异常）
   const finalRoutesMap: { [key: string]: string } = Object.fromEntries(
-    router.getRoutes().map(({ name, path }) => [name, path]),
+    router.getRoutes().filter((r) => r.name != null && r.name !== '').map(({ name, path }) => [String(name), path]),
   );
 
   let menus = mapTree<ExRouteRecordRaw, MenuRecordRaw>(routes, (route) => {

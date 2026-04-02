@@ -9,156 +9,136 @@ import { preferences } from '@vben/preferences';
 import { message } from 'ant-design-vue';
 
 import { getAllMenusApi } from '#/api';
-import { BasicLayout, IFrameView } from '#/layouts';
+import { BasicLayout, IFrameView, RouteView } from '#/layouts';
 import { $t } from '#/locales';
+// 备注：引入 accessStore，用于读取/写入菜单路由缓存
 
 const forbiddenComponent = () => import('#/views/_core/fallback/forbidden.vue');
 
 async function generateAccess(options: GenerateMenuAndRoutesOptions) {
   const pageMap: ComponentRecordType = import.meta.glob('../views/**/*.vue');
-  
-  // 调试：打印 pageMap 的键
-  console.log('[Access] pageMap keys:', Object.keys(pageMap).slice(0, 10));
 
   const layoutMap: ComponentRecordType = {
     BasicLayout,
     IFrameView,
+    RouteView,
   };
+  
+  // 备注：获取 accessStore 实例，准备读取菜单缓存
 
-  return await generateAccessible(preferences.app.accessMode, {
-    ...options,
-    fetchMenuListAsync: async () => {
-      message.loading({
-        content: `${$t('common.loadingMenu')}...`,
-        duration: 1.5,
-      });
-      try {
-        const result = await getAllMenusApi();
-        // 处理不同的返回格式
-        let routes = Array.isArray(result) ? result : (result?.data || result?.rows || []);
-        
-        console.log('[Access] 原始菜单数:', routes.length);
-        
-        // 找出所有父菜单ID
-        const parentIds = new Set(routes.map((r: any) => r.parentId).filter((id: any) => id && id !== 0));
-        
-        // 过滤掉按钮权限（menuType='F'），只保留菜单
-        routes = routes.filter((route: any) => route.menuType !== 'F');
-        
-        // 构建树形结构
-        const routeMap = new Map();
-        routes.forEach((route: any) => {
-          routeMap.set(route.menuId, { ...route, children: [] });
+  // 添加错误处理包装
+  try {
+    return await generateAccessible(preferences.app.accessMode, {
+      ...options,
+      fetchMenuListAsync: async () => {
+     
+        message.loading({
+          content: `${$t('common.loadingMenu')}...`,
+          duration: 1.5,
         });
         
-        const tree: any[] = [];
-        routes.forEach((route: any) => {
-          const node = routeMap.get(route.menuId);
-          if (route.parentId === 0 || !route.parentId) {
-            tree.push(node);
-          } else {
-            const parent = routeMap.get(route.parentId);
-            if (parent) {
-              parent.children.push(node);
+        let routes = await getAllMenusApi(); console.log("[Router] Raw routes:", JSON.stringify(routes, null, 2));
+        
+        // 后端返回的菜单组件格式需要映射到前端
+        // 新逻辑：只映射已存在的页面，其他跳过
+        const mapComponent = (component: string) => {
+          if (!component) return undefined;
+          
+          // 布局组件映射
+          if (component === 'Layout') return 'BasicLayout';
+          if (component === 'ParentView') return 'RouteView';
+          if (component === 'InnerLink') return 'IFrameView';
+          
+          // 已存在的页面直接映射
+          const existingPages = [
+            // 布局组件
+            'BasicLayout',
+            'RouteView',
+            'IFrameView',
+            // 业务页面
+            'dashboard/workspace',
+            'dashboard/analytics/index',
+            'system/user/index',
+            'system/roleManager/index',
+            'system/dept/index',
+            'system/menu/index',
+            'system/dict/index',
+            'system/operlog/index',
+            'system/logininfor/index',
+            'system/serial/index',
+            'basicArchive/productCategory/index',
+            // 新创建的页面
+            'base/permission/index',
+            'base/warehouse/index',
+            'base/location/index',
+            'base/user/index',
+            'base/dict/index',
+            'lowcode/meta/index',
+            'sys/supplier/index',
+          ];
+          
+          const normalized = component.replace(/^\/+/, '').replace(/\.vue$/i, '');
+          if (existingPages.includes(normalized)) {
+            // 布局组件使用动态导入，业务页面使用 #/views/ 前缀
+            if (['BasicLayout', 'RouteView', 'IFrameView'].includes(normalized)) {
+              return normalized;
             }
+            return `../views/${normalized}.vue`;
           }
-        });
-        
-        // 转换格式
-        const convertRoute = (route: any, parentPath: string = ''): any => {
-          const hasChildren = route.children && route.children.length > 0;
-          // 有 component 字符串的菜单应该用实际组件，不强制 BasicLayout
-          const hasComponent = route.component && typeof route.component === 'string';
-          // 处理路径：去掉父路径前缀，只保留相对路径
-          let routePath = route.path || '';
-          if (parentPath && routePath.startsWith(parentPath + '/')) {
-            routePath = routePath.substring(parentPath.length + 1);
-          }
-          if (!routePath) {
-            routePath = route.routeName?.toLowerCase() || '';
-          }
-          // component 字符串由 content.vue 解析为实际组件；无 component 时用 BasicLayout
-          const resolvedComponent = hasComponent
-            ? route.component
-            : (hasChildren || route.parentId === 0 ? 'BasicLayout' : 'BasicLayout');
           
-          return {
-            name: route.routeName || route.menuName,
-            path: routePath,
-            component: resolvedComponent,
-            meta: {
-              title: route.menuName,
-              icon: route.icon,
-              keepAlive: route.isCache === '1',
-            },
-            children: hasChildren 
-              ? route.children.map((c: any) => convertRoute(c, route.path)) 
-              : undefined,
-          };
+          // 其他页面跳过（不映射）
+          console.warn('[Router] Skipping unmapped component:', component);
+          return undefined;
         };
         
-        const finalRoutes = tree.map((route: any) => convertRoute(route, ''));
-
-        const ensureSupplierMenu = (routes: any[]) => {
-          // pageMap 的 key 是 glob 相对路径，直接用它作为 component 字符串
-          // 这样 content.vue 能找到正确的组件
-          const supplierKey = pageMap['../views/sys/supplier/index.vue'];
-          routes.push({
-            name: 'BaseSupplier',
-            path: '/wms/supplier',
-            component: supplierKey || '../views/sys/supplier/index.vue',
-            meta: {
-              title: '供应商管理',
-              icon: 'material-symbols:local-shipping-outline',
-              keepAlive: true,
-            },
+        // 过滤掉 component 为 undefined 的路由
+        const filterValidRoutes = (routeList: any[]): any[] => {
+          if (!Array.isArray(routeList)) return [];
+          return routeList
+            .filter(route => route.component !== undefined)
+            .map(route => {
+              const newRoute = { ...route };
+              if (newRoute.children) {
+                newRoute.children = filterValidRoutes(newRoute.children);
+              }
+              return newRoute;
+            });
+        };
+        
+        // 映射路由组件格式
+        const mapRoutes = (routeList: any[]): any[] => {
+          if (!Array.isArray(routeList)) return [];
+          return routeList.map(route => {
+            const newRoute = { ...route };
+            if (newRoute.component) {
+              newRoute.component = mapComponent(newRoute.component);
+            }
+            if (newRoute.children) {
+              newRoute.children = mapRoutes(newRoute.children);
+            }
+            return newRoute;
           });
         };
-
-        ensureSupplierMenu(finalRoutes);
         
-        console.log('[Access] 处理后的菜单:', finalRoutes.length, '条');
-        console.log('[Access] 第一条:', finalRoutes[0]?.name, finalRoutes[0]?.component);
+        routes = mapRoutes(routes);
+        routes = filterValidRoutes(routes);
+        console.log('[Router] Mapped routes:', routes?.length || 0);
         
-        // 调试：打印基础设置模块的路由
-        const baseRoute = finalRoutes.find((r: any) => r.name === 'WmsBase');
-        if (baseRoute) {
-          console.log('[Access] 基础设置模块路由:', {
-            name: baseRoute.name,
-            path: baseRoute.path,
-            children: baseRoute.children?.map((c: any) => ({ 
-              name: c.name, 
-              path: c.path,
-              component: c.component,
-              fullPath: `${baseRoute.path}/${c.path}`
-            })),
-          });
-          
-          // 检查仓库管理路由的组件
-          const warehouseRoute = baseRoute.children?.find((c: any) => c.name === 'BaseWarehouse');
-          if (warehouseRoute) {
-            console.log('[Access] 仓库管理路由组件:', warehouseRoute.component);
-            console.log('[Access] pageMap 中是否存在: ', Object.keys(pageMap).some(k => k.includes('warehouse')));
-          }
-        }
+        // 备注：写入缓存，供后续刷新直接使用
         
-        // 调试：打印所有路由的组件信息
-        console.log('[Access] 所有路由组件:', finalRoutes.map((r: any) => ({
-          name: r.name,
-          component: r.component,
-          children: r.children?.map((c: any) => ({ name: c.name, component: c.component }))
-        })));
-        
-        return finalRoutes;
-      } catch (error: any) {
-        console.error('[Access] 获取菜单失败:', error);
-        return [];
-      }
-    },
-    forbiddenComponent,
-    layoutMap,
-    pageMap,
-  });
+        return routes;
+      },
+      // 可以指定没有权限跳转403页面
+      forbiddenComponent,
+      // 如果 route.meta.menuVisibleWithForbidden = true
+      layoutMap,
+      pageMap,
+    });
+  } catch (error) {
+    console.error('[Router] generateAccessible error:', error);
+    // 返回空路由，避免崩溃
+    return { routes: [], menuApps: [] };
+  }
 }
 
 export { generateAccess };

@@ -24,6 +24,10 @@ interface AccessState {
    */
   accessToken: AccessToken;
   /**
+   * 后端返回的菜单中，第一个可访问页面的路径（用于默认首页，不写死）
+   */
+  firstMenuPath: string | null;
+  /**
    * 是否已经检查过权限
    */
   isAccessChecked: boolean;
@@ -78,8 +82,14 @@ export const useAccessStore = defineStore('core-access', {
     setAccessCodes(codes: string[]) {
       this.accessCodes = codes;
     },
+    getFirstMenuPath(): string | null {
+      return this.firstMenuPath;
+    },
     setAccessMenus(menus: MenuRecordRaw[]) {
       this.accessMenus = menus;
+    },
+    setFirstMenuPath(path: string | null) {
+      this.firstMenuPath = path;
     },
     setAccessRoutes(routes: RouteRecordRaw[]) {
       this.accessRoutes = routes;
@@ -120,6 +130,7 @@ export const useAccessStore = defineStore('core-access', {
     accessMenus: [],
     accessRoutes: [],
     accessToken: null,
+    firstMenuPath: null,
     isAccessChecked: false,
     isLockScreen: false,
     lockScreenPassword: undefined,
