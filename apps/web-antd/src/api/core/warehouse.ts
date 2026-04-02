@@ -18,7 +18,7 @@ export async function addWarehouseApi(data: any) {
  * 仓库档案 - 修改
  */
 export async function updateWarehouseApi(data: any) {
-  return requestClient.post<any>('/api/base/warehouse', data);
+  return requestClient.put<any>(`/api/base/warehouse/${data.id}`, data);
 }
 
 /**
