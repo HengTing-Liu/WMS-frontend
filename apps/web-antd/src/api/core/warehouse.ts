@@ -27,3 +27,10 @@ export async function updateWarehouseApi(data: any) {
 export async function deleteWarehouseApi(id: number) {
   return requestClient.delete<any>(`/api/base/warehouse/${id}`);
 }
+
+/**
+ * 仓库档案 - 获取公司下拉列表
+ */
+export async function getWarehouseCompanyListApi() {
+  return requestClient.get<any>('/api/base/warehouse/companyList');
+}

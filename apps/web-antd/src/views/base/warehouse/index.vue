@@ -64,10 +64,9 @@
       <!-- 搜索栏 - 使用 WmsSearchBar（字段由远程接口加载） -->
       <Card class="mb-4">
         <WmsSearchBar
-          ref="searchBarRef"
           v-model="searchForm"
           :remote-fields-url="remoteFieldsUrl"
-          :fields="staticFields"
+          cache-key="warehouse-fields-cache"
           @search="handleSearch"
           @reset="handleReset"
         />
@@ -221,7 +220,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
 import { Button, Switch, Popconfirm, Modal, Form, FormItem, Input, Textarea, Select, SelectOption, Card, Progress, Tag, Tooltip } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
@@ -269,40 +268,18 @@ const pagination = reactive({
   showTotal: (total: number) => `共 ${total} 条`,
 });
 
-// 搜索表单
+// 搜索表单（默认筛选已启用的仓库）
 const searchForm = reactive({
   keyword: '',
   warehouseCode: '',
   warehouseName: '',
   company: undefined as string | undefined,
-  isEnabled: undefined as number | undefined,
+  isEnabled: 1, // 默认已启用（后端参数）
+  is_enabled: true, // WmsSearchBar 动态添加的字段，默认启用
 });
 
-// WmsSearchBar 静态字段配置（keyword 作为静态兜底，远程字段由 remoteFieldsUrl 加载）
-const staticFields = [
-  {
-    key: 'keyword',
-    label: '关键词',
-    type: 'input' as const,
-  },
-];
-
-// 远程字段接口 URL（BE 元表接口）
+// 远程字段接口 URL（后端根据 dict_type 自动加载下拉选项）
 const remoteFieldsUrl = '/api/system/meta/column/schema?tableCode=sys_warehouse';
-
-// WmsSearchBar company 下拉选项（从已加载的仓库列表中提取）
-// WmsSearchBar 组件 ref（用于注入公司下拉选项）
-const searchBarRef = ref<InstanceType<typeof import('./WmsSearchBar.vue').default> | null>(null);
-
-// WmsSearchBar company 下拉选项（从已加载的仓库列表中提取）
-const companyOptions = ref<{ label: string; value: string }[]>([]);
-
-// isEnabled 类型转换：WmsSearchBar switch 是 boolean，API 需要 number
-watch(() => searchForm.isEnabled, (val) => {
-  if (val === true) searchForm.isEnabled = 1;
-  else if (val === false) searchForm.isEnabled = 0;
-  else searchForm.isEnabled = undefined;
-});
 
 // 弹窗
 const modalVisible = ref(false);
@@ -323,37 +300,27 @@ const formData = reactive({
 async function loadData() {
   loading.value = true;
   try {
-    // camelCase → snake_case 转换（API 期望 snake_case 字段名）
-    const camelToSnake: Record<string, string> = {
-      warehouseCode: 'warehouse_code',
-      warehouseName: 'warehouse_name',
-      isEnabled: 'is_enabled',
-    };
+    const sf = searchForm as Record<string, any>;
     const params: Record<string, any> = {
       pageNum: pagination.current,
       pageSize: pagination.pageSize,
     };
-    Object.entries(searchForm).forEach(([key, val]) => {
-      if (val !== '' && val !== undefined) {
-        const apiKey = camelToSnake[key] || key;
-        params[apiKey] = val;
-      }
-    });
+    const wc = sf.warehouse_code ?? sf.warehouseCode;
+    if (wc !== '' && wc !== undefined && wc !== null) params.warehouseCode = wc;
+    const wn = sf.warehouse_name ?? sf.warehouseName;
+    if (wn !== '' && wn !== undefined && wn !== null) params.warehouseName = wn;
+    const comp = sf.company;
+    if (comp !== '' && comp !== undefined && comp !== null) params.company = comp;
+    // 只有明确设置了 isEnabled（有值）才传给后端
+    if (sf.is_enabled !== undefined && sf.is_enabled !== null && sf.is_enabled !== '') {
+      const v = typeof sf.is_enabled === 'boolean' ? (sf.is_enabled ? 1 : 0) : Number(sf.is_enabled);
+      params.isEnabled = v;
+    } else if (sf.isEnabled !== undefined && sf.isEnabled !== null) {
+      params.isEnabled = sf.isEnabled;
+    }
     const res = await getWarehouseListApi(params);
     dataList.value = res.rows || res.data?.rows || [];
     pagination.total = res.total || res.data?.total || 0;
-
-    // 从已加载数据中提取公司列表，供下拉筛选使用
-    const companySet = new Set<string>();
-    dataList.value.forEach((item: any) => {
-      if (item.company) companySet.add(item.company);
-    });
-    companyOptions.value = [
-      { label: '请选择', value: '' },
-      ...[...companySet].sort().map((v) => ({ label: v, value: v })),
-    ];
-    // 注入公司下拉选项到 WmsSearchBar
-    searchBarRef.value?.updateFieldOptions('company', companyOptions.value);
   } catch (e) {
     console.error('加载失败', e);
   } finally {
@@ -361,19 +328,23 @@ async function loadData() {
   }
 }
 
-// 搜索
-function handleSearch() {
+// 搜索：WmsSearchBar emit 的是蛇形键（warehouse_code），loadData 已经有回退逻辑
+function handleSearch(formFromBar?: Record<string, any>) {
+  if (formFromBar && typeof formFromBar === 'object') {
+    Object.assign(searchForm, formFromBar);
+  }
   pagination.current = 1;
   loadData();
 }
 
-// 重置（WmsSearchBar 的 reset 事件只重置其内部字段；此处重置本地静态字段并刷新列表）
+// 重置：恢复默认筛选条件（已启用仓库）
 function handleReset() {
   searchForm.keyword = '';
   searchForm.warehouseCode = '';
   searchForm.warehouseName = '';
   searchForm.company = undefined;
-  searchForm.isEnabled = undefined; // 空字符串会触发 watch 转为 undefined
+  searchForm.isEnabled = 1; // 默认已启用
+  searchForm.is_enabled = true;
   pagination.current = 1;
   loadData();
 }
