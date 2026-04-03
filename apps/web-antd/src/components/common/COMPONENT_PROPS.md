@@ -19,10 +19,50 @@
 interface SearchField {
   key: string;
   label: string;
-  type: 'input' | 'select';
+  /** 字段类型 */
+  type: 'input' | 'select' | 'switch' | 'treeSelect' | 'dateRange' | 'numberRange';
   options?: { label: string; value: string | number }[];
+
+  // ---- treeSelect 专用 ----
+  /** 本地树形数据（优先于 treeUrl） */
+  treeData?: TreeNode[];
+  /** 懒加载树数据接口 URL */
+  treeUrl?: string;
+  /** 树节点字段映射，默认 { label:'title', value:'value', children:'children' } */
+  treeFieldNames?: { label: string; value: string; children: string };
+  /** 是否多选，默认 false */
+  treeMultiple?: boolean;
+
+  // ---- dateRange 专用 ----
+  /** 日期格式，默认 'YYYY-MM-DD' */
+  dateFormat?: string;
+  /** 是否显示时间，默认 false */
+  showTime?: boolean;
+
+  // ---- numberRange 专用 ----
+  /** 占位提示，格式 "最小值 ~ 最大值" */
+
+  placeholder?: string;
+}
+
+interface TreeNode {
+  title: string;
+  value: string | number;
+  children?: TreeNode[];
+  [key: string]: any;
 }
 ```
+
+#### 字段类型说明
+
+| type | 组件 | 渲染方式 | 后端 formType |
+|------|------|---------|--------------|
+| `input` | AInput | 单行文本 | text / input |
+| `select` | ASelect | 下拉 | select / radio |
+| `switch` | ASwitch | 开关 | switch |
+| `treeSelect` | ATreeSelect | 树形下拉，支持懒加载 | treeSelect |
+| `dateRange` | ARangePicker | 日期范围选择 | dateRange |
+| `numberRange` | 两个 AInputNumber 并排 | 数字范围（生成 `{key}Min` + `{key}Max` 两个查询参数） | numberRange |
 
 ### Emit
 
@@ -32,9 +72,12 @@ interface SearchField {
 | `search` | `Record<string, any>` | 点击搜索按钮时触发，携带当前表单值 |
 | `reset` | - | 点击重置按钮时触发，同时清空表单值 |
 
-### Slot
+### 暴露的方法（通过 ref 调用）
 
-无。
+| 方法 | 参数 | 说明 |
+|------|------|------|
+| `updateFieldOptions(key, options)` | key: 字段名, options: 下拉选项 | 动态更新下拉选项（如从父组件注入） |
+| `updateFieldTreeData(key, treeData)` | key: 字段名, treeData: 树形数据 | 动态更新 treeSelect 数据 |
 
 ---
 
