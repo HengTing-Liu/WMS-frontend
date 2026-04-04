@@ -78,6 +78,9 @@
           已选择 <span class="font-medium text-blue-600">{{ selectedRowKeys.length }}</span> 项
         </div>
         <div class="flex gap-2">
+          <Button @click="handleExport">
+            <IconifyIcon icon="material-symbols:download" class="mr-1" /> 导出
+          </Button>
           <Popconfirm title="是否确认批量删除?" ok-text="确认" cancel-text="取消" @confirm="handleBatchDelete">
             <Button danger :disabled="selectedRowKeys.length === 0">
               <IconifyIcon icon="material-symbols:delete" class="mr-1" /> 批量删除
@@ -157,6 +160,12 @@
           <!-- 操作按钮 -->
           <template v-else-if="column.key === 'action'">
             <div class="flex items-center gap-2">
+              <Tooltip title="收货地址">
+                <Button type="link" size="small" class="p-0" @click="openReceiverModal(record)">
+                  <IconifyIcon icon="material-symbols:location-on" class="text-lg" />
+                </Button>
+              </Tooltip>
+
               <Tooltip title="编辑">
                 <Button type="link" size="small" class="p-0" @click="handleEdit(record)">
                   <IconifyIcon icon="material-symbols:edit" class="text-lg" />
@@ -216,13 +225,112 @@
         </FormItem>
       </Form>
     </Modal>
+
+    <!-- 收货地址管理弹窗 -->
+    <Modal
+      v-model:open="receiverModalVisible"
+      :title="`收货地址管理 - ${currentWarehouseName}`"
+      width="800px"
+      :footer="null"
+    >
+      <div class="mb-4 flex justify-between items-center">
+        <Button type="primary" size="small" @click="handleAddReceiver">
+          <IconifyIcon icon="material-symbols:add" class="mr-1" /> 新增收货地址
+        </Button>
+      </div>
+
+      <!-- 收货地址列表 -->
+      <Table
+        :columns="receiverColumns"
+        :data-source="receiverList"
+        :loading="receiverLoading"
+        :pagination="false"
+        row-key="id"
+        size="small"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'isDefault'">
+            <Tag :color="record.isDefault === 1 ? 'success' : 'default'">
+              {{ record.isDefault === 1 ? '默认' : '' }}
+            </Tag>
+          </template>
+          <template v-else-if="column.key === 'address'">
+            {{ formatFullAddress(record) }}
+          </template>
+          <template v-else-if="column.key === 'action'">
+            <div class="flex items-center gap-2">
+              <Button type="link" size="small" class="p-0" @click="handleEditReceiver(record)">
+                <IconifyIcon icon="material-symbols:edit" class="text-lg" />
+              </Button>
+              <Button
+                v-if="record.isDefault !== 1"
+                type="link"
+                size="small"
+                class="p-0"
+                @click="handleSetDefaultReceiver(record)"
+              >
+                <IconifyIcon icon="material-symbols:star-outline" class="text-lg" />
+              </Button>
+              <Popconfirm
+                title="是否确认删除?"
+                ok-text="确认"
+                cancel-text="取消"
+                @confirm="handleDeleteReceiver(record.id)"
+              >
+                <Button type="link" size="small" danger class="p-0">
+                  <IconifyIcon icon="material-symbols:delete" class="text-lg" />
+                </Button>
+              </Popconfirm>
+            </div>
+          </template>
+        </template>
+      </Table>
+
+      <!-- 收货地址表单弹窗 -->
+      <Modal
+        v-model:open="receiverFormVisible"
+        :title="receiverFormTitle"
+        @ok="handleSubmitReceiver"
+        width="600px"
+      >
+        <Form :model="receiverFormData" :label-col="{ span: 6 }">
+          <FormItem label="收货人" name="consignee" required>
+            <Input v-model:value="receiverFormData.consignee" placeholder="请输入收货人姓名" />
+          </FormItem>
+          <FormItem label="手机号码" name="phoneNumber" required>
+            <Input v-model:value="receiverFormData.phoneNumber" placeholder="请输入手机号码" />
+          </FormItem>
+          <FormItem label="国家" name="country">
+            <Input v-model:value="receiverFormData.country" placeholder="请输入国家" />
+          </FormItem>
+          <FormItem label="省份" name="province">
+            <Input v-model:value="receiverFormData.province" placeholder="请输入省份" />
+          </FormItem>
+          <FormItem label="城市" name="city">
+            <Input v-model:value="receiverFormData.city" placeholder="请输入城市" />
+          </FormItem>
+          <FormItem label="区县" name="district">
+            <Input v-model:value="receiverFormData.district" placeholder="请输入区县" />
+          </FormItem>
+          <FormItem label="详细地址" name="detailedAddress" required>
+            <Textarea v-model:value="receiverFormData.detailedAddress" placeholder="请输入详细地址" :rows="2" />
+          </FormItem>
+          <FormItem label="邮政编码" name="postalCode">
+            <Input v-model:value="receiverFormData.postalCode" placeholder="请输入邮政编码" />
+          </FormItem>
+          <FormItem label="设为默认" name="isDefault">
+            <Switch v-model:checked="receiverFormData.isDefault" checked-children="是" un-checked-children="否" />
+          </FormItem>
+        </Form>
+      </Modal>
+    </Modal>
   </Page>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
-import { Button, Switch, Popconfirm, Modal, Form, FormItem, Input, Textarea, Select, SelectOption, Card, Progress, Tag, Tooltip } from 'ant-design-vue';
+import { Button, Switch, Popconfirm, Modal, Form, FormItem, Input, Textarea, Select, SelectOption, Card, Progress, Tag, Tooltip, Table } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 import { Page } from '@vben/common-ui';
 
@@ -231,6 +339,12 @@ import {
   addWarehouseApi,
   updateWarehouseApi,
   deleteWarehouseApi,
+  exportWarehouseApi,
+  getWarehouseReceiverListApi,
+  addWarehouseReceiverApi,
+  updateWarehouseReceiverApi,
+  deleteWarehouseReceiverApi,
+  setWarehouseReceiverDefaultApi,
 } from '#/api/core/warehouse';
 import WmsSearchBar from '#/components/common/WmsSearchBar.vue';
 import WmsDataTable from '#/components/common/WmsDataTable.vue';
@@ -274,8 +388,7 @@ const searchForm = reactive({
   warehouseCode: '',
   warehouseName: '',
   company: undefined as string | undefined,
-  isEnabled: 1, // 默认已启用（后端参数）
-  is_enabled: true, // WmsSearchBar 动态添加的字段，默认启用
+  isEnabled: 1, // 默认已启用（数字格式，后端需要）
 });
 
 // 远程字段接口 URL（后端根据 dict_type 自动加载下拉选项）
@@ -296,6 +409,37 @@ const formData = reactive({
   remark: '',
 });
 
+// ==================== 收货地址管理 ====================
+const currentWarehouseCode = ref('');
+const currentWarehouseName = ref('');
+const receiverModalVisible = ref(false);
+const receiverFormVisible = ref(false);
+const receiverFormTitle = ref('新增收货地址');
+const isEditReceiver = ref(false);
+const receiverLoading = ref(false);
+const receiverList = ref<any[]>([]);
+const receiverColumns = [
+  { title: '收货人', dataIndex: 'consignee', key: 'consignee', width: 100 },
+  { title: '手机号码', dataIndex: 'phoneNumber', key: 'phoneNumber', width: 130 },
+  { title: '收货地址', key: 'address', minWidth: 200 },
+  { title: '默认', key: 'isDefault', width: 70, align: 'center' as const },
+  { title: '操作', key: 'action', width: 120, align: 'center' as const },
+];
+
+const receiverFormData = reactive({
+  id: undefined as number | undefined,
+  warehouseCode: '',
+  consignee: '',
+  phoneNumber: '',
+  country: '',
+  province: '',
+  city: '',
+  district: '',
+  detailedAddress: '',
+  postalCode: '',
+  isDefault: false,
+});
+
 // 加载列表
 async function loadData() {
   loading.value = true;
@@ -305,19 +449,16 @@ async function loadData() {
       pageNum: pagination.current,
       pageSize: pagination.pageSize,
     };
-    const wc = sf.warehouse_code ?? sf.warehouseCode;
-    if (wc !== '' && wc !== undefined && wc !== null) params.warehouseCode = wc;
-    const wn = sf.warehouse_name ?? sf.warehouseName;
-    if (wn !== '' && wn !== undefined && wn !== null) params.warehouseName = wn;
-    const comp = sf.company;
-    if (comp !== '' && comp !== undefined && comp !== null) params.company = comp;
-    // 只有明确设置了 isEnabled（有值）才传给后端
-    if (sf.is_enabled !== undefined && sf.is_enabled !== null && sf.is_enabled !== '') {
-      const v = typeof sf.is_enabled === 'boolean' ? (sf.is_enabled ? 1 : 0) : Number(sf.is_enabled);
-      params.isEnabled = v;
-    } else if (sf.isEnabled !== undefined && sf.isEnabled !== null) {
-      params.isEnabled = sf.isEnabled;
-    }
+
+    // 直接从 searchForm 取值（已经是驼峰格式）
+    if (sf.warehouseCode) params.warehouseCode = sf.warehouseCode;
+    if (sf.warehouseName) params.warehouseName = sf.warehouseName;
+    if (sf.company) params.company = sf.company;
+
+    // 后端参数名是 enabled
+    const enabledVal = sf.isEnabled ?? sf.is_enabled ?? 1;
+    params.enabled = typeof enabledVal === 'boolean' ? (enabledVal ? 1 : 0) : Number(enabledVal);
+
     const res = await getWarehouseListApi(params);
     dataList.value = res.rows || res.data?.rows || [];
     pagination.total = res.total || res.data?.total || 0;
@@ -328,10 +469,21 @@ async function loadData() {
   }
 }
 
-// 搜索：WmsSearchBar emit 的是蛇形键（warehouse_code），loadData 已经有回退逻辑
+// 蛇形转驼峰映射
+const snakeToCamelMap: Record<string, string> = {
+  warehouse_code: 'warehouseCode',
+  warehouse_name: 'warehouseName',
+  is_enabled: 'isEnabled',
+};
+
 function handleSearch(formFromBar?: Record<string, any>) {
   if (formFromBar && typeof formFromBar === 'object') {
-    Object.assign(searchForm, formFromBar);
+    const converted: Record<string, any> = {};
+    for (const [key, value] of Object.entries(formFromBar)) {
+      const camelKey = snakeToCamelMap[key] || key;
+      converted[camelKey] = value;
+    }
+    Object.assign(searchForm, converted);
   }
   pagination.current = 1;
   loadData();
@@ -339,14 +491,17 @@ function handleSearch(formFromBar?: Record<string, any>) {
 
 // 重置：恢复默认筛选条件（已启用仓库）
 function handleReset() {
-  searchForm.keyword = '';
-  searchForm.warehouseCode = '';
-  searchForm.warehouseName = '';
-  searchForm.company = undefined;
-  searchForm.isEnabled = 1; // 默认已启用
-  searchForm.is_enabled = true;
-  pagination.current = 1;
-  loadData();
+  // 先重置 WmsSearchBar 内部状态
+  // 然后同步父组件状态
+  nextTick(() => {
+    searchForm.keyword = '';
+    searchForm.warehouseCode = '';
+    searchForm.warehouseName = '';
+    searchForm.company = undefined;
+    searchForm.isEnabled = 1;
+    pagination.current = 1;
+    loadData();
+  });
 }
 
 // WmsDataTable 分页配置（适配组件接口）
@@ -530,9 +685,135 @@ function getQualityZoneColor(zone: string): string {
   return colorMap[zone] || 'default';
 }
 
+// ==================== 收货地址管理方法 ====================
+
+// 打开收货地址弹窗
+function openReceiverModal(record: any) {
+  currentWarehouseCode.value = record.warehouseCode;
+  currentWarehouseName.value = record.warehouseName;
+  receiverModalVisible.value = true;
+  loadReceiverList();
+}
+
+// 加载收货地址列表
+async function loadReceiverList() {
+  receiverLoading.value = true;
+  try {
+    const res = await getWarehouseReceiverListApi(currentWarehouseCode.value);
+    receiverList.value = res.data || [];
+  } catch (e) {
+    console.error('加载收货地址失败', e);
+  } finally {
+    receiverLoading.value = false;
+  }
+}
+
+// 新增收货地址
+function handleAddReceiver() {
+  isEditReceiver.value = false;
+  receiverFormTitle.value = '新增收货地址';
+  Object.assign(receiverFormData, {
+    id: undefined,
+    warehouseCode: currentWarehouseCode.value,
+    consignee: '',
+    phoneNumber: '',
+    country: '',
+    province: '',
+    city: '',
+    district: '',
+    detailedAddress: '',
+    postalCode: '',
+    isDefault: false,
+  });
+  receiverFormVisible.value = true;
+}
+
+// 编辑收货地址
+function handleEditReceiver(record: any) {
+  isEditReceiver.value = true;
+  receiverFormTitle.value = '编辑收货地址';
+  Object.assign(receiverFormData, record, {
+    isDefault: record.isDefault === 1,
+  });
+  receiverFormVisible.value = true;
+}
+
+// 提交收货地址表单
+async function handleSubmitReceiver() {
+  try {
+    const data = {
+      ...receiverFormData,
+      isDefault: receiverFormData.isDefault ? 1 : 0,
+    };
+    if (isEditReceiver.value) {
+      await updateWarehouseReceiverApi(data);
+      message.success('修改成功');
+    } else {
+      await addWarehouseReceiverApi(data);
+      message.success('新增成功');
+    }
+    receiverFormVisible.value = false;
+    loadReceiverList();
+  } catch (e: any) {
+    message.error(e.message || '操作失败');
+  }
+}
+
+// 删除收货地址
+async function handleDeleteReceiver(id: number) {
+  try {
+    await deleteWarehouseReceiverApi(id);
+    message.success('删除成功');
+    loadReceiverList();
+  } catch (e: any) {
+    message.error(e.message || '删除失败');
+  }
+}
+
+// 设为默认收货地址
+async function handleSetDefaultReceiver(record: any) {
+  try {
+    await setWarehouseReceiverDefaultApi(record.id);
+    message.success('设置成功');
+    loadReceiverList();
+  } catch (e: any) {
+    message.error(e.message || '设置失败');
+  }
+}
+
+// 格式化完整地址
+function formatFullAddress(record: any): string {
+  const parts = [record.country, record.province, record.city, record.district, record.detailedAddress];
+  return parts.filter(Boolean).join('');
+}
+
 // 导出功能
-function handleExport() {
-  message.info('导出功能开发中...');
+async function handleExport() {
+  try {
+    const sf = searchForm as Record<string, any>;
+    const params: Record<string, any> = {};
+    if (sf.warehouseCode) params.warehouseCode = sf.warehouseCode;
+    if (sf.warehouseName) params.warehouseName = sf.warehouseName;
+    if (sf.company) params.company = sf.company;
+    const enabledVal = sf.isEnabled ?? sf.is_enabled ?? 1;
+    params.enabled = typeof enabledVal === 'boolean' ? (enabledVal ? 1 : 0) : Number(enabledVal);
+
+    const res = await exportWarehouseApi(params);
+    const blob = res as Blob;
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `仓库档案_${new Date().toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_')}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+
+    message.success('导出成功');
+  } catch (e: any) {
+    console.error('导出失败:', e);
+    const errMsg = e?.response?.data?.message || e?.message || '导出失败';
+    message.error(errMsg);
+  }
 }
 
 // 更新统计数据
