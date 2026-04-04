@@ -17,7 +17,8 @@ function getFirstMenuPath(menus: MenuRecordRaw[]): string | null {
   if (!menus?.length) return null;
   const first = menus[0];
   const path = first?.path?.trim();
-  if (path && path !== 'noRedirect') {
+  // 跳过根布局（path="/" 且 redirect="noRedirect"）和重定向路由
+  if (path && path !== 'noRedirect' && !(path === '/' && first.redirect === 'noRedirect')) {
     if (first.children?.length) {
       const childPath = getFirstMenuPath(first.children);
       if (childPath) return childPath;
