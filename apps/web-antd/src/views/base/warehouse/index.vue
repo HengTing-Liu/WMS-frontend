@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <Page auto-content-height>
     <div style="display:none" data-page="warehouse">Warehouse Page Loaded</div>
     <div class="p-4">
@@ -275,7 +275,7 @@ const searchForm = reactive({
   warehouseName: '',
   company: undefined as string | undefined,
   isEnabled: 1, // 默认已启用（后端参数）
-  is_enabled: true, // WmsSearchBar 动态添加的字段，默认启用
+  is_enabled: 1, // WmsSearchBar 动态添加的字段，默认启用
 });
 
 // 远程字段接口 URL（后端根据 dict_type 自动加载下拉选项）
@@ -344,7 +344,7 @@ function handleReset() {
   searchForm.warehouseName = '';
   searchForm.company = undefined;
   searchForm.isEnabled = 1; // 默认已启用
-  searchForm.is_enabled = true;
+  searchForm.is_enabled = 1;
   pagination.current = 1;
   loadData();
 }
@@ -548,3 +548,6 @@ onMounted(() => {
   loadData();
 });
 </script>
+
+
+

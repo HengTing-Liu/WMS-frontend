@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="wms-search-bar">
     <a-row :gutter="16" align="middle">
       <a-col :span="20">
@@ -15,13 +15,13 @@
             <a-form-item :label="field.label" class="mb-0">
               <a-input
                 v-if="field.type === 'input'"
-                v-model:value="formState[field.key]"
+                v-model:value="formModel[field.key]"
                 :placeholder="`请输入${field.label}`"
                 @press-enter="handleSearch"
               />
               <a-select
                 v-else-if="field.type === 'select'"
-                v-model:value="formState[field.key]"
+                v-model:value="formModel[field.key]"
                 :placeholder="`请选择${field.label}`"
                 :options="field.options"
                 allow-clear
@@ -29,10 +29,9 @@
               />
               <a-switch
                 v-else-if="field.type === 'switch'"
-                :checked="getFieldValue(field.key)"
+                v-model:checked="formModel[field.key]"
                 :checked-children="field.options?.[0]?.label || '启用'"
                 :un-checked-children="field.options?.[1]?.label || '停用'"
-                @update:checked="(val: boolean) => setFieldValue(field.key, val)"
               />
             </a-form-item>
           </a-col>
@@ -70,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import {
   Button as AButton,
   Checkbox as ACheckbox,
@@ -117,7 +116,7 @@ const emit = defineEmits<{
 const allFields = ref<SearchField[]>([]);
 const selectedKeys = ref<string[]>([]);
 
-// 驼峰/蛇形映射（searchForm 用驼峰，WmsSearchBar 字段用蛇形）
+// 驼峰/蛇形映射
 const camelToSnake: Record<string, string> = {
   warehouseCode: 'warehouse_code',
   warehouseName: 'warehouse_name',
@@ -129,40 +128,52 @@ const snakeToCamel: Record<string, string> = {
   is_enabled: 'isEnabled',
 };
 
-// 使用本地 reactive 状态，替代直接引用 props.modelValue
-const formState = reactive<Record<string, any>>({});
-
-// 同步 props.modelValue 到本地状态（初始化蛇形和驼峰两个版本）
+// 初始化时同步一次蛇形 <-> 驼峰（只执行一次）
 watch(
   () => props.modelValue,
-  (newVal) => {
-    if (newVal) {
-      Object.assign(formState, newVal);
-      // 同步蛇形 <-> 驼峰
-      for (const [snake, camel] of Object.entries(snakeToCamel)) {
-        if (formState[snake] !== undefined) formState[camel] = formState[snake];
-        else if (formState[camel] !== undefined) formState[snake] = formState[camel];
-      }
+  (val) => {
+    if (!val) return;
+    for (const [snake, camel] of Object.entries(snakeToCamel)) {
+      if (val[snake] !== undefined && val[camel] === undefined) val[camel] = val[snake];
+      else if (val[camel] !== undefined && val[snake] === undefined) val[snake] = val[camel];
     }
   },
-  { immediate: true, deep: true }
+  { once: true }
 );
 
-function getFieldValue(key: string) {
-  // 优先用蛇形键，再用驼峰键
-  if (formState[key] !== undefined) return formState[key];
-  const camelKey = snakeToCamel[key];
-  if (camelKey !== undefined) return formState[camelKey];
-  return undefined;
-}
-
-function setFieldValue(key: string, value: any) {
-  formState[key] = value;
-  // 同时维护驼峰键（供 loadData 回退逻辑使用）
-  const camelKey = snakeToCamel[key];
-  if (camelKey) formState[camelKey] = value;
-  emit('update:modelValue', { ...formState });
-}
+const formModel = computed(() => {
+  const target = props.modelValue;
+  // 依赖收集：确保 props.modelValue 变化时 computed 重新计算
+  void target;
+  return new Proxy(target, {
+    get(target, key: string) {
+      const val = target[key];
+      if (val === undefined) {
+        const alt = snakeToCamel[key] || camelToSnake[key];
+        if (alt !== undefined) return target[alt];
+      }
+      const field = allFields.value.find((f) => f.key === key);
+      if (field?.type === 'switch') {
+        if (val === 1 || val === '1' || val === true) return true;
+        if (val === 0 || val === '0' || val === false) return false;
+      }
+      return val;
+    },
+    set(target, key: string, value: any) {
+      const field = allFields.value.find((f) => f.key === key);
+      if (field?.type === 'switch') {
+        value = value ? 1 : 0;
+      }
+      target[key] = value;
+      const snake = camelToSnake[key];
+      const camel = snakeToCamel[key];
+      if (snake !== undefined) target[snake] = value;
+      if (camel !== undefined) target[camel] = value;
+      emit('update:modelValue', target);
+      return true;
+    },
+  });
+});
 
 const displayedFields = computed(() => {
   return allFields.value.filter((f) => selectedKeys.value.includes(f.key));
@@ -196,9 +207,9 @@ function initSelectedKeys() {
 }
 
 /**
- * 从 meta API 响应中解析搜索栏字段
- * 后端 ColumnMetaVO 格式：{ code, label, formType, isSearchable, dictType, options }
- * options 由后端根据 dictType 自动加载 sys_dict_data，无需额外请求
+ * 从 meta API 响应中提取指定的筛选字段
+ * 适配格式：{ code, label, formType, isSearchable, dictType, dataSource, options }
+ * PM 指定字段：warehouse_code, warehouse_name, company, is_enabled
  */
 function parseMetaFields(metaData: any[]): SearchField[] {
   const result: SearchField[] = [];
@@ -214,19 +225,19 @@ function parseMetaFields(metaData: any[]): SearchField[] {
     if (formType === 'input' || formType === 'textarea' || formType === 'text') {
       result.push({ key, label, type: 'input' });
     } else if (formType === 'select' || formType === 'radio' || formType === 'checkbox') {
-      // 有 options（后端已根据 dictType 加载）：直接使用
+      // 有 options 数组（column schema 直接返回）：优先使用
       if (Array.isArray(col.options) && col.options.length > 0) {
         result.push({
           key,
           label,
           type: 'select',
           options: col.options.map((o: any) => ({
-            label: o.label || String(o.value),
+            label: o.label || o.text || o.name || String(o.value),
             value: o.value,
           })),
         });
       }
-      // 有 dataSource：使用
+      // 有 dataSource（直接是选项数组）：使用
       else if (Array.isArray(col.dataSource) && col.dataSource.length > 0) {
         result.push({
           key,
@@ -237,6 +248,10 @@ function parseMetaFields(metaData: any[]): SearchField[] {
             value: o.value,
           })),
         });
+      }
+      // 有 dictType：通过 dict 接口加载 options（如果 options/dataSource 都不存在）
+      else if (col.dictType) {
+        result.push({ key, label, type: 'select', options: [] });
       }
       // 无数据源：空 options（后续由父组件通过 ref 注入）
       else {
@@ -258,6 +273,23 @@ function parseMetaFields(metaData: any[]): SearchField[] {
   return result;
 }
 
+/**
+ * 加载字典表选项（供 select 字段使用）
+ */
+async function loadDictOptions(dictType: string): Promise<{ label: string; value: number }[]> {
+  try {
+    const res = await fetch(`/api/system/dict/data/type/${dictType}`);
+    if (!res.ok) throw new Error('dict fetch failed');
+    const json = await res.json();
+    const rows = json.data || json.rows || json || [];
+    return rows.map((item: any) => ({
+      label: item.label || item.name || item.dictLabel || String(item.value),
+      value: item.value,
+    }));
+  } catch {
+    return [];
+  }
+}
 
 async function loadRemoteFields() {
   if (!props.remoteFieldsUrl) {
@@ -272,8 +304,19 @@ async function loadRemoteFields() {
     const rawFields = json.data || json.rows || json || [];
 
     // 解析 meta 字段（只取 isSearchable: true）
-    // 后端已自动根据 dict_type 加载 options，无需额外请求
     const fields = parseMetaFields(rawFields);
+
+    // 并行加载所有 select 字段的 dict options
+    const loaders = fields
+      .filter((f) => f.type === 'select' && (!f.options || f.options.length === 0))
+      .map(async (f) => {
+        const meta = rawFields.find((r: any) => r.columnName === f.key);
+        if (meta?.dictType) {
+          f.options = await loadDictOptions(meta.dictType);
+        }
+      });
+
+    await Promise.all(loaders);
 
     allFields.value = fields;
   } catch {
@@ -292,14 +335,20 @@ function toggleField(key: string) {
 }
 
 function handleSearch() {
-  emit('search', { ...formState });
+  const model = { ...props.modelValue };
+  // switch 字段：true → 1，false → 0，同步到 isEnabled
+  if (model.is_enabled !== undefined) {
+    if (model.is_enabled === true) model.is_enabled = 1;
+    else if (model.is_enabled === false) model.is_enabled = 0;
+    model.isEnabled = model.is_enabled;
+  }
+  emit('search', model);
 }
 
 function handleReset() {
   const empty: Record<string, any> = {};
   allFields.value.forEach((f) => {
     empty[f.key] = undefined;
-    formState[f.key] = undefined;
   });
   emit('update:modelValue', empty);
   emit('reset');
@@ -343,3 +392,11 @@ defineExpose({ updateFieldOptions });
   text-align: right;
 }
 </style>
+
+
+
+
+
+
+
+

@@ -1,0 +1,6 @@
+fix: 统一文件行尾格式为LF，修复搜索栏isEnabled参数传递
+
+- 统一WmsSearchBar组件和所有业务模块的CRLF->LF行尾
+- 修复搜索栏isEnabled参数传递逻辑（enabled->isEnabled）
+- WmsSearchBar: switch字段true->1/false->0并同步到isEnabled
+- 仓库列表默认筛选已启用(isEnabled=1)
