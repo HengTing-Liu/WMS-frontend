@@ -11,7 +11,7 @@ export default defineConfig(async () => {
         proxy: {
           '/api': {
             changeOrigin: true,
-            target: 'http://192.168.184.136:8080',
+            target: 'http://localhost:8080',
             ws: true,
           },
         },

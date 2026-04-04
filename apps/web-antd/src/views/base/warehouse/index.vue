@@ -61,74 +61,15 @@
         </Card>
       </div>
 
-      <!-- 搜索栏 -->
+      <!-- 搜索栏 - 使用 WmsSearchBar（字段由远程接口加载） -->
       <Card class="mb-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <Input
-              v-model:value="searchForm.keyword"
-              placeholder="搜索仓库编号或名称..."
-              style="width: 280px"
-              allow-clear
-            >
-              <template #prefix>
-                <IconifyIcon icon="material-symbols:search" class="text-gray-400" />
-              </template>
-            </Input>
-            <Select
-              v-model:value="searchForm.isEnabled"
-              placeholder="全部状态"
-              style="width: 120px"
-              allow-clear
-            >
-              <SelectOption :value="undefined">全部状态</SelectOption>
-              <SelectOption :value="1">启用</SelectOption>
-              <SelectOption :value="0">停用</SelectOption>
-            </Select>
-            
-            <Button @click="showMoreFilter = !showMoreFilter">
-              <IconifyIcon icon="material-symbols:filter-list" class="mr-1" /> 更多筛选
-            </Button>
-          </div>
-          
-          <div class="flex items-center gap-2">
-            <Button type="primary" @click.stop="handleSearch">
-              <IconifyIcon icon="material-symbols:search" class="mr-1" /> 搜索
-            </Button>
-            <Button @click.stop="handleReset">
-              <IconifyIcon icon="material-symbols:refresh" class="mr-1" /> 重置
-            </Button>
-            <Button @click="handleExport">
-              <IconifyIcon icon="material-symbols:download" class="mr-1" /> 导出
-            </Button>
-          </div>
-        </div>
-        
-        <!-- 更多筛选 -->
-        <div v-if="showMoreFilter" class="mt-4 border-t pt-4">
-          <Form :model="searchForm" layout="inline">
-            <FormItem label="仓库编码" name="warehouseCode">
-              <Input v-model:value="searchForm.warehouseCode" placeholder="请输入仓库编码" style="width: 150px" />
-            </FormItem>
-            <FormItem label="仓库名称" name="warehouseName">
-              <Input v-model:value="searchForm.warehouseName" placeholder="请输入仓库名称" style="width: 150px" />
-            </FormItem>
-            <FormItem label="仓库类型" name="warehouseType">
-              <Select v-model:value="searchForm.warehouseType" placeholder="请选择类型" style="width: 150px" allow-clear>
-                <SelectOption value="sales">销售仓</SelectOption>
-                <SelectOption value="isolation">隔离仓</SelectOption>
-                <SelectOption value="front">前置仓</SelectOption>
-              </Select>
-            </FormItem>
-            <FormItem label="温区" name="temperatureZone">
-              <Select v-model:value="searchForm.temperatureZone" placeholder="请选择温区" style="width: 150px" allow-clear>
-                <SelectOption value="normal">常温</SelectOption>
-                <SelectOption value="cold">冷藏(2-8℃)</SelectOption>
-                <SelectOption value="frozen">冷冻(-18℃)</SelectOption>
-              </Select>
-            </FormItem>
-          </Form>
-        </div>
+        <WmsSearchBar
+          v-model="searchForm"
+          :remote-fields-url="remoteFieldsUrl"
+          cache-key="warehouse-fields-cache"
+          @search="handleSearch"
+          @reset="handleReset"
+        />
       </Card>
 
       <!-- 工具栏 -->
@@ -145,23 +86,23 @@
         </div>
       </div>
 
-      <!-- 表格 -->
-      <Table 
-        :columns="columns" 
-        :data-source="dataList" 
+      <!-- 表格 - 使用 WmsDataTable -->
+      <WmsDataTable
+        :columns="columns"
+        :data-source="dataList"
         :loading="loading"
-        :pagination="pagination"
-        :row-key="(record: any) => record.id"
-        :row-selection="{ selectedRowKeys, onChange: onSelectChange }"
-        :row-class-name="(_, index) => (index % 2 === 1 ? 'table-row-striped' : '')"
-        bordered
+        :pagination="paginationConfig"
+        row-key="id"
+        :enable-selection="true"
+        @page-change="onPageChange"
+        @selection-change="onSelectionChange"
       >
         <template #bodyCell="{ column, record, index }">
           <!-- 序号 -->
           <template v-if="column.key === 'seq'">
             {{ (pagination.current - 1) * pagination.pageSize + index + 1 }}
           </template>
-          
+
           <!-- 仓库名称带图标 -->
           <template v-else-if="column.key === 'warehouseName'">
             <div class="flex items-center gap-2">
@@ -171,14 +112,14 @@
               <span>{{ record.warehouseName }}</span>
             </div>
           </template>
-          
+
           <!-- 类型标签 -->
           <template v-else-if="column.key === 'warehouseType'">
             <Tag :color="getTypeColor(record.warehouseType)">
               {{ getTypeLabel(record.warehouseType) }}
             </Tag>
           </template>
-          
+
           <!-- 温区显示 -->
           <template v-else-if="column.key === 'temperatureZone'">
             <div class="flex items-center gap-1">
@@ -186,33 +127,33 @@
               <span>{{ getTempLabel(record.temperatureZone) }}</span>
             </div>
           </template>
-          
+
           <!-- 质检分区 -->
           <template v-else-if="column.key === 'qualityZone'">
             <Tag :color="getQualityZoneColor(record.qualityZone)" size="small">
               {{ record.qualityZone || '-' }}
             </Tag>
           </template>
-          
+
           <!-- 使用率进度条 -->
           <template v-else-if="column.key === 'usageRate'">
             <div class="w-24">
-              <Progress 
-                :percent="record.usageRate || 0" 
+              <Progress
+                :percent="record.usageRate || 0"
                 size="small"
                 :status="getUsageStatus(record.usageRate)"
                 :stroke-color="getUsageColor(record.usageRate)"
               />
             </div>
           </template>
-          
+
           <!-- 状态标签 -->
           <template v-else-if="column.key === 'isEnabled'">
             <Tag :color="record.isEnabled === 1 ? 'success' : 'default'">
               {{ record.isEnabled === 1 ? '启用' : '停用' }}
             </Tag>
           </template>
-          
+
           <!-- 操作按钮 -->
           <template v-else-if="column.key === 'action'">
             <div class="flex items-center gap-2">
@@ -221,21 +162,21 @@
                   <IconifyIcon icon="material-symbols:edit" class="text-lg" />
                 </Button>
               </Tooltip>
-              
+
               <Tooltip :title="record.isEnabled === 1 ? '停用' : '启用'">
-                <Button 
-                  type="link" 
-                  size="small" 
+                <Button
+                  type="link"
+                  size="small"
                   class="p-0"
                   @click="handleChangeStatus(record, record.isEnabled !== 1)"
                 >
-                  <IconifyIcon 
-                    :icon="record.isEnabled === 1 ? 'material-symbols:toggle-on' : 'material-symbols:toggle-off'" 
+                  <IconifyIcon
+                    :icon="record.isEnabled === 1 ? 'material-symbols:toggle-on' : 'material-symbols:toggle-off'"
                     :class="record.isEnabled === 1 ? 'text-green-500 text-2xl' : 'text-gray-400 text-2xl'"
                   />
                 </Button>
               </Tooltip>
-              
+
               <Tooltip title="删除">
                 <Popconfirm title="是否确认删除?" ok-text="确认" cancel-text="取消" @confirm="handleDelete(record.id)">
                   <Button type="link" size="small" danger class="p-0">
@@ -246,7 +187,7 @@
             </div>
           </template>
         </template>
-      </Table>
+      </WmsDataTable>
     </div>
 
     <!-- 新增/修改弹窗 -->
@@ -279,9 +220,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
-import { Button, Table, Switch, Popconfirm, Modal, Form, FormItem, Input, Textarea, Select, SelectOption, Card, Space, Progress, Tag, Tooltip } from 'ant-design-vue';
+import { Button, Switch, Popconfirm, Modal, Form, FormItem, Input, Textarea, Select, SelectOption, Card, Progress, Tag, Tooltip } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 import { Page } from '@vben/common-ui';
 
@@ -291,6 +232,8 @@ import {
   updateWarehouseApi,
   deleteWarehouseApi,
 } from '#/api/core/warehouse';
+import WmsSearchBar from '#/components/common/WmsSearchBar.vue';
+import WmsDataTable from '#/components/common/WmsDataTable.vue';
 
 const columns = [
   { title: '序号', key: 'seq', width: 60, align: 'center' },
@@ -308,7 +251,6 @@ const columns = [
 const dataList = ref<any[]>([]);
 const loading = ref(false);
 const selectedRowKeys = ref<any[]>([]);
-const showMoreFilter = ref(false);
 
 // 统计数据
 const stats = reactive({
@@ -326,15 +268,18 @@ const pagination = reactive({
   showTotal: (total: number) => `共 ${total} 条`,
 });
 
-// 搜索表单
+// 搜索表单（默认筛选已启用的仓库）
 const searchForm = reactive({
   keyword: '',
   warehouseCode: '',
   warehouseName: '',
-  warehouseType: undefined as string | undefined,
-  temperatureZone: undefined as string | undefined,
-  isEnabled: undefined as number | undefined,
+  company: undefined as string | undefined,
+  isEnabled: 1, // 默认已启用（后端参数）
+  is_enabled: true, // WmsSearchBar 动态添加的字段，默认启用
 });
+
+// 远程字段接口 URL（后端根据 dict_type 自动加载下拉选项）
+const remoteFieldsUrl = '/api/system/meta/column/schema?tableCode=sys_warehouse';
 
 // 弹窗
 const modalVisible = ref(false);
@@ -355,19 +300,25 @@ const formData = reactive({
 async function loadData() {
   loading.value = true;
   try {
-    const params = {
-      ...searchForm,
+    const sf = searchForm as Record<string, any>;
+    const params: Record<string, any> = {
       pageNum: pagination.current,
       pageSize: pagination.pageSize,
     };
-    // 移除空值
-    Object.keys(params).forEach(key => {
-      if (params[key] === '' || params[key] === undefined) {
-        delete params[key];
-      }
-    });
-    const res = await getWarehouseListApi(params); 
-    // requestClient 已提取 data 字段，直接从 res 取数据
+    const wc = sf.warehouse_code ?? sf.warehouseCode;
+    if (wc !== '' && wc !== undefined && wc !== null) params.warehouseCode = wc;
+    const wn = sf.warehouse_name ?? sf.warehouseName;
+    if (wn !== '' && wn !== undefined && wn !== null) params.warehouseName = wn;
+    const comp = sf.company;
+    if (comp !== '' && comp !== undefined && comp !== null) params.company = comp;
+    // 只有明确设置了 isEnabled（有值）才传给后端
+    if (sf.is_enabled !== undefined && sf.is_enabled !== null && sf.is_enabled !== '') {
+      const v = typeof sf.is_enabled === 'boolean' ? (sf.is_enabled ? 1 : 0) : Number(sf.is_enabled);
+      params.isEnabled = v;
+    } else if (sf.isEnabled !== undefined && sf.isEnabled !== null) {
+      params.isEnabled = sf.isEnabled;
+    }
+    const res = await getWarehouseListApi(params);
     dataList.value = res.rows || res.data?.rows || [];
     pagination.total = res.total || res.data?.total || 0;
   } catch (e) {
@@ -377,23 +328,44 @@ async function loadData() {
   }
 }
 
-// 搜索
-function handleSearch() {
+// 搜索：WmsSearchBar emit 的是蛇形键（warehouse_code），loadData 已经有回退逻辑
+function handleSearch(formFromBar?: Record<string, any>) {
+  if (formFromBar && typeof formFromBar === 'object') {
+    Object.assign(searchForm, formFromBar);
+  }
   pagination.current = 1;
   loadData();
 }
 
-// 重置
+// 重置：恢复默认筛选条件（已启用仓库）
 function handleReset() {
+  searchForm.keyword = '';
   searchForm.warehouseCode = '';
   searchForm.warehouseName = '';
-  searchForm.isEnabled = undefined;
+  searchForm.company = undefined;
+  searchForm.isEnabled = 1; // 默认已启用
+  searchForm.is_enabled = true;
   pagination.current = 1;
   loadData();
 }
 
-// 选择行
-function onSelectChange(keys: any[]) {
+// WmsDataTable 分页配置（适配组件接口）
+const paginationConfig = computed(() => ({
+  current: pagination.current,
+  pageSize: pagination.pageSize,
+  total: pagination.total,
+  showSizeChanger: true,
+  showTotal: (total: number) => `共 ${total} 条`,
+}));
+
+// WmsDataTable 事件处理
+function onPageChange({ page, pageSize }: { page: number; pageSize: number }) {
+  pagination.current = page;
+  pagination.pageSize = pageSize;
+  loadData();
+}
+
+function onSelectionChange(keys: any[]) {
   selectedRowKeys.value = keys;
 }
 
