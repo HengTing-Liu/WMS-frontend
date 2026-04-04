@@ -47,7 +47,11 @@
     "publint": "vsh publint",
     "reinstall": "pnpm clean --del-lock && pnpm install",
     "test:unit": "vitest run --dom",
-    "test:e2e": "turbo run test:e2e",
+    "test:e2e": "pnpm exec playwright test",
+    "test:e2e:ui": "pnpm exec playwright test --ui",
+    "test:e2e:debug": "pnpm exec playwright test --debug",
+    "test:e2e:headed": "pnpm exec playwright test --headed",
+    "test:e2e:report": "pnpm exec playwright show-report",
     "update:deps": "npx taze -r -w",
     "version": "pnpm exec changeset version && pnpm install --no-frozen-lockfile",
     "catalog": "pnpx codemod pnpm/catalog"

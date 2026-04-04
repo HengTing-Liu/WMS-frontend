@@ -116,8 +116,8 @@ exports[`defaultPreferences immutability test > should not modify the config obj
     "fontSize": 16,
     "mode": "dark",
     "radius": "0.5",
-    "semiDarkHeader": false,
-    "semiDarkSidebar": false,
+    "semiDarkHeader": true,
+    "semiDarkSidebar": true,
   },
   "transition": {
     "enable": true,

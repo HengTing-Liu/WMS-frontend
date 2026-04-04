@@ -13,23 +13,20 @@
             class="mb-4"
           >
             <a-form-item :label="field.label" class="mb-0">
-              <!-- text / textarea -->
               <a-input
                 v-if="field.type === 'input'"
                 v-model:value="formState[field.key]"
-                :placeholder="field.placeholder || `请输�?{field.label}`"
+                :placeholder="field.placeholder || `请输入 ${field.label}`"
                 @press-enter="handleSearch"
               />
-              <!-- select -->
               <a-select
                 v-else-if="field.type === 'select'"
                 v-model:value="formState[field.key]"
-                :placeholder="field.placeholder || `请选择${field.label}`"
+                :placeholder="field.placeholder || `请选择 ${field.label}`"
                 :options="field.options"
                 allow-clear
                 style="width: 100%"
               />
-              <!-- switch -->
               <a-switch
                 v-else-if="field.type === 'switch'"
                 :checked="getFieldValue(field.key)"
@@ -37,11 +34,10 @@
                 :un-checked-children="field.options?.[1]?.label || '停用'"
                 @update:checked="(val: boolean) => setFieldValue(field.key, val)"
               />
-              <!-- treeSelect -->
               <a-tree-select
                 v-else-if="field.type === 'treeSelect'"
                 v-model:value="formState[field.key]"
-                :placeholder="field.placeholder || `请选择${field.label}`"
+                :placeholder="field.placeholder || `请选择 ${field.label}`"
                 :tree-data="getTreeSelectData(field.key)"
                 :loading="treeSelectLoading[field.key]"
                 :tree-checkable="field.treeMultiple"
@@ -52,7 +48,6 @@
                 style="width: 100%"
                 @dropdown-visible-change="(open: boolean) => open && loadTreeSelectOptions(field)"
               />
-              <!-- dateRange -->
               <a-range-picker
                 v-else-if="field.type === 'dateRange'"
                 v-model:value="formState[field.key]"
@@ -62,18 +57,17 @@
                 value-format="YYYY-MM-DD"
                 style="width: 100%"
               />
-              <!-- numberRange：两个数字输入框并排 -->
               <div v-else-if="field.type === 'numberRange'" class="number-range">
                 <a-input-number
                   v-model:value="formState[`${field.key}Min`]"
-                  :placeholder="field.placeholder?.split('~')[0]?.trim() || '最小�?"
+                  :placeholder="field.placeholder?.split('~')[0]?.trim() || '最小值'"
                   :min="0"
                   class="number-range__input"
                 />
                 <span class="number-range__sep">~</span>
                 <a-input-number
                   v-model:value="formState[`${field.key}Max`]"
-                  :placeholder="field.placeholder?.split('~')[1]?.trim() || '最大�?"
+                  :placeholder="field.placeholder?.split('~')[1]?.trim() || '最大值'"
                   :min="0"
                   class="number-range__input"
                 />
@@ -139,19 +133,12 @@ export interface SearchField {
   label: string;
   type: 'input' | 'select' | 'switch' | 'treeSelect' | 'dateRange' | 'numberRange';
   options?: { label: string; value: string | number }[];
-  /** treeSelect 专用：本地树形数�?*/
   treeData?: TreeNode[];
-  /** treeSelect 专用：懒加载接口 URL */
   treeUrl?: string;
-  /** treeSelect 专用：树节点字段映射，默�?{ label:'title', value:'value', children:'children' } */
   treeFieldNames?: { label: string; value: string; children: string };
-  /** treeSelect 专用：是否多选，默认 false */
   treeMultiple?: boolean;
-  /** dateRange 专用：日期格式，默认 'YYYY-MM-DD' */
   dateFormat?: string;
-  /** dateRange 专用：是否显示时间，默认 false */
   showTime?: boolean;
-  /** placeholder 占位提示 */
   placeholder?: string;
 }
 
@@ -185,10 +172,8 @@ const emit = defineEmits<{
 const allFields = ref<SearchField[]>([]);
 const selectedKeys = ref<string[]>([]);
 
-// treeSelect 数据缓存（key �?树节点数组）
-const treeSelectData = reactive<Record<string, TreeNode[]>(\{\});
-// treeSelect 加载状�?const treeSelectLoading = reactive<Record<string, boolean>>({});
-// treeSelect 懒加�?Promise 防止并发重复请求
+const treeSelectData = reactive<Record<string, TreeNode[]>>({});
+const treeSelectLoading = reactive<Record<string, boolean>>({});
 const treeSelectInflight = new Map<string, Promise<void>>();
 
 const camelToSnake: Record<string, string> = {
@@ -202,9 +187,9 @@ const snakeToCamel: Record<string, string> = {
   is_enabled: 'isEnabled',
 };
 
-// 使用本地 reactive 状�?const formState = reactive<Record<string, any>>({});
+const formState = reactive<Record<string, any>>({});
 
-// 同步 props.modelValue 到本地状态（初始化蛇形和驼峰两个版本�?watch(
+watch(
   () => props.modelValue,
   (newVal) => {
     if (newVal) {
@@ -215,20 +200,41 @@ const snakeToCamel: Record<string, string> = {
       }
     }
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 
 function getFieldValue(key: string) {
-  if (formState[key] !== undefined) return formState[key];
+  if (formState[key] !== undefined) {
+    // switch 类型：数字 1/0 转布尔
+    const field = allFields.value.find(f => f.key === key);
+    if (field?.type === 'switch') {
+      return formState[key] === 1 || formState[key] === true;
+    }
+    return formState[key];
+  }
   const camelKey = snakeToCamel[key];
-  if (camelKey !== undefined) return formState[camelKey];
+  if (camelKey !== undefined) {
+    const field = allFields.value.find(f => f.key === camelKey);
+    if (field?.type === 'switch') {
+      return formState[camelKey] === 1 || formState[camelKey] === true;
+    }
+    return formState[camelKey];
+  }
   return undefined;
 }
 
 function setFieldValue(key: string, value: any) {
-  formState[key] = value;
-  const camelKey = snakeToCamel[key];
-  if (camelKey) formState[camelKey] = value;
+  const field = allFields.value.find(f => f.key === key);
+  // switch 类型：布尔转数字 1/0
+  if (field?.type === 'switch') {
+    formState[key] = value ? 1 : 0;
+    const snakeKey = camelToSnake[key];
+    if (snakeKey) formState[snakeKey] = value ? 1 : 0;
+  } else {
+    formState[key] = value;
+    const snakeKey = camelToSnake[key];
+    if (snakeKey) formState[snakeKey] = value;
+  }
   emit('update:modelValue', { ...formState });
 }
 
@@ -321,23 +327,28 @@ function normalizeTreeNodes(
   });
 }
 
-/** dateRange placeholder 计算 */
 function getDateRangePlaceholder(field: SearchField): [string, string] {
   if (field.placeholder) {
     const parts = field.placeholder.split('~');
     return [
-      parts[0]?.trim() || `${field.label}开始`,
-      parts[1]?.trim() || `${field.label}结束`,
+      parts[0]?.trim() || `${field.label} 开始`,
+      parts[1]?.trim() || `${field.label} 结束`,
     ];
   }
-  return [`${field.label}开始`, `${field.label}结束`];
+  return [`${field.label} 开始`, `${field.label} 结束`];
+}
+
+/** Align with ColumnMetaVO: Jackson often serializes getIsSearchable() as `searchable`, not `isSearchable`. */
+function columnIsSearchable(col: Record<string, unknown>): boolean {
+  const v = col.isSearchable ?? col.searchable ?? col.is_searchable;
+  return v === true || v === 1 || v === '1';
 }
 
 function parseMetaFields(metaData: any[]): SearchField[] {
   const result: SearchField[] = [];
 
   for (const col of metaData) {
-    if (!col.isSearchable) continue;
+    if (!columnIsSearchable(col)) continue;
 
     const key = col.code;
     const label = col.label || key;
@@ -404,7 +415,7 @@ function parseMetaFields(metaData: any[]): SearchField[] {
         key,
         label,
         type: 'numberRange',
-        placeholder: col.placeholder || '最小�?~ 最大�?,
+        placeholder: col.placeholder || 'zui xiao zhi~ zui da zhi',
       });
     }
   }
@@ -416,18 +427,34 @@ async function loadRemoteFields() {
   if (!props.remoteFieldsUrl) {
     allFields.value = props.fields;
     initSelectedKeys();
+    // 同步父组件默认值
+    if (Object.keys(props.modelValue).length > 0) {
+      Object.assign(formState, props.modelValue);
+    }
     return;
   }
   try {
     const res = await fetch(props.remoteFieldsUrl);
-    if (!res.ok) throw new Error('fetch failed');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    const rawFields = json.data || json.rows || json || [];
-    allFields.value = parseMetaFields(rawFields);
-  } catch {
+    // fetch ?? defaultResponseInterceptor?????? R ??
+    const rawFields = json?.data ?? json?.rows ?? json ?? [];
+    if (!Array.isArray(rawFields)) {
+      console.warn('[WmsSearchBar] remote fields response is not array:', json);
+      allFields.value = props.fields;
+    } else {
+      allFields.value = parseMetaFields(rawFields);
+      console.log('[WmsSearchBar] loaded fields:', allFields.value.map((f) => ({ key: f.key, type: f.type, options: f.options?.length })));
+    }
+  } catch (e) {
+    console.error('[WmsSearchBar] load remote fields failed:', e);
     allFields.value = props.fields;
   }
   initSelectedKeys();
+  // 同步父组件默认值（确保 switch 等字段有初始值）
+  if (Object.keys(props.modelValue).length > 0) {
+    Object.assign(formState, props.modelValue);
+  }
 }
 
 function toggleField(key: string) {
@@ -464,7 +491,6 @@ watch(
 
 onMounted(() => loadRemoteFields());
 
-/** 暴露方法：动态更新下拉选项 */
 function updateFieldOptions(
   key: string,
   options: { label: string; value: string | number }[],
@@ -473,7 +499,6 @@ function updateFieldOptions(
   if (field) field.options = options;
 }
 
-/** 暴露方法：动态注�?treeSelect 数据 */
 function updateFieldTreeData(key: string, treeData: TreeNode[]) {
   const field = allFields.value.find((f) => f.key === key);
   if (field && field.type === 'treeSelect') {
