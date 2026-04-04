@@ -31,11 +31,7 @@
       </FormItem>
 
       <FormItem :label="$t('page.warehouse.country')" name="country">
-        <Select
-          v-model:value="formData.country"
-          :placeholder="$t('page.common.selectPlaceholder')"
-          disabled
-        >
+        <Select v-model:value="formData.country" disabled>
           <SelectOption value="中国">{{ $t('page.warehouse.china') }}</SelectOption>
         </Select>
       </FormItem>
@@ -49,11 +45,7 @@
                 :placeholder="$t('page.warehouse.province')"
                 @change="handleProvinceChange"
               >
-                <SelectOption
-                  v-for="item in provinceList"
-                  :key="item.code"
-                  :value="item.name"
-                >
+                <SelectOption v-for="item in provinceList" :key="item.code" :value="item.name">
                   {{ item.name }}
                 </SelectOption>
               </Select>
@@ -64,14 +56,10 @@
               <Select
                 v-model:value="formData.city"
                 :placeholder="$t('page.warehouse.city')"
-                @change="handleCityChange"
                 :disabled="!formData.province"
+                @change="handleCityChange"
               >
-                <SelectOption
-                  v-for="item in cityList"
-                  :key="item.code"
-                  :value="item.name"
-                >
+                <SelectOption v-for="item in cityList" :key="item.code" :value="item.name">
                   {{ item.name }}
                 </SelectOption>
               </Select>
@@ -84,11 +72,7 @@
                 :placeholder="$t('page.warehouse.district')"
                 :disabled="!formData.city"
               >
-                <SelectOption
-                  v-for="item in districtList"
-                  :key="item.code"
-                  :value="item.name"
-                >
+                <SelectOption v-for="item in districtList" :key="item.code" :value="item.name">
                   {{ item.name }}
                 </SelectOption>
               </Select>
@@ -118,9 +102,9 @@
       </FormItem>
 
       <FormItem name="isDefault">
-        <Checkbox v-model:checked="isDefaultChecked"
-          >{{ $t('page.warehouse.setAsDefault') }}</Checkbox
-        >
+        <Checkbox v-model:checked="isDefaultChecked">
+          {{ $t('page.warehouse.setAsDefault') }}
+        </Checkbox>
       </FormItem>
     </Form>
 
@@ -172,30 +156,26 @@ const emit = defineEmits<{
   (e: 'success'): void;
 }>();
 
-// 抽屉显示状态
 const visible = computed({
   get: () => props.open,
   set: (val) => emit('update:open', val),
 });
 
-// 抽屉标题
 const drawerTitle = computed(() => {
   return props.receiverId
     ? $t('page.warehouse.editReceiver')
     : $t('page.warehouse.addReceiver');
 });
 
-// 表单引用
 const formRef = ref<InstanceType<typeof Form> | null>(null);
 const submitLoading = ref(false);
 
-// 表单数据
 const formData = ref({
   id: undefined as number | undefined,
   warehouseCode: '',
   consignee: '',
   phoneNumber: '',
-  country: $t('page.common.china'),
+  country: '中国',
   province: '',
   city: '',
   district: '',
@@ -204,7 +184,6 @@ const formData = ref({
   isDefault: 0,
 });
 
-// 默认地址复选框
 const isDefaultChecked = computed({
   get: () => formData.value.isDefault === 1,
   set: (val) => {
@@ -212,12 +191,9 @@ const isDefaultChecked = computed({
   },
 });
 
-// 省市区数据
 const provinceList = computed(() => regionData);
 const cityList = computed(() => {
-  const province = provinceList.value.find(
-    (p) => p.name === formData.value.province
-  );
+  const province = provinceList.value.find((p) => p.name === formData.value.province);
   return province?.children || [];
 });
 const districtList = computed(() => {
@@ -225,7 +201,6 @@ const districtList = computed(() => {
   return city?.children || [];
 });
 
-// 表单校验规则
 const formRules: Record<string, Rule[]> = {
   consignee: [
     { required: true, message: $t('page.warehouse.consigneeRequired'), trigger: 'blur' },
@@ -235,36 +210,25 @@ const formRules: Record<string, Rule[]> = {
     { required: true, message: $t('page.warehouse.phoneNumberRequired'), trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: $t('page.warehouse.phoneNumberFormat'), trigger: 'blur' },
   ],
-  province: [
-    { required: true, message: $t('page.warehouse.provinceRequired'), trigger: 'change' },
-  ],
-  city: [
-    { required: true, message: $t('page.warehouse.cityRequired'), trigger: 'change' },
-  ],
-  district: [
-    { required: true, message: $t('page.warehouse.districtRequired'), trigger: 'change' },
-  ],
+  province: [{ required: true, message: $t('page.warehouse.provinceRequired'), trigger: 'change' }],
+  city: [{ required: true, message: $t('page.warehouse.cityRequired'), trigger: 'change' }],
+  district: [{ required: true, message: $t('page.warehouse.districtRequired'), trigger: 'change' }],
   detailedAddress: [
     { required: true, message: $t('page.warehouse.detailedAddressRequired'), trigger: 'blur' },
     { min: 5, max: 500, message: $t('page.warehouse.detailedAddressLength'), trigger: 'blur' },
   ],
-  postalCode: [
-    { pattern: /^\d{6}$/, message: $t('page.warehouse.postalCodeFormat'), trigger: 'blur' },
-  ],
+  postalCode: [{ pattern: /^\d{6}$/, message: $t('page.warehouse.postalCodeFormat'), trigger: 'blur' }],
 };
 
-// 省份变化
 const handleProvinceChange = () => {
   formData.value.city = '';
   formData.value.district = '';
 };
 
-// 城市变化
 const handleCityChange = () => {
   formData.value.district = '';
 };
 
-// 获取详情
 const fetchDetail = async () => {
   if (!props.receiverId) return;
   try {
@@ -290,17 +254,11 @@ const fetchDetail = async () => {
   }
 };
 
-// 提交
 const handleSubmit = async () => {
   try {
     await formRef.value?.validate();
     submitLoading.value = true;
-
-    const data = {
-      ...formData.value,
-      warehouseCode: props.warehouseCode,
-    };
-
+    const data = { ...formData.value, warehouseCode: props.warehouseCode };
     if (props.receiverId) {
       await updateWarehouseReceiver(props.receiverId, data);
       message.success($t('page.common.updateSuccess'));
@@ -308,7 +266,6 @@ const handleSubmit = async () => {
       await createWarehouseReceiver(data);
       message.success($t('page.common.createSuccess'));
     }
-
     emit('success');
     handleClose();
   } catch (error) {
@@ -318,24 +275,21 @@ const handleSubmit = async () => {
   }
 };
 
-// 关闭
 const handleClose = () => {
   formRef.value?.resetFields();
   visible.value = false;
 };
 
-// 监听打开状态
 watch(
   () => props.open,
   (val) => {
     if (val) {
-      // 重置表单
       formData.value = {
         id: undefined,
         warehouseCode: props.warehouseCode,
         consignee: '',
         phoneNumber: '',
-        country: $t('page.common.china'),
+        country: '中国',
         province: '',
         city: '',
         district: '',
