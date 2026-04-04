@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <Page auto-content-height>
     <div style="display:none" data-page="warehouse">Warehouse Page Loaded</div>
     <div class="p-4">
@@ -184,6 +184,17 @@
                   </Button>
                 </Popconfirm>
               </Tooltip>
+
+              <Tooltip title="收货地址">
+                <Button
+                  type="link"
+                  size="small"
+                  class="p-0"
+                  @click="handleReceiver(record)"
+                >
+                  <IconifyIcon icon="material-symbols:location-on" class="text-lg" />
+                </Button>
+              </Tooltip>
             </div>
           </template>
         </template>
@@ -216,6 +227,13 @@
         </FormItem>
       </Form>
     </Modal>
+
+    <!-- 收货地址管理弹窗 -->
+    <WarehouseReceiverModal
+      v-model:open="receiverModalVisible"
+      :warehouse-code="currentReceiver?.warehouseCode || ''"
+      :warehouse-name="currentReceiver?.warehouseName || ''"
+    />
   </Page>
 </template>
 
@@ -234,6 +252,7 @@ import {
 } from '#/api/core/warehouse';
 import WmsSearchBar from '#/components/common/WmsSearchBar.vue';
 import WmsDataTable from '#/components/common/WmsDataTable.vue';
+import WarehouseReceiverModal from '#/views/sys/warehouse/modules/warehouse-receiver-modal.vue';
 
 const columns = [
   { title: '序号', key: 'seq', width: 60, align: 'center' },
@@ -245,7 +264,7 @@ const columns = [
   { title: '负责人', dataIndex: 'managerName', width: 100, align: 'center' },
   { title: '使用率', key: 'usageRate', width: 120, align: 'center' },
   { title: '状态', key: 'isEnabled', width: 80, align: 'center' },
-  { title: '操作', key: 'action', width: 120, align: 'center', fixed: 'right' },
+  { title: '操作', key: 'action', width: 150, align: 'center', fixed: 'right' },
 ];
 
 const dataList = ref<any[]>([]);
@@ -285,6 +304,10 @@ const remoteFieldsUrl = '/api/system/meta/column/schema?tableCode=sys_warehouse'
 const modalVisible = ref(false);
 const modalTitle = ref('新增仓库');
 const isEdit = ref(false);
+
+// 收货地址弹窗
+const receiverModalVisible = ref(false);
+const currentReceiver = ref<{ warehouseCode: string; warehouseName: string } | null>(null);
 const formData = reactive({
   id: undefined as number | undefined,
   warehouseCode: '',
@@ -455,6 +478,15 @@ async function handleChangeStatus(record: any, checked: boolean) {
     message.error(e.message || '状态更新失败');
     loadData();
   }
+}
+
+// 收货地址管理
+function handleReceiver(record: any) {
+  currentReceiver.value = {
+    warehouseCode: record.warehouseCode,
+    warehouseName: record.warehouseName,
+  };
+  receiverModalVisible.value = true;
 }
 
 // 辅助函数：获取仓库类型标签
