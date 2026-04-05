@@ -9,8 +9,7 @@
     <div class="receiver-modal-content">
       <div class="toolbar mb-4">
         <Button type="primary" @click="handleAdd">
-          <IconifyIcon icon="material-symbols:add" class="size-5" />
-          {{ $t('page.warehouse.addReceiver') }}
+          + {{ $t('page.warehouse.addReceiver') }}
         </Button>
       </div>
 
@@ -64,7 +63,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { IconifyIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
 import { Button, Modal, Table, Tag, message } from 'ant-design-vue';
 
@@ -115,7 +113,7 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const res = await getWarehouseReceiverList({ warehouseCode: props.warehouseCode });
-    tableData.value = res.data?.list || [];
+    tableData.value = Array.isArray(res) ? res : (res?.list || []);
   } finally {
     loading.value = false;
   }

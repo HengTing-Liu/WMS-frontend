@@ -32,30 +32,30 @@ export interface WarehouseReceiverResult {
 
 // 查询收货地址列表
 export function getWarehouseReceiverList(params: WarehouseReceiverParams) {
-  return requestClient.get('/base/warehouse/receiver/list', { params });
+  return requestClient.get('/api/base/warehouse/receiver/list', { params });
 }
 
 // 查询收货地址详情
 export function getWarehouseReceiverDetail(id: number) {
-  return requestClient.get(`/base/warehouse/receiver/${id}`);
+  return requestClient.get(`/api/base/warehouse/receiver/${id}`);
 }
 
 // 新增收货地址
 export function createWarehouseReceiver(data: Partial<WarehouseReceiverResult>) {
-  return requestClient.post('/base/warehouse/receiver', data);
+  return requestClient.post('/api/base/warehouse/receiver', data);
 }
 
 // 编辑收货地址
 export function updateWarehouseReceiver(id: number, data: Partial<WarehouseReceiverResult>) {
-  return requestClient.put(`/base/warehouse/receiver/${id}`, data);
+  return requestClient.put(`/api/base/warehouse/receiver/${id}`, data);
 }
 
 // 删除收货地址
 export function deleteWarehouseReceiver(id: number) {
-  return requestClient.delete(`/base/warehouse/receiver/${id}`);
+  return requestClient.delete(`/api/base/warehouse/receiver/${id}`);
 }
 
 // 设为默认地址
 export function setDefaultWarehouseReceiver(id: number) {
-  return requestClient.patch(`/base/warehouse/receiver/${id}/default`);
+  return requestClient.patch(`/api/base/warehouse/receiver/${id}/default`);
 }

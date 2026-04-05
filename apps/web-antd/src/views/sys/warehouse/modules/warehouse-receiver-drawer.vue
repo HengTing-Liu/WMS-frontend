@@ -163,8 +163,8 @@ const visible = computed({
 
 const drawerTitle = computed(() => {
   return props.receiverId
-    ? $t('page.warehouse.editReceiver')
-    : $t('page.warehouse.addReceiver');
+    ? '编辑收货人'
+    : '添加收货人';
 });
 
 const formRef = ref<InstanceType<typeof Form> | null>(null);
@@ -203,21 +203,21 @@ const districtList = computed(() => {
 
 const formRules: Record<string, Rule[]> = {
   consignee: [
-    { required: true, message: $t('page.warehouse.consigneeRequired'), trigger: 'blur' },
-    { min: 2, max: 50, message: $t('page.warehouse.consigneeLength'), trigger: 'blur' },
+    { required: true, message: '请输入收货人姓名', trigger: 'blur' },
+    { min: 2, max: 50, message: '收货人姓名长度为2-50个字符', trigger: 'blur' },
   ],
   phoneNumber: [
-    { required: true, message: $t('page.warehouse.phoneNumberRequired'), trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: $t('page.warehouse.phoneNumberFormat'), trigger: 'blur' },
+    { required: true, message: '请输入手机号码', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
   ],
-  province: [{ required: true, message: $t('page.warehouse.provinceRequired'), trigger: 'change' }],
-  city: [{ required: true, message: $t('page.warehouse.cityRequired'), trigger: 'change' }],
-  district: [{ required: true, message: $t('page.warehouse.districtRequired'), trigger: 'change' }],
+  province: [{ required: true, message: '请选择省份', trigger: 'change' }],
+  city: [{ required: true, message: '请选择城市', trigger: 'change' }],
+  district: [{ required: true, message: '请选择区县', trigger: 'change' }],
   detailedAddress: [
-    { required: true, message: $t('page.warehouse.detailedAddressRequired'), trigger: 'blur' },
-    { min: 5, max: 500, message: $t('page.warehouse.detailedAddressLength'), trigger: 'blur' },
+    { required: true, message: '请输入详细地址', trigger: 'blur' },
+    { min: 5, max: 500, message: '详细地址长度为5-500个字符', trigger: 'blur' },
   ],
-  postalCode: [{ pattern: /^\d{6}$/, message: $t('page.warehouse.postalCodeFormat'), trigger: 'blur' }],
+  postalCode: [{ pattern: /^\d{6}$/, message: '邮编格式不正确', trigger: 'blur' }],
 };
 
 const handleProvinceChange = () => {
@@ -233,7 +233,7 @@ const fetchDetail = async () => {
   if (!props.receiverId) return;
   try {
     const res = await getWarehouseReceiverDetail(props.receiverId);
-    const data = res.data;
+    const data = res as any;
     if (data) {
       formData.value = {
         id: data.id,
