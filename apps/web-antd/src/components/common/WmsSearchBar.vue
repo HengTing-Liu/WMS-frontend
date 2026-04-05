@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="wms-search-bar">
     <a-row :gutter="16" align="middle">
       <a-col :span="20">
@@ -15,63 +15,24 @@
             <a-form-item :label="field.label" class="mb-0">
               <a-input
                 v-if="field.type === 'input'"
-                v-model:value="formState[field.key]"
-                :placeholder="field.placeholder || `请输入 ${field.label}`"
+                v-model:value="formModel[field.key]"
+                :placeholder="`请输入${field.label}`"
                 @press-enter="handleSearch"
               />
               <a-select
                 v-else-if="field.type === 'select'"
-                v-model:value="formState[field.key]"
-                :placeholder="field.placeholder || `请选择 ${field.label}`"
+                v-model:value="formModel[field.key]"
+                :placeholder="`请选择${field.label}`"
                 :options="field.options"
                 allow-clear
                 style="width: 100%"
               />
               <a-switch
                 v-else-if="field.type === 'switch'"
-                :checked="getFieldValue(field.key)"
+                v-model:checked="formModel[field.key]"
                 :checked-children="field.options?.[0]?.label || '启用'"
                 :un-checked-children="field.options?.[1]?.label || '停用'"
-                @update:checked="(val: boolean) => setFieldValue(field.key, val)"
               />
-              <a-tree-select
-                v-else-if="field.type === 'treeSelect'"
-                v-model:value="formState[field.key]"
-                :placeholder="field.placeholder || `请选择 ${field.label}`"
-                :tree-data="getTreeSelectData(field.key)"
-                :loading="treeSelectLoading[field.key]"
-                :tree-checkable="field.treeMultiple"
-                :multiple="field.treeMultiple"
-                allow-clear
-                tree-default-expand-all
-                show-search
-                style="width: 100%"
-                @dropdown-visible-change="(open: boolean) => open && loadTreeSelectOptions(field)"
-              />
-              <a-range-picker
-                v-else-if="field.type === 'dateRange'"
-                v-model:value="formState[field.key]"
-                :placeholder="getDateRangePlaceholder(field)"
-                :format="field.dateFormat || 'YYYY-MM-DD'"
-                :show-time="field.showTime"
-                value-format="YYYY-MM-DD"
-                style="width: 100%"
-              />
-              <div v-else-if="field.type === 'numberRange'" class="number-range">
-                <a-input-number
-                  v-model:value="formState[`${field.key}Min`]"
-                  :placeholder="field.placeholder?.split('~')[0]?.trim() || '最小值'"
-                  :min="0"
-                  class="number-range__input"
-                />
-                <span class="number-range__sep">~</span>
-                <a-input-number
-                  v-model:value="formState[`${field.key}Max`]"
-                  :placeholder="field.placeholder?.split('~')[1]?.trim() || '最大值'"
-                  :min="0"
-                  class="number-range__input"
-                />
-              </div>
             </a-form-item>
           </a-col>
         </a-row>
@@ -108,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import {
   Button as AButton,
   Checkbox as ACheckbox,
@@ -116,37 +77,20 @@ import {
   Dropdown as ADropdown,
   FormItem as AFormItem,
   Input as AInput,
-  InputNumber as AInputNumber,
   Menu as AMenu,
   MenuItem as AMenuItem,
-  RangePicker as ARangePicker,
   Row as ARow,
   Select as ASelect,
   Space as ASpace,
   Switch as ASwitch,
-  TreeSelect as ATreeSelect,
 } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 
 export interface SearchField {
   key: string;
   label: string;
-  type: 'input' | 'select' | 'switch' | 'treeSelect' | 'dateRange' | 'numberRange';
+  type: 'input' | 'select' | 'switch';
   options?: { label: string; value: string | number }[];
-  treeData?: TreeNode[];
-  treeUrl?: string;
-  treeFieldNames?: { label: string; value: string; children: string };
-  treeMultiple?: boolean;
-  dateFormat?: string;
-  showTime?: boolean;
-  placeholder?: string;
-}
-
-interface TreeNode {
-  title: string;
-  value: string | number;
-  children?: TreeNode[];
-  [key: string]: any;
 }
 
 interface Props {
@@ -172,10 +116,7 @@ const emit = defineEmits<{
 const allFields = ref<SearchField[]>([]);
 const selectedKeys = ref<string[]>([]);
 
-const treeSelectData = reactive<Record<string, TreeNode[]>>({});
-const treeSelectLoading = reactive<Record<string, boolean>>({});
-const treeSelectInflight = new Map<string, Promise<void>>();
-
+// 驼峰/蛇形映射
 const camelToSnake: Record<string, string> = {
   warehouseCode: 'warehouse_code',
   warehouseName: 'warehouse_name',
@@ -187,56 +128,52 @@ const snakeToCamel: Record<string, string> = {
   is_enabled: 'isEnabled',
 };
 
-const formState = reactive<Record<string, any>>({});
-
+// 初始化时同步一次蛇形 <-> 驼峰（只执行一次）
 watch(
   () => props.modelValue,
-  (newVal) => {
-    if (newVal) {
-      Object.assign(formState, newVal);
-      for (const [snake, camel] of Object.entries(snakeToCamel)) {
-        if (formState[snake] !== undefined) formState[camel] = formState[snake];
-        else if (formState[camel] !== undefined) formState[snake] = formState[camel];
-      }
+  (val) => {
+    if (!val) return;
+    for (const [snake, camel] of Object.entries(snakeToCamel)) {
+      if (val[snake] !== undefined && val[camel] === undefined) val[camel] = val[snake];
+      else if (val[camel] !== undefined && val[snake] === undefined) val[snake] = val[camel];
     }
   },
-  { immediate: true, deep: true },
+  { once: true }
 );
 
-function getFieldValue(key: string) {
-  if (formState[key] !== undefined) {
-    // switch 类型：数字 1/0 转布尔
-    const field = allFields.value.find(f => f.key === key);
-    if (field?.type === 'switch') {
-      return formState[key] === 1 || formState[key] === true;
-    }
-    return formState[key];
-  }
-  const camelKey = snakeToCamel[key];
-  if (camelKey !== undefined) {
-    const field = allFields.value.find(f => f.key === camelKey);
-    if (field?.type === 'switch') {
-      return formState[camelKey] === 1 || formState[camelKey] === true;
-    }
-    return formState[camelKey];
-  }
-  return undefined;
-}
-
-function setFieldValue(key: string, value: any) {
-  const field = allFields.value.find(f => f.key === key);
-  // switch 类型：布尔转数字 1/0
-  if (field?.type === 'switch') {
-    formState[key] = value ? 1 : 0;
-    const snakeKey = camelToSnake[key];
-    if (snakeKey) formState[snakeKey] = value ? 1 : 0;
-  } else {
-    formState[key] = value;
-    const snakeKey = camelToSnake[key];
-    if (snakeKey) formState[snakeKey] = value;
-  }
-  emit('update:modelValue', { ...formState });
-}
+const formModel = computed(() => {
+  const target = props.modelValue;
+  // 依赖收集：确保 props.modelValue 变化时 computed 重新计算
+  void target;
+  return new Proxy(target, {
+    get(target, key: string) {
+      const val = target[key];
+      if (val === undefined) {
+        const alt = snakeToCamel[key] || camelToSnake[key];
+        if (alt !== undefined) return target[alt];
+      }
+      const field = allFields.value.find((f) => f.key === key);
+      if (field?.type === 'switch') {
+        if (val === 1 || val === '1' || val === true) return true;
+        if (val === 0 || val === '0' || val === false) return false;
+      }
+      return val;
+    },
+    set(target, key: string, value: any) {
+      const field = allFields.value.find((f) => f.key === key);
+      if (field?.type === 'switch') {
+        value = value ? 1 : 0;
+      }
+      target[key] = value;
+      const snake = camelToSnake[key];
+      const camel = snakeToCamel[key];
+      if (snake !== undefined) target[snake] = value;
+      if (camel !== undefined) target[camel] = value;
+      emit('update:modelValue', target);
+      return true;
+    },
+  });
+});
 
 const displayedFields = computed(() => {
   return allFields.value.filter((f) => selectedKeys.value.includes(f.key));
@@ -246,7 +183,9 @@ function loadCache() {
   if (!props.cacheKey) return;
   try {
     const cached = localStorage.getItem(props.cacheKey);
-    if (cached) selectedKeys.value = JSON.parse(cached);
+    if (cached) {
+      selectedKeys.value = JSON.parse(cached);
+    }
   } catch {
     // ignore
   }
@@ -258,97 +197,26 @@ function saveCache() {
 }
 
 function initSelectedKeys() {
-  if (props.cacheKey) loadCache();
+  if (props.cacheKey) {
+    loadCache();
+  }
   if (selectedKeys.value.length === 0 && allFields.value.length > 0) {
     selectedKeys.value = allFields.value.map((f) => f.key);
     saveCache();
   }
 }
 
-function getTreeSelectData(key: string): TreeNode[] {
-  return treeSelectData[key] ?? [];
-}
-
-async function loadTreeSelectOptions(field: SearchField) {
-  if (field.type !== 'treeSelect') return;
-  if (treeSelectData[field.key]?.length) return;
-  if (Array.isArray(field.treeData) && field.treeData.length) {
-    treeSelectData[field.key] = field.treeData;
-    return;
-  }
-  if (!field.treeUrl) return;
-
-  if (treeSelectInflight.has(field.treeUrl)) {
-    await treeSelectInflight.get(field.treeUrl);
-    return;
-  }
-
-  const load = (async () => {
-    treeSelectLoading[field.key] = true;
-    try {
-      const res = await fetch(field.treeUrl);
-      if (!res.ok) throw new Error('fetch failed');
-      const json = await res.json();
-      const rows = json?.data ?? json?.rows ?? json ?? [];
-      const fieldNames = field.treeFieldNames ?? { label: 'title', value: 'value', children: 'children' };
-      if (Array.isArray(rows)) {
-        treeSelectData[field.key] = normalizeTreeNodes(rows, fieldNames);
-      }
-    } catch {
-      treeSelectData[field.key] = [];
-    } finally {
-      treeSelectLoading[field.key] = false;
-      treeSelectInflight.delete(field.treeUrl!);
-    }
-  })();
-
-  treeSelectInflight.set(field.treeUrl, load);
-  await load;
-}
-
-function normalizeTreeNodes(
-  nodes: any[],
-  fieldNames: { label: string; value: string; children: string },
-): TreeNode[] {
-  return nodes.map((n) => {
-    const labelKey = fieldNames.label;
-    const valueKey = fieldNames.value;
-    const childrenKey = fieldNames.children;
-    const rawChildren = n[childrenKey];
-    const children =
-      Array.isArray(rawChildren) && rawChildren.length
-        ? normalizeTreeNodes(rawChildren, fieldNames)
-        : undefined;
-    return {
-      title: n[labelKey] ?? n.label ?? n.name ?? String(n[valueKey] ?? ''),
-      value: n[valueKey] ?? n.value ?? '',
-      children,
-    };
-  });
-}
-
-function getDateRangePlaceholder(field: SearchField): [string, string] {
-  if (field.placeholder) {
-    const parts = field.placeholder.split('~');
-    return [
-      parts[0]?.trim() || `${field.label} 开始`,
-      parts[1]?.trim() || `${field.label} 结束`,
-    ];
-  }
-  return [`${field.label} 开始`, `${field.label} 结束`];
-}
-
-/** Align with ColumnMetaVO: Jackson often serializes getIsSearchable() as `searchable`, not `isSearchable`. */
-function columnIsSearchable(col: Record<string, unknown>): boolean {
-  const v = col.isSearchable ?? col.searchable ?? col.is_searchable;
-  return v === true || v === 1 || v === '1';
-}
-
+/**
+ * 从 meta API 响应中提取指定的筛选字段
+ * 适配格式：{ code, label, formType, isSearchable, dictType, dataSource, options }
+ * PM 指定字段：warehouse_code, warehouse_name, company, is_enabled
+ */
 function parseMetaFields(metaData: any[]): SearchField[] {
   const result: SearchField[] = [];
 
   for (const col of metaData) {
-    if (!columnIsSearchable(col)) continue;
+    // 只处理 isSearchable: true 的字段
+    if (!col.isSearchable) continue;
 
     const key = col.code;
     const label = col.label || key;
@@ -357,17 +225,20 @@ function parseMetaFields(metaData: any[]): SearchField[] {
     if (formType === 'input' || formType === 'textarea' || formType === 'text') {
       result.push({ key, label, type: 'input' });
     } else if (formType === 'select' || formType === 'radio' || formType === 'checkbox') {
+      // 有 options 数组（column schema 直接返回）：优先使用
       if (Array.isArray(col.options) && col.options.length > 0) {
         result.push({
           key,
           label,
           type: 'select',
           options: col.options.map((o: any) => ({
-            label: o.label || String(o.value),
+            label: o.label || o.text || o.name || String(o.value),
             value: o.value,
           })),
         });
-      } else if (Array.isArray(col.dataSource) && col.dataSource.length > 0) {
+      }
+      // 有 dataSource（直接是选项数组）：使用
+      else if (Array.isArray(col.dataSource) && col.dataSource.length > 0) {
         result.push({
           key,
           label,
@@ -377,7 +248,13 @@ function parseMetaFields(metaData: any[]): SearchField[] {
             value: o.value,
           })),
         });
-      } else {
+      }
+      // 有 dictType：通过 dict 接口加载 options（如果 options/dataSource 都不存在）
+      else if (col.dictType) {
+        result.push({ key, label, type: 'select', options: [] });
+      }
+      // 无数据源：空 options（后续由父组件通过 ref 注入）
+      else {
         result.push({ key, label, type: 'select', options: [] });
       }
     } else if (formType === 'switch') {
@@ -390,71 +267,62 @@ function parseMetaFields(metaData: any[]): SearchField[] {
           { label: '停用', value: 0 },
         ],
       });
-    } else if (formType === 'treeSelect') {
-      const fieldNames = col.treeFieldNames || col.tree_field_names;
-      result.push({
-        key,
-        label,
-        type: 'treeSelect',
-        treeData: col.treeData || [],
-        treeUrl: col.treeUrl || null,
-        treeFieldNames:
-          typeof fieldNames === 'string' ? JSON.parse(fieldNames) : fieldNames,
-        treeMultiple: !!(col.treeMultiple || col.tree_multiple),
-      });
-    } else if (formType === 'dateRange') {
-      result.push({
-        key,
-        label,
-        type: 'dateRange',
-        dateFormat: col.dateFormat || col.date_format || 'YYYY-MM-DD',
-        showTime: !!(col.showTime || col.show_time),
-      });
-    } else if (formType === 'numberRange') {
-      result.push({
-        key,
-        label,
-        type: 'numberRange',
-        placeholder: col.placeholder || 'zui xiao zhi~ zui da zhi',
-      });
     }
   }
 
   return result;
 }
 
+/**
+ * 加载字典表选项（供 select 字段使用）
+ */
+async function loadDictOptions(dictType: string): Promise<{ label: string; value: number }[]> {
+  try {
+    const res = await fetch(`/api/system/dict/data/type/${dictType}`);
+    if (!res.ok) throw new Error('dict fetch failed');
+    const json = await res.json();
+    const rows = json.data || json.rows || json || [];
+    return rows.map((item: any) => ({
+      label: item.label || item.name || item.dictLabel || String(item.value),
+      value: item.value,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 async function loadRemoteFields() {
   if (!props.remoteFieldsUrl) {
     allFields.value = props.fields;
     initSelectedKeys();
-    // 同步父组件默认值
-    if (Object.keys(props.modelValue).length > 0) {
-      Object.assign(formState, props.modelValue);
-    }
     return;
   }
   try {
     const res = await fetch(props.remoteFieldsUrl);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw new Error('fetch failed');
     const json = await res.json();
-    // fetch ?? defaultResponseInterceptor?????? R ??
-    const rawFields = json?.data ?? json?.rows ?? json ?? [];
-    if (!Array.isArray(rawFields)) {
-      console.warn('[WmsSearchBar] remote fields response is not array:', json);
-      allFields.value = props.fields;
-    } else {
-      allFields.value = parseMetaFields(rawFields);
-      console.log('[WmsSearchBar] loaded fields:', allFields.value.map((f) => ({ key: f.key, type: f.type, options: f.options?.length })));
-    }
-  } catch (e) {
-    console.error('[WmsSearchBar] load remote fields failed:', e);
+    const rawFields = json.data || json.rows || json || [];
+
+    // 解析 meta 字段（只取 isSearchable: true）
+    const fields = parseMetaFields(rawFields);
+
+    // 并行加载所有 select 字段的 dict options
+    const loaders = fields
+      .filter((f) => f.type === 'select' && (!f.options || f.options.length === 0))
+      .map(async (f) => {
+        const meta = rawFields.find((r: any) => r.columnName === f.key);
+        if (meta?.dictType) {
+          f.options = await loadDictOptions(meta.dictType);
+        }
+      });
+
+    await Promise.all(loaders);
+
+    allFields.value = fields;
+  } catch {
     allFields.value = props.fields;
   }
   initSelectedKeys();
-  // 同步父组件默认值（确保 switch 等字段有初始值）
-  if (Object.keys(props.modelValue).length > 0) {
-    Object.assign(formState, props.modelValue);
-  }
 }
 
 function toggleField(key: string) {
@@ -467,18 +335,20 @@ function toggleField(key: string) {
 }
 
 function handleSearch() {
-  emit('search', { ...formState });
+  const model = { ...props.modelValue };
+  // switch 字段：true → 1，false → 0，同步到 isEnabled
+  if (model.is_enabled !== undefined) {
+    if (model.is_enabled === true) model.is_enabled = 1;
+    else if (model.is_enabled === false) model.is_enabled = 0;
+    model.isEnabled = model.is_enabled;
+  }
+  emit('search', model);
 }
 
 function handleReset() {
   const empty: Record<string, any> = {};
   allFields.value.forEach((f) => {
     empty[f.key] = undefined;
-    empty[`${f.key}Min`] = undefined;
-    empty[`${f.key}Max`] = undefined;
-    formState[f.key] = undefined;
-    formState[`${f.key}Min`] = undefined;
-    formState[`${f.key}Max`] = undefined;
   });
   emit('update:modelValue', empty);
   emit('reset');
@@ -486,27 +356,24 @@ function handleReset() {
 
 watch(
   () => props.remoteFieldsUrl,
-  () => loadRemoteFields(),
+  () => {
+    loadRemoteFields();
+  },
 );
 
-onMounted(() => loadRemoteFields());
+onMounted(() => {
+  loadRemoteFields();
+});
 
-function updateFieldOptions(
-  key: string,
-  options: { label: string; value: string | number }[],
-) {
+// 暴露方法供父组件调用，更新指定字段的 options（如公司下拉数据）
+function updateFieldOptions(key: string, options: { label: string; value: string | number }[]) {
   const field = allFields.value.find((f) => f.key === key);
-  if (field) field.options = options;
-}
-
-function updateFieldTreeData(key: string, treeData: TreeNode[]) {
-  const field = allFields.value.find((f) => f.key === key);
-  if (field && field.type === 'treeSelect') {
-    treeSelectData[key] = treeData;
+  if (field) {
+    field.options = options;
   }
 }
 
-defineExpose({ updateFieldOptions, updateFieldTreeData });
+defineExpose({ updateFieldOptions });
 </script>
 
 <style scoped>
@@ -524,18 +391,12 @@ defineExpose({ updateFieldOptions, updateFieldTreeData });
 .text-right {
   text-align: right;
 }
-.number-range {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  width: 100%;
-}
-.number-range__input {
-  flex: 1;
-  width: 0;
-}
-.number-range__sep {
-  color: #999;
-  flex-shrink: 0;
-}
 </style>
+
+
+
+
+
+
+
+
