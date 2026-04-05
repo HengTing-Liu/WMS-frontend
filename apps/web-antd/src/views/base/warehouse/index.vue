@@ -344,6 +344,7 @@ async function loadData() {
     const res = await getWarehouseListApi(params);
     dataList.value = res.rows || res.data?.rows || [];
     pagination.total = res.total || res.data?.total || 0;
+    updateStats();
   } catch (e) {
     console.error('加载失败', e);
   } finally {
@@ -455,7 +456,7 @@ async function handleBatchDelete() {
   }
   try {
     for (const id of selectedRowKeys.value) {
-      await deleteWarehouseApi(id);
+      await deleteWarehouseApi(Number(id));
     }
     message.success('删除成功');
     selectedRowKeys.value = [];
@@ -580,6 +581,3 @@ onMounted(() => {
   loadData();
 });
 </script>
-
-
-

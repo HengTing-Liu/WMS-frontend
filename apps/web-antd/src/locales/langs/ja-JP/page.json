@@ -774,6 +774,60 @@
     "user": {
       "searchPlaceholder": "ユーザー名で検索..."
     },
+    "material": {
+      "listTitle": "物料アーカイブ",
+      "listDescription": "物料の基本情報、仕様型号、分類などを管理",
+      "add": "新規物料",
+      "editTitle": "物料編集",
+      "addTitle": "新規物料",
+      "searchPlaceholder": "物料コードまたは名称を検索...",
+      "export": "エクスポート",
+      "exportSuccess": "エクスポート成功",
+      "exportFail": "エクスポート失敗",
+      "batchDeleteConfirm": "選択した物料記録を削除してもよろしいですか？",
+      "deleteConfirm": "この物料記録を削除してもよろしいですか？",
+      "status": {
+        "all": "すべて",
+        "enabled": "有効",
+        "disabled": "無効"
+      },
+      "filter": {
+        "materialCode": "物料コード",
+        "materialName": "物料名",
+        "specification": "仕様",
+        "unit": "単位",
+        "category": "分類",
+        "keyword": "キーワード"
+      },
+      "stats": {
+        "total": "物料総数",
+        "enabled": "有効",
+        "disabled": "無効",
+        "category": "物料分類"
+      },
+      "columns": {
+        "materialCode": "物料コード",
+        "materialName": "物料名",
+        "specification": "仕様",
+        "unit": "単位",
+        "category": "分類",
+        "status": "状態",
+        "createTime": "作成時間"
+      },
+      "messages": {
+        "loadSuccess": "読み込み成功",
+        "loadFail": "読み込み失敗",
+        "deleteSuccess": "削除成功",
+        "deleteFail": "削除失敗",
+        "batchDeleteFail": "一括削除失敗",
+        "saveSuccess": "保存成功",
+        "saveFail": "保存失敗",
+        "selectToDelete": "削除する記録を先に選択してください",
+        "enableSuccess": "有効化成功",
+        "disableSuccess": "無効化成功",
+        "statusToggleFail": "ステータス切替失敗"
+      }
+    },
     "dict": {
       "tabs": {
         "type": "辞書タイプ",

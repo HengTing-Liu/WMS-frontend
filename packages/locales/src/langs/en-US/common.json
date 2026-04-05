@@ -20,5 +20,17 @@
   "yes": "Yes",
   "no": "No",
   "showSearchPanel": "Show search panel",
-  "hideSearchPanel": "Hide search panel"
+  "hideSearchPanel": "Hide search panel",
+  "inputPlaceholder": "Please input",
+  "selectPlaceholder": "Please select",
+  "totalRecords": "{total} records",
+  "enabled": "Enabled",
+  "disabled": "Disabled",
+  "status": "Status",
+  "operation": "Operation",
+  "edit": "Edit",
+  "delete": "Delete",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "seq": "#"
 }

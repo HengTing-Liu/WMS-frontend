@@ -75,6 +75,8 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
             'base/dict/index',
             'lowcode/meta/index',
             'sys/supplier/index',
+            'sys/material/index',
+            'wms/material/index',
           ];
           
           const normalized = component.replace(/^\/+/, '').replace(/\.vue$/i, '');
