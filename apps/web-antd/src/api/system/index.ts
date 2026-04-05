@@ -9,4 +9,5 @@ export * from './dictType';
 export * from './testing';
 export * from './upload';
 export * from './profile';
+export * from './tableMeta';
 
