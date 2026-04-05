@@ -254,7 +254,7 @@ async function handleSubmit() {
 
       <Form.Item :label="$t('page.wms.location.parentLocation')" name="parentId">
         <Tree
-          v-model:selected-keys="[formState.parentId]"
+          v-model:selected-keys="formState.parentId"
           :tree-data="antTreeData"
           :load-data="() => Promise.resolve()"
           :disabled="mode === 'edit'"

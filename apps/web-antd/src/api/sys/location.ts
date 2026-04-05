@@ -193,14 +193,14 @@ export interface LocationTreeQuery {
   maxLevel?: number;
 }
 
-/** 库位树形查询（/api/wms/location/tree） */
-export async function getLocationTree(params: LocationTreeQuery): Promise<LocationTreeNode[]> {
+/** 库位树形查询V2（/api/wms/location/tree） */
+export async function getLocationTreeV2(params: LocationTreeQuery): Promise<LocationTreeNode[]> {
   const res = await requestClient.get<LocationTreeNode[]>('/wms/location/tree', { params });
   return Array.isArray(res) ? res : (res?.data ?? []);
 }
 
-/** 查询子节点（懒加载） */
-export async function getLocationChildren(parentId: number): Promise<LocationTreeNode[]> {
+/** 查询子节点V2（懒加载） */
+export async function getLocationChildrenV2(parentId: number): Promise<LocationTreeNode[]> {
   const res = await requestClient.get<LocationTreeNode[]>(`/wms/location/children/${parentId}`);
   return Array.isArray(res) ? res : (res?.data ?? []);
 }

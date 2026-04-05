@@ -38,7 +38,7 @@ import { computed, ref, watch } from 'vue';
 import { Spin } from 'ant-design-vue';
 import { Drawer as ADrawer } from 'ant-design-vue';
 import { requestClient } from '#/api/request';
-import DynamicFormDefinitionPage from '#/components/DynamicFormDefinitionPagePage.vue';
+import DynamicFormDefinitionPage from '#/components/DynamicFormDefinitionPage.vue';
 
 interface Props {
   /** 抽屉是否打开 */
