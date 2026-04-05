@@ -20,5 +20,17 @@
   "yes": "是",
   "no": "否",
   "showSearchPanel": "显示搜索面板",
-  "hideSearchPanel": "隐藏搜索面板"
+  "hideSearchPanel": "隐藏搜索面板",
+  "inputPlaceholder": "请输入",
+  "selectPlaceholder": "请选择",
+  "totalRecords": "共 {total} 条",
+  "enabled": "已启用",
+  "disabled": "已停用",
+  "status": "状态",
+  "operation": "操作",
+  "edit": "编辑",
+  "delete": "删除",
+  "confirm": "确定",
+  "cancel": "取消",
+  "seq": "序号"
 }

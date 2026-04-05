@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="wms-search-bar">
     <a-row :gutter="16" align="middle">
       <a-col :span="20">
@@ -116,7 +116,6 @@ const emit = defineEmits<{
 const allFields = ref<SearchField[]>([]);
 const selectedKeys = ref<string[]>([]);
 
-// 驼峰/蛇形映射
 const camelToSnake: Record<string, string> = {
   warehouseCode: 'warehouse_code',
   warehouseName: 'warehouse_name',
@@ -128,7 +127,6 @@ const snakeToCamel: Record<string, string> = {
   is_enabled: 'isEnabled',
 };
 
-// 初始化时同步一次蛇形 <-> 驼峰（只执行一次）
 watch(
   () => props.modelValue,
   (val) => {
@@ -143,7 +141,6 @@ watch(
 
 const formModel = computed(() => {
   const target = props.modelValue;
-  // 依赖收集：确保 props.modelValue 变化时 computed 重新计算
   void target;
   return new Proxy(target, {
     get(target, key: string) {
@@ -204,18 +201,17 @@ function initSelectedKeys() {
     selectedKeys.value = allFields.value.map((f) => f.key);
     saveCache();
   }
+  // 兜底：若远程未返回任何字段但 props.fields 有内容，直接使用
+  if (allFields.value.length === 0 && props.fields.length > 0) {
+    allFields.value = props.fields;
+    selectedKeys.value = props.fields.map((f) => f.key);
+  }
 }
 
-/**
- * 从 meta API 响应中提取指定的筛选字段
- * 适配格式：{ code, label, formType, isSearchable, dictType, dataSource, options }
- * PM 指定字段：warehouse_code, warehouse_name, company, is_enabled
- */
 function parseMetaFields(metaData: any[]): SearchField[] {
   const result: SearchField[] = [];
 
   for (const col of metaData) {
-    // 只处理 isSearchable: true 的字段
     if (!col.isSearchable) continue;
 
     const key = col.code;
@@ -225,7 +221,6 @@ function parseMetaFields(metaData: any[]): SearchField[] {
     if (formType === 'input' || formType === 'textarea' || formType === 'text') {
       result.push({ key, label, type: 'input' });
     } else if (formType === 'select' || formType === 'radio' || formType === 'checkbox') {
-      // 有 options 数组（column schema 直接返回）：优先使用
       if (Array.isArray(col.options) && col.options.length > 0) {
         result.push({
           key,
@@ -236,9 +231,7 @@ function parseMetaFields(metaData: any[]): SearchField[] {
             value: o.value,
           })),
         });
-      }
-      // 有 dataSource（直接是选项数组）：使用
-      else if (Array.isArray(col.dataSource) && col.dataSource.length > 0) {
+      } else if (Array.isArray(col.dataSource) && col.dataSource.length > 0) {
         result.push({
           key,
           label,
@@ -248,13 +241,9 @@ function parseMetaFields(metaData: any[]): SearchField[] {
             value: o.value,
           })),
         });
-      }
-      // 有 dictType：通过 dict 接口加载 options（如果 options/dataSource 都不存在）
-      else if (col.dictType) {
+      } else if (col.dictType) {
         result.push({ key, label, type: 'select', options: [] });
-      }
-      // 无数据源：空 options（后续由父组件通过 ref 注入）
-      else {
+      } else {
         result.push({ key, label, type: 'select', options: [] });
       }
     } else if (formType === 'switch') {
@@ -273,9 +262,6 @@ function parseMetaFields(metaData: any[]): SearchField[] {
   return result;
 }
 
-/**
- * 加载字典表选项（供 select 字段使用）
- */
 async function loadDictOptions(dictType: string): Promise<{ label: string; value: number }[]> {
   try {
     const res = await fetch(`/api/system/dict/data/type/${dictType}`);
@@ -303,10 +289,26 @@ async function loadRemoteFields() {
     const json = await res.json();
     const rawFields = json.data || json.rows || json || [];
 
-    // 解析 meta 字段（只取 isSearchable: true）
     const fields = parseMetaFields(rawFields);
+    // 如果 parseMetaFields 没有过滤出任何字段，回退使用所有远程字段
+    if (fields.length === 0 && rawFields.length > 0) {
+      for (const col of rawFields) {
+        const key = col.code || col.columnName || col.name;
+        if (!key) continue;
+        const label = col.label || col.columnLabel || key;
+        const formType = col.formType || 'input';
+        if (formType === 'input' || formType === 'textarea' || formType === 'text') {
+          fields.push({ key, label, type: 'input' });
+        } else if (formType === 'select' || formType === 'radio') {
+          const opts = (col.options || col.dataSource || []).map((o: any) => ({
+            label: o.label || o.text || o.name || String(o.value),
+            value: o.value,
+          }));
+          fields.push({ key, label, type: 'select', options: opts });
+        }
+      }
+    }
 
-    // 并行加载所有 select 字段的 dict options
     const loaders = fields
       .filter((f) => f.type === 'select' && (!f.options || f.options.length === 0))
       .map(async (f) => {
@@ -323,6 +325,12 @@ async function loadRemoteFields() {
     allFields.value = props.fields;
   }
   initSelectedKeys();
+  // 最终兜底：以上都没有就用 props.fields
+  if (allFields.value.length === 0 && props.fields.length > 0) {
+    allFields.value = props.fields;
+    selectedKeys.value = props.fields.map((f) => f.key);
+    if (props.cacheKey) saveCache();
+  }
 }
 
 function toggleField(key: string) {
@@ -336,7 +344,6 @@ function toggleField(key: string) {
 
 function handleSearch() {
   const model = { ...props.modelValue };
-  // switch 字段：true → 1，false → 0，同步到 isEnabled
   if (model.is_enabled !== undefined) {
     if (model.is_enabled === true) model.is_enabled = 1;
     else if (model.is_enabled === false) model.is_enabled = 0;
@@ -365,7 +372,6 @@ onMounted(() => {
   loadRemoteFields();
 });
 
-// 暴露方法供父组件调用，更新指定字段的 options（如公司下拉数据）
 function updateFieldOptions(key: string, options: { label: string; value: string | number }[]) {
   const field = allFields.value.find((f) => f.key === key);
   if (field) {
@@ -392,11 +398,3 @@ defineExpose({ updateFieldOptions });
   text-align: right;
 }
 </style>
-
-
-
-
-
-
-
-

@@ -12,8 +12,7 @@
     "analytics": "分析页",
     "workspace": "工作台"
   },
-  "page": {
-    "warehouse": {
+  "warehouse": {
       "receiverManagement": "收货地址管理",
       "addReceiver": "添加收货人",
       "editReceiver": "编辑收货人",
@@ -44,6 +43,146 @@
       "setAsDefault": "设为默认收货人",
       "confirmDeleteReceiver": "确定要删除收货人\"{name}\"吗？"
     },
+    "wms": {
+      "filter": {
+        "allStatus": "全部状态",
+        "addFilter": "添加筛选"
+      },
+      "material": {
+        "listTitle": "物料档案",
+        "listDescription": "管理物料基本信息、规格型号、分类等",
+        "add": "新增物料",
+        "editTitle": "编辑物料",
+        "addTitle": "新增物料",
+        "searchPlaceholder": "搜索物料编码或名称",
+        "export": "导出",
+        "exportSuccess": "导出成功",
+        "exportFail": "导出失败",
+        "batchDeleteConfirm": "确定要批量删除选中的物料吗？",
+        "deleteConfirm": "确定要删除该物料吗？",
+        "status": {
+          "all": "全部",
+          "enabled": "已启用",
+          "disabled": "已停用"
+        },
+        "filter": {
+          "materialCode": "物料编码",
+          "materialName": "物料名称",
+          "specification": "规格型号",
+          "unit": "单位",
+          "category": "分类",
+          "keyword": "关键词"
+        },
+        "stats": {
+          "total": "物料总数",
+          "enabled": "已启用",
+          "disabled": "已停用",
+          "category": "物料分类"
+        },
+        "columns": {
+          "materialCode": "物料编码",
+          "materialName": "物料名称",
+          "specification": "规格型号",
+          "unit": "单位",
+          "category": "分类",
+          "status": "状态",
+          "createTime": "创建时间"
+        },
+        "messages": {
+          "loadSuccess": "加载成功",
+          "loadFail": "加载失败",
+          "deleteSuccess": "删除成功",
+          "deleteFail": "删除失败",
+          "batchDeleteFail": "批量删除失败",
+          "saveSuccess": "保存成功",
+          "saveFail": "保存失败",
+          "selectToDelete": "请选择要删除的数据",
+          "enableSuccess": "启用成功",
+          "disableSuccess": "停用成功",
+          "statusToggleFail": "状态切换失败",
+          "exportSuccess": "导出成功",
+          "exportFail": "导出失败"
+        }
+      },
+      "location": {
+        "listTitle": "库位档案",
+        "listDescription": "管理仓库的库位信息，支持树形层级结构",
+        "add": "新增库位",
+        "editTitle": "编辑库位",
+        "addTitle": "新增库位",
+        "selectWarehouse": "请选择仓库",
+        "selectWarehouseTip": "请先选择仓库",
+        "emptyTree": "暂无库位数据",
+        "occupied": "已占用",
+        "idle": "空闲",
+        "export": "导出",
+        "batchDeleteConfirm": "确定要批量删除选中的库位吗？",
+        "deleteConfirm": "确定要删除该库位吗？",
+        "searchPlaceholder": "搜索库位编码或名称",
+        "warehouse": "仓库",
+        "warehousePlaceholder": "请选择仓库",
+        "warehouseRequired": "请选择仓库",
+        "parentLocation": "上级库位",
+        "parentLocationPlaceholder": "请选择上级库位（可选）",
+        "parentLocationTip": "不选择则为根节点",
+        "locationNo": "库位编码",
+        "locationNoPlaceholder": "请输入库位编码",
+        "locationNoRequired": "请输入库位编码",
+        "locationName": "库位名称",
+        "locationNamePlaceholder": "请输入库位名称",
+        "locationNameRequired": "请输入库位名称",
+        "locationCode": "库位编码",
+        "locationCodePlaceholder": "请输入库位编码",
+        "locationCodeRequired": "请输入库位编码",
+        "locationType": "库位类型",
+        "locationTypePlaceholder": "请选择库位类型",
+        "locationTypeRequired": "请选择库位类型",
+        "storageMode": "存储模式",
+        "storageModePlaceholder": "请选择存储模式",
+        "specification": "规格",
+        "specificationPlaceholder": "如 4x4、1x1、96孔",
+        "locationTypeOptions": {
+          "STORAGE": "存储区",
+          "PICK": "拣货区",
+          "COLLECT": "集货区",
+          "RETURN": "退货区"
+        },
+        "storageModeOptions": {
+          "EXCLUSIVE": "独占",
+          "SHARED": "共享"
+        },
+        "statusOptions": {
+          "all": "全部",
+          "occupied": "已占用",
+          "idle": "空闲"
+        },
+        "filter": {
+          "keyword": "关键词",
+          "locationType": "库位类型"
+        },
+        "stats": {
+          "total": "库位总数",
+          "occupied": "已占用",
+          "idle": "空闲"
+        },
+        "columns": {
+          "locationNo": "库位编码",
+          "locationName": "库位名称",
+          "locationType": "库位类型",
+          "storageMode": "存储模式",
+          "isUse": "使用状态"
+        },
+        "messages": {
+          "treeLoadFail": "加载库位树失败",
+          "childrenLoadFail": "加载子节点失败",
+          "deleteSuccess": "删除成功",
+          "deleteFail": "删除失败",
+          "batchDeleteFail": "批量删除失败",
+          "exportSuccess": "导出成功",
+          "exportFail": "导出失败"
+        }
+      }
+    },
     "common": {
       "inputPlaceholder": "请输入",
       "selectPlaceholder": "请选择",
@@ -59,7 +198,15 @@
       "updateSuccess": "更新成功",
       "updateFailed": "更新失败",
       "fetchFailed": "获取信息失败",
-      "china": "中国"
+      "remark": "备注",
+      "remarkPlaceholder": "请输入备注",
+      "seq": "序号",
+      "totalRecords": "共 {total} 条",
+      "addSuccess": "新增成功",
+      "saveFail": "保存失败",
+      "status": "状态",
+      "enabled": "已启用",
+      "disabled": "已停用",
+      "operation": "操作"
     }
-  }
 }

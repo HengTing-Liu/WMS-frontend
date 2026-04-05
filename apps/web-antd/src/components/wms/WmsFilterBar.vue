@@ -20,7 +20,7 @@
         v-if="statusKey && statusOptions?.length"
         v-model:value="query[statusKey]"
         allow-clear
-        :placeholder="$t('wms.filter.allStatus')"
+        :placeholder="$t('page.wms.filter.allStatus')"
         class="wms-filter-bar__status"
         :options="statusOptions"
         @change="emit('search')"
@@ -33,7 +33,7 @@
             v-if="field.type === 'select'"
             v-model:value="query[field.key]"
             allow-clear
-            :placeholder="`${$t('common.selectPlaceholder')}${field.label}`"
+            :placeholder="`${$t('page.common.selectPlaceholder')}${field.label}`"
             class="wms-filter-bar__tag-select"
             :options="field.options"
             @change="emit('search')"
@@ -42,7 +42,7 @@
             v-else
             v-model:value="query[field.key]"
             allow-clear
-            :placeholder="`${$t('common.inputPlaceholder')}${field.label}`"
+            :placeholder="`${$t('page.common.inputPlaceholder')}${field.label}`"
             class="wms-filter-bar__tag-input"
             @press-enter="emit('search')"
           />
@@ -53,7 +53,7 @@
       <Dropdown v-if="availableFields.length > 0" trigger="click">
         <Button>
           <template #icon><Plus /></template>
-          {{ $t('wms.filter.addFilter') }}
+          {{ $t('page.wms.filter.addFilter') }}
           <ChevronDown />
         </Button>
         <template #overlay>

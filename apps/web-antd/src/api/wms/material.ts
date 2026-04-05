@@ -4,8 +4,8 @@
  */
 export {
   listMaterialPage,
-  getMaterialById,
-  addMaterial,
+  getMaterialDetail,
+  createMaterial,
   updateMaterial,
   deleteMaterial,
   toggleMaterialStatus,

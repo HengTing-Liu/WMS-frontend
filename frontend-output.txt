@@ -1,0 +1,79 @@
+
+> vben-admin-monorepo@20260316.01 dev:antd C:\Users\LHT\Desktop\gitwms\WMS-frontend
+> pnpm -F @vben/web-antd run dev
+
+
+> @vben/web-antd@20260316.01 dev C:\Users\LHT\Desktop\gitwms\WMS-frontend\apps\web-antd
+> pnpm vite --mode development
+
+
+  VITE v7.3.1  ready in 6527 ms
+
+  ➜  Local:   http://localhost:5666/
+  ➜  Network: http://172.18.0.1:5666/
+  ➜  Network: http://192.168.168.6:5666/
+  ➜  Network: http://192.168.110.55:5666/
+  ➜  Vue DevTools: Open http://localhost:5666/__devtools__/ as a separate window
+  ➜  Vue DevTools: Press Alt(⌥)+Shift(⇧)+D in App to toggle the Vue DevTools
+  ➜  Vben Admin Docs: https://doc.vben.pro
+19:48:25 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+19:49:52 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+19:50:08 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+19:50:46 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+20:40:25 [vite] (client) page reload src/router/access.ts
+20:51:16 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+21:01:26 [vite] (client) page reload src/locales/langs/zh-CN/page.json
+21:04:14 [vite] (client) page reload src/locales/langs/zh-CN/page.json
+21:04:33 [vite] (client) page reload src/locales/langs/zh-CN/page.json
+21:06:15 [vite] (client) page reload src/locales/langs/en-US/page.json
+21:06:46 [vite] (client) page reload src/locales/langs/en-US/page.json
+21:07:34 [vite] (client) page reload src/locales/langs/ja-JP/page.json
+21:10:59 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+21:45:56 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+21:46:13 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+21:46:17 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+21:46:23 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+21:46:46 [vite] (client) page reload C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/locales/src/langs/zh-CN/common.json
+21:47:27 [vite] (client) page reload C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/locales/src/langs/zh-CN/page.json
+22:20:39 [vite] (client) page reload src/locales/langs/en-US/page.json
+22:21:16 [vite] (client) page reload src/locales/langs/zh-CN/page.json
+22:26:26 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:26:26 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:26:26 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:26:26 [vite] (client) page reload src/locales/langs/en-US/page.json
+22:26:26 [vite] (client) page reload C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/locales/src/langs/zh-CN/common.json
+22:26:26 [vite] (client) page reload src/locales/langs/zh-CN/page.json
+22:26:26 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:26:26 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:26:26 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:26:26 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:26:26 [vite] (client) page reload src/locales/langs/ja-JP/page.json
+22:26:26 [vite] (client) page reload src/router/access.ts
+22:26:26 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:26:26 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:26:26 [vite] (client) page reload C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/locales/src/langs/zh-CN/page.json
+22:26:26 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:26:27 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:26:27 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:32:11 [vite] (client) hmr update /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:32:55 [vite] (client) page reload src/locales/langs/zh-CN/page.json
+22:34:22 [vite] (client) hmr update /src/components/common/WmsSearchBar.vue, /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:34:26 [vite] (client) hmr update /src/components/common/WmsSearchBar.vue, /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:34:30 [vite] (client) hmr update /src/components/common/WmsSearchBar.vue, /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:34:35 [vite] (client) hmr update /src/components/common/WmsSearchBar.vue, /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:34:58 [vite] (client) hmr update /src/components/common/WmsSearchBar.vue, /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:35:04 [vite] (client) hmr update /src/components/common/WmsSearchBar.vue, /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+22:35:12 [vite] (client) page reload src/locales/langs/zh-CN/page.json
+22:35:17 [vite] (client) page reload src/locales/langs/en-US/page.json
+22:35:30 [vite] (client) page reload C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/locales/src/langs/zh-CN/page.json
+22:36:56 [vite] (client) page reload src/locales/langs/zh-CN/page.json
+22:38:52 [vite] (client) page reload src/locales/langs/en-US/page.json
+22:39:25 [vite] (client) page reload C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/locales/src/langs/zh-CN/page.json
+22:46:49 [vite] (client) page reload src/locales/langs/zh-CN/page.json
+22:47:29 [vite] (client) page reload src/locales/langs/en-US/page.json
+22:50:05 [vite] (client) page reload C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/locales/src/langs/zh-CN/page.json
+22:51:03 [vite] (client) hmr update /src/components/common/WmsSearchBar.vue, /@fs/C:/Users/LHT/Desktop/gitwms/WMS-frontend/packages/@core/base/design/src/css/global.css
+C:\Users\LHT\Desktop\gitwms\WMS-frontend\apps\web-antd:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @vben/web-antd@20260316.01 dev: `pnpm vite --mode development`
+Exit status 4294967295
+ ELIFECYCLE  Command failed with exit code 4294967295.

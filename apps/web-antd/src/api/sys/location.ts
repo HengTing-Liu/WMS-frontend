@@ -154,3 +154,100 @@ export async function listWarehouseSimple() {
     value: r.id ?? r.warehouseId,
   })) : [];
 }
+
+// ========== Story 01-03: 库位树形结构 API ==========
+
+export interface LocationTreeNode {
+  id: number;
+  parentId?: number;
+  locationGrade?: string;
+  locationType: string;
+  locationLevel: number;
+  locationLevelCount?: number;
+  internalSerialNo?: number;
+  internalQuantity?: number;
+  locationNo: string;
+  locationName: string;
+  warehouseCode?: string;
+  parentName?: string;
+  storageMode?: string;
+  specification?: string;
+  isUse?: number;
+  locationSortNo?: string;
+  locationFullpathName?: string;
+  capacityTotal?: number;
+  capacityUsed?: number;
+  occupancyRate?: number;
+  remarks?: string;
+  children?: LocationTreeNode[];
+  hasChildren?: boolean;
+}
+
+export interface LocationTreeQuery {
+  warehouseCode?: string;
+  rootId?: number;
+  locationGrade?: string;
+  locationType?: string;
+  storageMode?: string;
+  isUse?: number;
+  maxLevel?: number;
+}
+
+/** 库位树形查询（/api/wms/location/tree） */
+export async function getLocationTree(params: LocationTreeQuery): Promise<LocationTreeNode[]> {
+  const res = await requestClient.get<LocationTreeNode[]>('/wms/location/tree', { params });
+  return Array.isArray(res) ? res : (res?.data ?? []);
+}
+
+/** 查询子节点（懒加载） */
+export async function getLocationChildren(parentId: number): Promise<LocationTreeNode[]> {
+  const res = await requestClient.get<LocationTreeNode[]>(`/wms/location/children/${parentId}`);
+  return Array.isArray(res) ? res : (res?.data ?? []);
+}
+
+/** 新增库位（含父级） */
+export async function createLocationWithParent(data: {
+  parentId?: number;
+  locationNo: string;
+  locationName: string;
+  warehouseCode?: string;
+  locationType: string;
+  locationGrade?: string;
+  storageMode?: string;
+  specification?: string;
+  remarks?: string;
+}) {
+  return requestClient.post('/wms/location', data);
+}
+
+/** 更新库位 */
+export async function updateLocationById(id: number, data: Partial<LocationTreeNode>) {
+  return requestClient.put(`/wms/location/${id}`, data);
+}
+
+/** 删除库位 */
+export async function deleteLocationById(id: number) {
+  return requestClient.delete(`/wms/location/${id}`);
+}
+
+/** 建议库位编码（自动生成） */
+export interface LocationCodeSuggestion {
+  suggestedCode: string;
+  currentMaxSerial: number;
+  nextSerial: number;
+  parentCode: string;
+  parentId?: number;
+  currentLevel: number;
+  codePrefix: string;
+  serialLength: number;
+  fullPath: string;
+}
+
+export async function suggestLocationCode(params: {
+  warehouseCode: string;
+  parentId?: number;
+  locationType?: string;
+}): Promise<LocationCodeSuggestion> {
+  const res = await requestClient.get<LocationCodeSuggestion>('/wms/location/suggestCode', { params });
+  return res?.data || res;
+}

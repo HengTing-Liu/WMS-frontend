@@ -32,10 +32,10 @@ function normalizeMaterialRow(row: any): MaterialResult {
     id: row?.id,
     materialCode: row?.material_code ?? row?.materialCode,
     materialName: row?.material_name ?? row?.materialName,
-    specification: row?.specification,
+    specification: row?.spec ?? row?.specification,
     unit: row?.unit,
     category: row?.category,
-    isEnabled: Number(row?.is_enabled ?? row?.isEnabled ?? row?.status ?? 0),
+    isEnabled: Number(row?.is_enabled ?? row?.isEnabled ?? row?.status ?? 1),
     remark: row?.remark,
     createBy: row?.create_by ?? row?.createBy,
     createTime: row?.create_time ?? row?.createTime,
@@ -45,7 +45,7 @@ function normalizeMaterialRow(row: any): MaterialResult {
 }
 
 export async function listMaterialPage(params: MaterialQuery) {
-  const res = await requestClient.get('/base/material/list', { params });
+  const res = await requestClient.get('/api/base/material/list', { params });
   const rawRows = res?.rows || res?.list || res?.data?.rows || res?.data?.list || [];
   return {
     rows: Array.isArray(rawRows) ? rawRows.map(normalizeMaterialRow) : [],
@@ -54,27 +54,13 @@ export async function listMaterialPage(params: MaterialQuery) {
 }
 
 export async function getMaterialDetail(id: number): Promise<MaterialResult> {
-  const res = await requestClient.get(`/base/material/${id}`);
+  const res = await requestClient.get(`/api/base/material/${id}`);
   const data = res?.data || res;
   return normalizeMaterialRow(data);
 }
 
 export async function createMaterial(data: Partial<MaterialResult>) {
-  const {
-    id,
-    material_code,
-    material_name,
-    specification,
-    unit,
-    category,
-    is_enabled,
-    create_by,
-    create_time,
-    update_by,
-    update_time,
-    ...rest
-  } = data as any;
-  return requestClient.post('/base/material', { ...rest });
+  return requestClient.post('/api/base/material', data);
 }
 
 export async function updateMaterial(data: Partial<MaterialResult>) {
@@ -82,34 +68,21 @@ export async function updateMaterial(data: Partial<MaterialResult>) {
   if (!id) {
     throw new Error('物料ID不能为空');
   }
-  const {
-    material_code,
-    material_name,
-    specification,
-    unit,
-    category,
-    is_enabled,
-    create_by,
-    create_time,
-    update_by,
-    update_time,
-    ...rest
-  } = data as any;
-  return requestClient.put(`/base/material/${id}`, { ...rest });
+  return requestClient.put(`/api/base/material/${id}`, data);
 }
 
 export async function toggleMaterialStatus(id: number, enabled: number) {
-  return requestClient.patch(`/base/material/${id}/status`, null, {
+  return requestClient.patch(`/api/base/material/${id}/status`, null, {
     params: { enabled },
   });
 }
 
 export async function deleteMaterial(id: number) {
-  return requestClient.delete(`/base/material/${id}`);
+  return requestClient.delete(`/api/base/material/${id}`);
 }
 
 export async function exportMaterial(params: MaterialQuery) {
-  return requestClient.post('/base/material/export', params, {
+  return requestClient.post('/api/base/material/export', params, {
     responseType: 'blob',
   });
 }

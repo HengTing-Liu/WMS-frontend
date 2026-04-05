@@ -1,0 +1,6 @@
+feat(material): 物料档案页面接入 WmsSearchBar 动态表单
+
+- /wms/material 页面使用 WmsSearchBar 替代静态搜索
+- 新增 WmsFilterBar 组件支持物料筛选
+- 完善多语言 page.json 配置
+- 对接物料 CRUD API
