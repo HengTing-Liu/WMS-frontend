@@ -60,13 +60,15 @@ export interface SortOrderItem {
  * 获取字段元数据列表（分页+模糊搜索）
  */
 export async function getColumnMetaList(params?: ColumnMetaQuery) {
-  const res = await requestClient.get<ColumnMetaApi.ColumnMetaListResult>(
+  // requestClient 已自动提取 data 字段，所以 res 直接就是数组
+  const res = await requestClient.get<any>(
     '/api/system/meta/column',
     { params },
   );
+  // res 已经是数组格式了
   return {
-    total: res?.total || 0,
-    rows: res?.rows || [],
+    total: res?.length || 0,
+    rows: Array.isArray(res) ? res : [],
   };
 }
 
@@ -140,10 +142,11 @@ export async function getTableMetaListForSelect() {
 /**
  * 获取指定表的字段列表（用于复制）
  */
-export async function getColumnMetaByTableId(tableId: number) {
-  const res = await requestClient.get<ColumnMetaApi.ColumnMetaListResult>(
+export async function getColumnMetaByTableId(tableCode: string) {
+  // requestClient 已自动提取 data 字段
+  const res = await requestClient.get<any>(
     '/api/system/meta/column',
-    { params: { tableId, pageNum: 1, pageSize: 1000 } },
+    { params: { tableCode, pageNum: 1, pageSize: 1000 } },
   );
-  return res?.rows || [];
+  return Array.isArray(res) ? res : [];
 }

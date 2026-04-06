@@ -114,7 +114,46 @@ function setupAccessGuard(router: Router) {
       //   return 
       //   } 
     // 是否已经生成过动态路由
-    if (accessStore.isAccessChecked ) {
+    // 注意：刷新页面时 Vue Router 会被重置，但 accessRoutes 还在 store 中
+    // 如果已经检查过权限且有路由数据，直接跳过重新生成
+    if (accessStore.isAccessChecked && accessStore.accessRoutes?.length > 0) {
+      // 刷新后 Vue Router 中的动态路由可能已被重置
+      // 检查当前路由是否已经在 router 中
+      const currentRoute = to;
+      const existingRoutes = router.getRoutes();
+      const routeExists = existingRoutes.some(
+        (r) => r.path === currentRoute.path || r.name === currentRoute.name
+      );
+      
+      if (routeExists) {
+        // 路由已在 router 中，继续
+        return true;
+      }
+      
+      // 路由不在 router 中，需要添加
+      // 递归添加路由到 router
+      const addRoutesToRouter = (routes: any[], parentPath = '') => {
+        for (const route of routes) {
+          const fullPath = parentPath ? `${parentPath}/${route.path}`.replace(/\/\//g, '/') : route.path;
+          if (route.component || route.children) {
+            router.addRoute(fullPath, route);
+          }
+          if (route.children) {
+            addRoutesToRouter(route.children, fullPath);
+          }
+        }
+      };
+      
+      // 从 Root 开始添加
+      const rootRoute = router.getRoutes().find(r => r.path === '/' || r.name === 'Root');
+      if (rootRoute && rootRoute.children) {
+        // 先添加父路由的子路由
+        for (const route of accessStore.accessRoutes) {
+          router.addRoute(route);
+        }
+      }
+      
+      // 继续导航
       return true;
     }
 

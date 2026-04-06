@@ -78,6 +78,7 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
             'sys/material/index',
             'wms/material/index',
             'system/tableMeta/index',
+            'system/columnMeta/index',
             'meta/table',
           ];
           
@@ -95,14 +96,19 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
           return undefined;
         };
         
-        // 过滤掉 component 为 undefined 的路由
+        // 过滤掉无效的路由（没有 path 且没有有效 children 的路由）
         const filterValidRoutes = (routeList: any[]): any[] => {
           if (!Array.isArray(routeList)) return [];
           return routeList
-            .filter(route => route.component !== undefined)
+            .filter(route => route?.path || (route?.children && route.children.length > 0))
             .map(route => {
               const newRoute = { ...route };
+              // 递归过滤 children
               if (newRoute.children) {
+                // 过滤掉 children 中的空对象
+                newRoute.children = newRoute.children
+                  .filter(child => child && Object.keys(child).length > 0)
+                  .map(child => ({ ...child }));
                 newRoute.children = filterValidRoutes(newRoute.children);
               }
               return newRoute;

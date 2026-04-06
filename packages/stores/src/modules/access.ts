@@ -123,6 +123,8 @@ export const useAccessStore = defineStore('core-access', {
       'accessCodes',
       'isLockScreen',
       'lockScreenPassword',
+      'isAccessChecked',
+      'firstMenuPath',
     ],
   },
   state: (): AccessState => ({
