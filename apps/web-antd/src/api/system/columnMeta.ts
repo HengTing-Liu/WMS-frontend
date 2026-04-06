@@ -41,6 +41,7 @@ export namespace ColumnMetaApi {
 
 // 导出请求参数
 export interface ColumnMetaQuery {
+  tableCode?: string;
   tableId?: number;
   columnCode?: string;
   columnName?: string;

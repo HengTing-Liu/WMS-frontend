@@ -10,7 +10,7 @@
           <div class="filter-item">
             <span class="filter-label">所属表：</span>
             <Select
-              v-model:value="selectedTableId"
+              v-model:value="selectedTableCode"
               :loading="tableLoading"
               placeholder="请选择表"
               style="width: 280px"
@@ -18,7 +18,7 @@
               :filter-option="filterTableOption"
               @change="handleTableChange"
             >
-              <Select.Option v-for="table in tableList" :key="table.id" :value="table.id">
+              <Select.Option v-for="table in tableList" :key="table.tableCode" :value="table.tableCode">
                 {{ table.tableCode }} - {{ table.tableName }}
               </Select.Option>
             </Select>
@@ -37,13 +37,13 @@
 
           <!-- 操作按钮 -->
           <div class="filter-actions">
-            <Button type="primary" :disabled="!selectedTableId" @click="handleAdd">
+            <Button type="primary" :disabled="!selectedTableCode" @click="handleAdd">
               <Plus class="btn-icon" /> 新增字段
             </Button>
-            <Button :disabled="!selectedTableId" @click="handleBatchAdd">
+            <Button :disabled="!selectedTableCode" @click="handleBatchAdd">
               <Copy class="btn-icon" /> 批量新增
             </Button>
-            <Button :disabled="!selectedTableId" @click="handleCopyFrom">
+            <Button :disabled="!selectedTableCode" @click="handleCopyFrom">
               <Copy class="btn-icon" /> 从其他表复制
             </Button>
             <Popconfirm
@@ -64,7 +64,7 @@
 
     <!-- 拖拽排序提示 -->
     <Alert
-      v-if="selectedTableId"
+      v-if="selectedTableCode"
       type="info"
       show-icon
       class="sort-hint"
@@ -169,7 +169,7 @@
     </WmsDataTable>
 
     <!-- 空状态 -->
-    <div v-if="!selectedTableId" class="empty-state">
+    <div v-if="!selectedTableCode" class="empty-state">
       <IconifyIcon icon="material-symbols:table" class="empty-icon" />
       <p>请先选择一个表</p>
     </div>
@@ -179,21 +179,21 @@
       v-model:visible="modalVisible"
       :mode="modalMode"
       :data="currentRecord"
-      :table-id="selectedTableId"
+      :table-code="selectedTableCode"
       @success="handleModalSuccess"
     />
 
     <!-- 批量新增弹窗 -->
     <BatchAddModal
       v-model:visible="batchModalVisible"
-      :table-id="selectedTableId"
+      :table-code="selectedTableCode"
       @success="handleModalSuccess"
     />
 
     <!-- 从其他表复制弹窗 -->
     <CopyFromModal
       v-model:visible="copyModalVisible"
-      :table-id="selectedTableId"
+      :table-code="selectedTableCode"
       :table-list="tableList"
       @success="handleModalSuccess"
     />
@@ -238,7 +238,7 @@ const loading = ref(false);
 const tableLoading = ref(false);
 const tableData = ref<ColumnMetaApi.ColumnMeta[]>([]);
 const selectedRowKeys = ref<Array<number | string>>([]);
-const selectedTableId = ref<number | undefined>(undefined);
+const selectedTableCode = ref<string | undefined>(undefined);
 const tableList = ref<{ id: number; tableCode: string; tableName: string }[]>([]);
 const searchKeyword = ref('');
 
@@ -286,7 +286,7 @@ async function loadTableList() {
 }
 
 async function loadData() {
-  if (!selectedTableId.value) {
+  if (!selectedTableCode.value) {
     tableData.value = [];
     return;
   }
@@ -294,7 +294,7 @@ async function loadData() {
   loading.value = true;
   try {
     const res = await getColumnMetaList({
-      tableId: selectedTableId.value,
+      tableCode: selectedTableCode.value,
       pageNum: 1,
       pageSize: 1000,
     });
@@ -321,7 +321,7 @@ async function loadData() {
 
 // ========== 事件处理 ==========
 function handleTableChange(value: number) {
-  selectedTableId.value = value;
+  selectedTableCode.value = value;
   searchKeyword.value = '';
   loadData();
 }
@@ -336,7 +336,7 @@ function handleSearch() {
 }
 
 function handleAdd() {
-  if (!selectedTableId.value) {
+  if (!selectedTableCode.value) {
     message.warning('请先选择表');
     return;
   }
@@ -381,7 +381,7 @@ async function handleBatchDelete() {
 }
 
 function handleBatchAdd() {
-  if (!selectedTableId.value) {
+  if (!selectedTableCode.value) {
     message.warning('请先选择表');
     return;
   }
@@ -389,7 +389,7 @@ function handleBatchAdd() {
 }
 
 function handleCopyFrom() {
-  if (!selectedTableId.value) {
+  if (!selectedTableCode.value) {
     message.warning('请先选择表');
     return;
   }
