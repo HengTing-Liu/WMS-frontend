@@ -61,6 +61,30 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
+          title: 'table_meta',
+        },
+        name: 'TableMeta',
+        path: '/meta/table',
+        component: () => import('#/views/system/tableMeta/index.vue'),
+      },
+      {
+        meta: {
+          title: 'table_meta',
+        },
+        name: 'TableMeta',
+        path: 'meta/table',
+        component: () => import('#/views/system/tableMeta/index.vue'),
+      },
+      {
+        meta: {
+          title: '表元数据',
+        },
+        name: 'TableMeta',
+        path: 'meta/table',
+        component: () => import('#/views/system/tableMeta/index.vue'),
+      },
+      {
+        meta: {
           title: '日志管理',
         },
         name: 'LogManager',

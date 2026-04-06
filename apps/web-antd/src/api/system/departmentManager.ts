@@ -71,4 +71,14 @@ async function editDept(body: DeptSaveBody) {
   return requestClient.put('/api/dept/edit', body, { responseReturn: 'body' });
 }
 
-export { getDeptList, deleteDept, addDept, editDept };
+/**
+ * 获取部门详情
+ * GET /api/dept/{deptId}
+ */
+async function getDeptById(deptId: number | string) {
+  return requestClient.get<DeptApi.DeptItem>(`/api/dept/${deptId}`, {
+    responseReturn: 'body',
+  });
+}
+
+export { getDeptList, deleteDept, addDept, editDept, getDeptById };

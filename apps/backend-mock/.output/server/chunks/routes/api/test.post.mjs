@@ -1,12 +1,12 @@
-import { d as defineEventHandler } from '../../nitro/nitro.mjs';
+import { g as defineEventHandler } from '../../_/nitro.mjs';
 import 'node:http';
 import 'node:https';
 import 'node:events';
 import 'node:buffer';
 import 'node:fs';
+import 'node:url';
 import 'node:path';
 import 'node:crypto';
-import 'node:url';
 
 const test_post = defineEventHandler(() => "Test post handler");
 

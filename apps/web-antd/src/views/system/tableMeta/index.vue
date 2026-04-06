@@ -1,122 +1,123 @@
 <template>
-  <Page auto-content-height>
-    <div class="p-4">
-      <!-- 低代码搜索栏 -->
-      <LcSearchBar
-        ref="searchBarRef"
-        :fields="searchFields"
-        :columns="4"
+  <WmsPageLayout>
+    <template #header>
+      <WmsFilterBar
+        v-model:fields="filterFields"
         @search="handleSearch"
         @reset="handleReset"
       />
+    </template>
 
-      <!-- 工具栏 -->
-      <div class="mb-4 flex gap-2">
-        <Button
-          v-access:code="'system:meta:table:manage'"
-          type="primary"
-          @click="handleAdd"
-        >
-          <IconifyIcon icon="material-symbols:add" class="mr-1" />
-          {{ $t('page.common.add') }}
-        </Button>
-        <Popconfirm
-          title="是否确认批量删除?"
-          ok-text="确认"
-          cancel-text="取消"
-          @confirm="handleBatchDelete"
-        >
-          <Button
-            v-access:code="'system:meta:table:manage'"
-            danger
-            :disabled="selectedRows.length === 0"
-          >
-            <IconifyIcon icon="material-symbols:delete" class="mr-1" />
-            {{ $t('page.common.batchDelete') }}
-          </Button>
-        </Popconfirm>
-      </div>
+    <template #actions>
+      <Button type="primary" :loading="exporting" @click="handleExport">
+        <template #icon><Download /></template>
+        导出
+      </Button>
+      <Button type="primary" @click="handleAdd">
+        <template #icon><Plus /></template>
+        新建
+      </Button>
+    </template>
 
-      <!-- 低代码表格 -->
-      <LcTable
-        ref="tableRef"
-        :columns="tableColumns"
-        :api="tableApi"
-        :actions="tableActions"
-        :query-params="queryParams"
-        perm-prefix="system:meta:table"
-        @edit="handleEdit"
-        @delete="handleDelete"
-        @selection-change="handleSelectionChange"
-        @status-change="handleStatusChange"
-      />
+    <WmsDataTable
+      ref="tableRef"
+      :columns="columns"
+      :data-source="tableData"
+      :loading="loading"
+      :pagination="pagination"
+      :row-selection="rowSelection"
+      @change="handleTableChange"
+    >
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'isTree'">
+          {{ record.isTree === 1 ? '是' : '否' }}
+        </template>
+        <template v-else-if="column.key === 'status'">
+          <Switch
+            :checked="record.status === 1"
+            @change="(checked: boolean) => handleToggleStatus(record, checked)"
+          />
+        </template>
+        <template v-else-if="column.key === 'action'">
+          <Space>
+            <Button type="link" size="small" @click="handleEdit(record)">
+              编辑
+            </Button>
+            <Popconfirm
+              title="是否确认删除?"
+              ok-text="确认"
+              cancel-text="取消"
+              @confirm="handleDelete(record)"
+            >
+              <Button type="link" size="small" danger>
+                删除
+              </Button>
+            </Popconfirm>
+          </Space>
+        </template>
+      </template>
+    </WmsDataTable>
 
-      <!-- 低代码表单弹窗 -->
-      <LcForm
-        ref="formRef"
-        :fields="formFields"
-        :api="formApi"
-        mode="modal"
-        :width="700"
-        @success="handleFormSuccess"
-      />
-    </div>
-  </Page>
+    <!-- 编辑弹窗 -->
+    <TableMetaModal
+      v-model:visible="modalVisible"
+      :mode="modalMode"
+      :data="currentRecord"
+      @success="handleModalSuccess"
+    />
+  </WmsPageLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
-import { Button, Popconfirm, message } from 'ant-design-vue';
-import { IconifyIcon } from '@vben/icons';
-import { Page } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-
-// 低代码组件
-import LcSearchBar from '#/components/lc/LcSearchBar.vue';
-import LcTable from '#/components/lc/LcTable.vue';
-import LcForm from '#/components/lc/LcForm.vue';
-import type { LcFormField, LcTableColumn, LcTableAction } from '#/components/lc/types';
-
-// API
+import { ref, reactive, computed, onMounted, toRaw } from 'vue';
+import { Button, Popconfirm, Space, Switch, message } from 'ant-design-vue';
+import { Plus, Download } from 'lucide-vue-next';
+import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
+import { WmsDataTable, WmsFilterBar, WmsPageLayout } from '#/components/wms';
+import TableMetaModal from './modules/table-meta-modal.vue';
 import {
   getTableMetaList,
-  getTableMetaById,
-  addTableMeta,
-  updateTableMeta,
   deleteTableMeta,
   toggleTableMetaStatus,
-  type TableMetaApi,
+  exportTableMeta,
+  type TableMetaResult,
+  type TableMetaQuery,
 } from '#/api/system/tableMeta';
 
-// 组件ref
-const searchBarRef = ref<InstanceType<typeof LcSearchBar>>();
-const tableRef = ref<InstanceType<typeof LcTable>>();
-const formRef = ref<InstanceType<typeof LcForm>>();
+const loading = ref(false);
+const exporting = ref(false);
+const tableData = ref<TableMetaResult[]>([]);
+const selectedRowKeys = ref<Array<number | string>>([]);
+const tableRef = ref();
 
-// 查询参数
-const queryParams = reactive<Record<string, any>>({});
+const modalVisible = ref(false);
+const modalMode = ref<'add' | 'edit'>('add');
+const currentRecord = ref<TableMetaResult | null>(null);
 
-// 选中的行
-const selectedRows = ref<any[]>([]);
+// 分页
+const pagination = reactive<TablePaginationConfig>({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  showSizeChanger: true,
+  showTotal: (total) => `共 ${total} 条`,
+});
 
-// ==================== 搜索字段配置 ====================
-const searchFields = computed<LcFormField[]>(() => [
+// 查询表单
+const queryForm = reactive<TableMetaQuery>({
+  tableCode: '',
+  tableName: '',
+  module: '',
+});
+
+// 筛选字段
+const filterFields = computed(() => [
+  { key: 'tableCode', label: '表编码', type: 'input' as const, placeholder: '请输入表编码' },
+  { key: 'tableName', label: '表名称', type: 'input' as const, placeholder: '请输入表名称' },
   {
-    fieldCode: 'tableCode',
-    fieldName: '表编码',
-    fieldType: 'string',
-    placeholder: '请输入表编码',
-  },
-  {
-    fieldCode: 'tableName',
-    fieldName: '表名称',
-    fieldType: 'string',
-    placeholder: '请输入表名称',
-  },
-  {
-    fieldCode: 'module',
-    fieldName: '所属模块',
-    fieldType: 'select',
+    key: 'module',
+    label: '所属模块',
+    type: 'select' as const,
     placeholder: '请选择所属模块',
     options: [
       { label: '基础', value: 'base' },
@@ -126,230 +127,140 @@ const searchFields = computed<LcFormField[]>(() => [
   },
 ]);
 
-// ==================== 表格列配置 ====================
-const tableColumns = computed<LcTableColumn[]>(() => [
-  { field: 'tableCode', title: '表编码', width: 150, fixed: 'left' },
-  { field: 'tableName', title: '表名称', width: 180 },
-  { field: 'module', title: '所属模块', width: 100 },
-  { field: 'entityClass', title: '实体类名', width: 200, showOverflow: 'tooltip' },
-  { field: 'serviceClass', title: '服务类名', width: 200, showOverflow: 'tooltip' },
-  { field: 'permissionCode', title: '权限标识', width: 150 },
-  { field: 'pageSize', title: '默认页大小', width: 100, align: 'center' },
-  {
-    field: 'isTree',
-    title: '是否树形',
-    width: 90,
-    align: 'center',
-    formatter: (row: any) => (row.isTree === 1 ? '是' : '否'),
-  },
-  {
-    field: 'status',
-    title: '状态',
-    width: 80,
-    align: 'center',
-    slots: 'status',
-  },
-  { field: 'remark', title: '备注', width: 200, showOverflow: 'tooltip' },
-  { field: 'createTime', title: '创建时间', width: 160 },
-  { field: 'action', title: '操作', width: 180, fixed: 'right' },
+// 表格列
+const columns = computed<TableColumnsType<TableMetaResult>>(() => [
+  { title: '序号', key: 'index', width: 70, customRender: ({ index }) => `${((pagination.current || 1) - 1) * (pagination.pageSize || 10) + index + 1}` },
+  { title: '表编码', dataIndex: 'tableCode', key: 'tableCode', width: 150 },
+  { title: '表名称', dataIndex: 'tableName', key: 'tableName', width: 180 },
+  { title: '所属模块', dataIndex: 'module', key: 'module', width: 100 },
+  { title: '实体类名', dataIndex: 'entityClass', key: 'entityClass', width: 200, ellipsis: true },
+  { title: '服务类名', dataIndex: 'serviceClass', key: 'serviceClass', width: 200, ellipsis: true },
+  { title: '权限标识', dataIndex: 'permissionCode', key: 'permissionCode', width: 150 },
+  { title: '默认页大小', dataIndex: 'pageSize', key: 'pageSize', width: 100, align: 'center' },
+  { title: '是否树形', key: 'isTree', width: 90, align: 'center' },
+  { title: '状态', key: 'status', width: 80, align: 'center' },
+  { title: '备注', dataIndex: 'remark', key: 'remark', width: 200, ellipsis: true },
+  { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 160 },
+  { title: '操作', key: 'action', width: 140, fixed: 'right' },
 ]);
 
-// ==================== 表格操作按钮配置 ====================
-const tableActions = computed<LcTableAction[]>(() => [
-  {
-    key: 'edit',
-    label: $t('page.common.edit'),
-    perm: 'manage',
+const rowSelection = computed(() => ({
+  selectedRowKeys: selectedRowKeys.value,
+  onChange: (keys: Array<number | string>) => {
+    selectedRowKeys.value = keys;
   },
-  {
-    key: 'delete',
-    label: $t('page.common.delete'),
-    danger: true,
-    perm: 'manage',
-  },
-]);
+}));
 
-// ==================== 表单字段配置 ====================
-const formFields = computed<LcFormField[]>(() => [
-  {
-    fieldCode: 'tableCode',
-    fieldName: '表编码',
-    fieldType: 'string',
-    required: true,
-    maxLength: 100,
-    placeholder: '请输入表编码，如：sys_user',
-  },
-  {
-    fieldCode: 'tableName',
-    fieldName: '表名称',
-    fieldType: 'string',
-    required: true,
-    maxLength: 200,
-    placeholder: '请输入表名称',
-  },
-  {
-    fieldCode: 'module',
-    fieldName: '所属模块',
-    fieldType: 'select',
-    required: true,
-    options: [
-      { label: '基础', value: 'base' },
-      { label: 'WMS', value: 'wms' },
-      { label: '系统', value: 'sys' },
-    ],
-    placeholder: '请选择所属模块',
-  },
-  {
-    fieldCode: 'entityClass',
-    fieldName: '实体类名',
-    fieldType: 'string',
-    maxLength: 200,
-    placeholder: '请输入实体类完整路径',
-  },
-  {
-    fieldCode: 'serviceClass',
-    fieldName: '服务类名',
-    fieldType: 'string',
-    maxLength: 200,
-    placeholder: '请输入服务类完整路径',
-  },
-  {
-    fieldCode: 'permissionCode',
-    fieldName: '权限标识',
-    fieldType: 'string',
-    maxLength: 100,
-    placeholder: '请输入权限标识',
-  },
-  {
-    fieldCode: 'pageSize',
-    fieldName: '默认页大小',
-    fieldType: 'number',
-    defaultValue: 20,
-    placeholder: '请输入默认页大小',
-  },
-  {
-    fieldCode: 'isTree',
-    fieldName: '是否树形',
-    fieldType: 'boolean',
-    defaultValue: 0,
-  },
-  {
-    fieldCode: 'status',
-    fieldName: '状态',
-    fieldType: 'boolean',
-    defaultValue: 1,
-  },
-  {
-    fieldCode: 'remark',
-    fieldName: '备注',
-    fieldType: 'textarea',
-    maxLength: 500,
-    placeholder: '请输入备注',
-  },
-]);
-
-// ==================== API配置 ====================
-const tableApi = {
-  page: getTableMetaList,
-  delete: deleteTableMeta,
-  edit: async (data: TableMetaApi.TableMeta & { id: number }) => {
-    // 如果只是状态变更，调用toggle接口
-    if (data.status !== undefined) {
-      return toggleTableMetaStatus(data.id);
-    }
-    // 否则调用更新接口
-    return updateTableMeta(data.id, data);
-  },
-};
-
-const formApi = {
-  get: getTableMetaById,
-  add: addTableMeta,
-  edit: (data: TableMetaApi.TableMeta & { id: number }) =>
-    updateTableMeta(data.id, data),
-};
-
-// ==================== 事件处理 ====================
-
-// 搜索
-function handleSearch(values: Record<string, any>) {
-  Object.assign(queryParams, values);
-  tableRef.value?.reload();
+function normalizeQuery() {
+  return {
+    tableCode: queryForm.tableCode?.trim() || undefined,
+    tableName: queryForm.tableName?.trim() || undefined,
+    module: queryForm.module || undefined,
+  };
 }
 
-// 重置
+async function loadData() {
+  loading.value = true;
+  try {
+    const res = await getTableMetaList({
+      pageNum: pagination.current || 1,
+      pageSize: pagination.pageSize || 10,
+      ...normalizeQuery(),
+    });
+    tableData.value = res?.rows || [];
+    pagination.total = res?.total || 0;
+  } catch (error: any) {
+    tableData.value = [];
+    pagination.total = 0;
+    message.error(error?.message || '表元数据列表加载失败');
+  } finally {
+    loading.value = false;
+  }
+}
+
+function handleSearch() {
+  pagination.current = 1;
+  loadData();
+}
+
 function handleReset() {
-  Object.keys(queryParams).forEach((key) => delete queryParams[key]);
-  tableRef.value?.reload();
+  queryForm.tableCode = '';
+  queryForm.tableName = '';
+  queryForm.module = '';
+  selectedRowKeys.value = [];
+  pagination.current = 1;
+  loadData();
 }
 
-// 新增
+function handleTableChange(page: TablePaginationConfig) {
+  pagination.current = page.current || 1;
+  pagination.pageSize = page.pageSize || 10;
+  loadData();
+}
+
 function handleAdd() {
-  formRef.value?.openAdd();
+  modalMode.value = 'add';
+  currentRecord.value = null;
+  modalVisible.value = true;
 }
 
-// 编辑
-function handleEdit(row: TableMetaApi.TableMeta) {
-  formRef.value?.openEdit(row);
+function handleEdit(record: TableMetaResult) {
+  modalMode.value = 'edit';
+  currentRecord.value = record;
+  modalVisible.value = true;
 }
 
-// 删除
-async function handleDelete(row: TableMetaApi.TableMeta) {
-  if (!row.id) return;
+async function handleDelete(record: TableMetaResult) {
+  if (!record.id) return;
   try {
-    await deleteTableMeta(row.id);
-    message.success($t('page.common.deleteSuccess'));
-    tableRef.value?.reload();
-  } catch (error: any) {
-    message.error(error.message || $t('page.common.deleteFailed'));
-  }
-}
-
-// 批量删除
-async function handleBatchDelete() {
-  if (selectedRows.value.length === 0) {
-    message.warning('请选择要删除的数据');
-    return;
-  }
-  try {
-    for (const row of selectedRows.value) {
-      if (row.id) {
-        await deleteTableMeta(row.id);
-      }
+    await deleteTableMeta(record.id);
+    message.success('删除成功');
+    if (tableData.value.length === 1 && (pagination.current || 1) > 1) {
+      pagination.current = (pagination.current || 1) - 1;
     }
-    message.success($t('page.common.batchDeleteSuccess'));
-    selectedRows.value = [];
-    tableRef.value?.reload();
+    selectedRowKeys.value = selectedRowKeys.value.filter((key) => key !== record.id);
+    await loadData();
   } catch (error: any) {
-    message.error(error.message || $t('page.common.deleteFailed'));
+    message.error(error?.message || '删除失败');
   }
 }
 
-// 选中行变化
-function handleSelectionChange(rows: any[]) {
-  selectedRows.value = rows;
-}
-
-// 表单提交成功
-function handleFormSuccess() {
-  tableRef.value?.reload();
-}
-
-// 启用/禁用状态切换
-async function handleStatusChange(row: TableMetaApi.TableMeta) {
-  if (!row.id) return;
+async function handleToggleStatus(record: TableMetaResult, checked: boolean) {
   try {
-    await toggleTableMetaStatus(row.id);
-    message.success(
-      row.status === 1
-        ? $t('page.common.disableSuccess')
-        : $t('page.common.enableSuccess'),
-    );
-    tableRef.value?.reload();
+    await toggleTableMetaStatus(record.id!, checked ? 1 : 0);
+    message.success(checked ? '启用成功' : '停用成功');
+    await loadData();
   } catch (error: any) {
-    message.error(error.message || $t('page.common.statusChangeFailed'));
-    // 刷新表格恢复原始状态
-    tableRef.value?.reload();
+    message.error(error?.message || '状态切换失败');
+    await loadData();
   }
 }
+
+async function handleExport() {
+  exporting.value = true;
+  try {
+    const blob = await exportTableMeta(normalizeQuery());
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `表元数据_${Date.now()}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    message.success('导出成功');
+  } catch (error: any) {
+    message.error(error?.message || '导出失败');
+  } finally {
+    exporting.value = false;
+  }
+}
+
+function handleModalSuccess() {
+  loadData();
+}
+
+onMounted(() => {
+  loadData();
+});
 </script>

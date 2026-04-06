@@ -76,4 +76,6 @@ async function deleteMenu(menuId: number | string) {
 }
 
 export { getMenuList, getMenuDetail, addMenu, updateMenu, deleteMenu };
+export const getMenuById = getMenuDetail;
+export const editMenu = updateMenu;
 

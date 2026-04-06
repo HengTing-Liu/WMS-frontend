@@ -1,4 +1,4 @@
-import { m as getHeader } from '../nitro/nitro.mjs';
+import { v as getHeader } from './nitro.mjs';
 import jwt from 'jsonwebtoken';
 import { a as MOCK_USERS } from './mock-data.mjs';
 

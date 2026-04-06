@@ -40,7 +40,6 @@ export function addDept(data: any) {
 export function updateDept(data: any) {
   return requestClient.put('/system/dept', data);
 }
-export const editDept = updateDept;
 
 /**
  * 修改部门状态

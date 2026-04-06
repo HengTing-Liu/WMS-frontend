@@ -26,17 +26,29 @@ export namespace TableMetaApi {
   }
 
   // 列表查询响应
-  export interface TableMetaResult {
+  export interface TableMetaListResult {
     total: number;
     rows: TableMeta[];
   }
+
+  // 单条记录结果
+  export interface TableMetaResult extends TableMeta {}
+}
+
+// 导出请求参数
+export interface TableMetaQuery {
+  tableCode?: string;
+  tableName?: string;
+  module?: string;
+  pageNum?: number;
+  pageSize?: number;
 }
 
 /**
  * 获取表元数据列表（分页+模糊搜索）
  */
-export async function getTableMetaList(params?: Recordable<any>) {
-  const res = await requestClient.get<TableMetaApi.TableMetaResult>(
+export async function getTableMetaList(params?: TableMetaQuery) {
+  const res = await requestClient.get<TableMetaApi.TableMetaListResult>(
     '/api/system/meta/table',
     { params },
   );
@@ -50,7 +62,7 @@ export async function getTableMetaList(params?: Recordable<any>) {
  * 获取表元数据详情
  */
 export async function getTableMetaById(id: string | number) {
-  return requestClient.get<TableMetaApi.TableMeta>(
+  return requestClient.get<TableMetaApi.TableMetaResult>(
     `/api/system/meta/table/${id}`,
   );
 }
@@ -59,7 +71,7 @@ export async function getTableMetaById(id: string | number) {
  * 通过编码查询表元数据
  */
 export async function getTableMetaByCode(code: string) {
-  return requestClient.get<TableMetaApi.TableMeta>(
+  return requestClient.get<TableMetaApi.TableMetaResult>(
     `/api/system/meta/table/code/${code}`,
   );
 }
@@ -67,7 +79,7 @@ export async function getTableMetaByCode(code: string) {
 /**
  * 新增表元数据
  */
-export async function addTableMeta(data: TableMetaApi.TableMeta) {
+export async function addTableMeta(data: Partial<TableMetaApi.TableMeta>) {
   return requestClient.post('/api/system/meta/table', data, {
     responseReturn: 'body',
   });
@@ -76,11 +88,8 @@ export async function addTableMeta(data: TableMetaApi.TableMeta) {
 /**
  * 更新表元数据
  */
-export async function updateTableMeta(
-  id: string | number,
-  data: TableMetaApi.TableMeta,
-) {
-  return requestClient.put(`/api/system/meta/table/${id}`, data, {
+export async function updateTableMeta(data: Partial<TableMetaApi.TableMeta>) {
+  return requestClient.put(`/api/system/meta/table/${data.id}`, data, {
     responseReturn: 'body',
   });
 }
@@ -97,8 +106,17 @@ export async function deleteTableMeta(id: string | number) {
 /**
  * 启用/禁用切换
  */
-export async function toggleTableMetaStatus(id: string | number) {
-  return requestClient.put(`/api/system/meta/table/${id}/toggle`, null, {
+export async function toggleTableMetaStatus(id: string | number, status: number) {
+  return requestClient.put(`/api/system/meta/table/${id}/toggle`, { status }, {
     responseReturn: 'body',
+  });
+}
+
+/**
+ * 导出表元数据（待后端实现）
+ */
+export async function exportTableMeta(params?: TableMetaQuery) {
+  return requestClient.post('/api/system/meta/table/export', params, {
+    responseType: 'blob',
   });
 }

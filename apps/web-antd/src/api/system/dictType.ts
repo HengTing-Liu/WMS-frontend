@@ -103,6 +103,106 @@ async function refreshDictCache() {
   return requestClient.get('/api/dict/type/refreshCache', { responseReturn: 'body' });
 }
 
+// ========== 字典数据函数 ==========
+
+export interface DictDataItem {
+  dictCode: number;
+  dictSort: number;
+  dictLabel: string;
+  dictValue: string;
+  dictType: string;
+  cssClass?: string;
+  listClass?: string;
+  isDefault?: string;
+  status: string;
+  createBy?: string | null;
+  createTime?: string;
+  updateBy?: string | null;
+  updateTime?: string | null;
+  remark?: string | null;
+  [key: string]: any;
+}
+
+/**
+ * 获取字典数据列表
+ * GET /api/dict/data/list
+ */
+async function getDictDataList(params?: {
+  pageNum?: number;
+  pageSize?: number;
+  dictType?: string;
+  dictLabel?: string;
+  status?: string;
+}) {
+  return requestClient.get<{ total: number; rows: DictDataItem[] }>('/api/dict/data/list', {
+    params,
+    responseReturn: 'body',
+  });
+}
+
+/**
+ * 获取字典数据详情
+ * GET /api/dict/data/{dictCode}
+ */
+async function getDictDataDetail(dictCode: number) {
+  return requestClient.get<DictDataItem>(`/api/dict/data/${dictCode}`, {
+    responseReturn: 'body',
+  });
+}
+
+/**
+ * 新增字典数据
+ * POST /api/dict/data
+ */
+async function addDictData(data: {
+  dictSort: number;
+  dictLabel: string;
+  dictValue: string;
+  dictType: string;
+  cssClass?: string;
+  listClass?: string;
+  isDefault?: string;
+  status: string;
+  remark?: string;
+}) {
+  return requestClient.post('/api/dict/data', data, { responseReturn: 'body' });
+}
+
+/**
+ * 编辑字典数据
+ * PUT /api/dict/data
+ */
+async function editDictData(data: {
+  dictCode: number;
+  dictSort: number;
+  dictLabel: string;
+  dictValue: string;
+  dictType: string;
+  cssClass?: string;
+  listClass?: string;
+  isDefault?: string;
+  status: string;
+  remark?: string;
+}) {
+  return requestClient.put('/api/dict/data', data, { responseReturn: 'body' });
+}
+
+/**
+ * 删除字典数据
+ * DELETE /api/dict/data/{dictCode}
+ */
+async function deleteDictData(dictCode: number) {
+  return requestClient.delete(`/api/dict/data/${dictCode}`, { responseReturn: 'body' });
+}
+
+/**
+ * 修改字典数据状态
+ * PUT /api/dict/data/changeStatus
+ */
+async function changeDictDataStatus(dictCode: number, status: string) {
+  return requestClient.put('/api/dict/data/changeStatus', { dictCode, status }, { responseReturn: 'body' });
+}
+
 export {
   getDictTypeList,
   addDictType,
@@ -111,4 +211,10 @@ export {
   deleteDictType,
   exportDictType,
   refreshDictCache,
+  getDictDataList,
+  getDictDataDetail,
+  addDictData,
+  editDictData,
+  deleteDictData,
+  changeDictDataStatus,
 };

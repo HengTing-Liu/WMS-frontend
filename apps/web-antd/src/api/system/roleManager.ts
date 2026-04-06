@@ -112,6 +112,24 @@ async function getRoleMenuTreeSelect(roleId: number | string) {
 }
 
 /**
+ * 获取角色菜单树
+ * GET /api/menu/roleMenuTreeselect/{roleId}
+ */
+async function getRoleMenuTree(roleId: number | string) {
+  return requestClient.get<any>(`/api/menu/roleMenuTreeselect/${roleId}`, {
+    responseReturn: 'body',
+  });
+}
+
+/**
+ * 分配角色菜单
+ * PUT /api/menu/assignMenu
+ */
+async function assignRoleMenu(data: { roleId: number | string; menuIds: number[] }) {
+  return requestClient.put('/api/menu/assignMenu', data, { responseReturn: 'body' });
+}
+
+/**
  * 新增角色
  * POST /api/role/add
  */
@@ -278,4 +296,7 @@ export {
   authUserCancel,
   authUserAdd,
   authUserSelectAll,
+  getRoleMenuTree,
+  assignRoleMenu,
 };
+export const getRoleById = getRoleDetail;

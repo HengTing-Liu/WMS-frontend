@@ -18,8 +18,20 @@ declare module "nitropack/types" {
     '/api/demo/bigint': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../api/demo/bigint').default>>>>
     }
+    '/api/login': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../api/login.post').default>>>>
+    }
     '/api/menu/all': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../api/menu/all').default>>>>
+    }
+    '/api/menu/getRouters': {
+      'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../api/menu/getRouters').default>>>>
+    }
+    '/api/menu/list': {
+      'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../api/menu/list').default>>>>
+    }
+    '/api/menu/tree': {
+      'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../api/menu/tree').default>>>>
     }
     '/api/status': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../api/status').default>>>>
@@ -64,6 +76,9 @@ declare module "nitropack/types" {
     }
     '/api/upload': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../api/upload').default>>>>
+    }
+    '/api/user/getInfo': {
+      'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../api/user/getInfo').default>>>>
     }
     '/api/user/info': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../api/user/info').default>>>>
