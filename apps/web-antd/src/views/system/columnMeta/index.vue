@@ -231,7 +231,7 @@ import {
   getTableMetaListForSelect,
   type ColumnMetaApi,
 } from '#/api/system/columnMeta';
-import { useSortable } from '@vben-core/composables';
+import { useSortable } from '@vben/hooks';
 
 // ========== 状态 ==========
 const loading = ref(false);
