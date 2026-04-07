@@ -167,7 +167,7 @@ function normalizeSysPermissionRow(row: any): SysPermissionResult {
  * 分页查询权限列表
  */
 export async function listSysPermissionPage(params: SysPermissionQuery & Recordable<any>) {
-  const res = await requestClient.get('/base/permission/list', { params });
+  const res = await requestClient.get('/system/permission/list', { params });
   const rawRows = res?.rows || res?.list || res?.data?.rows || res?.data?.list || [];
   return {
     rows: Array.isArray(rawRows) ? rawRows.map(normalizeSysPermissionRow) : [],
@@ -179,7 +179,7 @@ export async function listSysPermissionPage(params: SysPermissionQuery & Recorda
  * 查询所有权限（不分页）
  */
 export async function listSysPermissionAll(): Promise<SysPermissionResult[]> {
-  const res = await requestClient.get('/base/permission/listAll');
+  const res = await requestClient.get('/system/permission/listAll');
   const rawRows = res?.data || res?.list || res || [];
   return Array.isArray(rawRows) ? rawRows.map(normalizeSysPermissionRow) : [];
 }
@@ -188,7 +188,7 @@ export async function listSysPermissionAll(): Promise<SysPermissionResult[]> {
  * 获取权限详情
  */
 export async function getSysPermissionDetail(id: number): Promise<SysPermissionResult> {
-  const res = await requestClient.get(`/base/permission/${id}`);
+  const res = await requestClient.get(`/system/permission/${id}`);
   const data = res?.data || res;
   return normalizeSysPermissionRow(data);
 }
@@ -198,7 +198,7 @@ export async function getSysPermissionDetail(id: number): Promise<SysPermissionR
  */
 export async function createSysPermission(data: Partial<SysPermissionRequest>) {
   const { permissionId, createTime, createBy, updateTime, updateBy, ...rest } = data as any;
-  return requestClient.post('/base/permission', rest);
+  return requestClient.post('/system/permission', rest);
 }
 
 /**
@@ -210,19 +210,19 @@ export async function updateSysPermission(data: Partial<SysPermissionRequest>) {
     throw new Error('权限ID不能为空');
   }
   const { createTime, createBy, updateTime, updateBy, ...rest } = data as any;
-  return requestClient.put(`/base/permission/${id}`, rest);
+  return requestClient.put(`/system/permission/${id}`, rest);
 }
 
 /**
  * 删除权限
  */
 export async function deleteSysPermission(id: number) {
-  return requestClient.delete(`/base/permission/${id}`);
+  return requestClient.delete(`/system/permission/${id}`);
 }
 
 /**
  * 切换权限状态
  */
 export async function toggleSysPermissionStatus(id: number, enabled: number) {
-  return requestClient.patch(`/base/permission/${id}/status`, null, { params: { enabled } });
+  return requestClient.patch(`/system/permission/${id}/status`, null, { params: { enabled } });
 }

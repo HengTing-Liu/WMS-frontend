@@ -1,10 +1,9 @@
-/**
- * 字典管理 API
- * WMS0070 字典管理 - 系统字典类型和字典数据
- */
+﻿/**
+ * 瀛楀吀绠＄悊 API
+ * WMS0070 瀛楀吀绠＄悊 - 绯荤粺瀛楀吀绫诲瀷鍜屽瓧鍏告暟鎹? */
 import { requestClient } from '#/api/request';
 
-// ========== 字典类型 Types ==========
+// ========== 瀛楀吀绫诲瀷 Types ==========
 
 export interface DictTypeQuery {
   pageNum?: number;
@@ -18,8 +17,7 @@ export interface DictTypeResult {
   id?: number;
   dictCode: string;
   dictName: string;
-  dictType?: string; // system=系统字典, custom=自定义
-  isEnabled: number;
+  dictType?: string; // system=绯荤粺瀛楀吀, custom=鑷畾涔?  isEnabled: number;
   remark?: string;
   createBy?: string;
   createTime?: string;
@@ -27,25 +25,20 @@ export interface DictTypeResult {
   updateTime?: string;
 }
 
-// ========== 字典数据 Types ==========
+// ========== 瀛楀吀鏁版嵁 Types ==========
 
 export interface DictDataQuery {
   pageNum?: number;
   pageSize?: number;
-  dictType?: string; // 所属类型编码
-  dictLabel?: string;
+  dictType?: string; // 鎵€灞炵被鍨嬬紪鐮?  dictLabel?: string;
   dictValue?: string;
   isEnabled?: number;
 }
 
 export interface DictDataResult {
   id?: number;
-  dictType?: string;   // 所属类型编码
-  dictTypeName?: string; // 所属类型名称
-  dictCode?: string;  // 字典编码（同 dictType）
-  dictLabel: string;  // 字典标签
-  dictValue: string;  // 字典值
-  sortOrder?: number; // 排序
+  dictType?: string;   // 鎵€灞炵被鍨嬬紪鐮?  dictTypeName?: string; // 鎵€灞炵被鍨嬪悕绉?  dictCode?: string;  // 瀛楀吀缂栫爜锛堝悓 dictType锛?  dictLabel: string;  // 瀛楀吀鏍囩
+  dictValue: string;  // 瀛楀吀鍊?  sortOrder?: number; // 鎺掑簭
   isEnabled: number;
   remark?: string;
   createBy?: string;
@@ -92,45 +85,45 @@ function normalizeDictDataRow(row: any): DictDataResult {
 // ========== Mock Data ==========
 
 const MOCK_DICT_TYPE_LIST: DictTypeResult[] = [
-  { id: 1, dictCode: 'sys_user_sex', dictName: '用户性别', dictType: 'system', isEnabled: 1, remark: '系统内置', createTime: '2026-01-01 10:00:00' },
-  { id: 2, dictCode: 'sys_yes_no', dictName: '是否', dictType: 'system', isEnabled: 1, remark: '通用是否标识', createTime: '2026-01-01 10:05:00' },
-  { id: 3, dictCode: 'sys_normal_disable', dictName: '状态', dictType: 'system', isEnabled: 1, remark: '正常/停用状态', createTime: '2026-01-01 10:10:00' },
-  { id: 4, dictCode: 'wms_order_type', dictName: '订单类型', dictType: 'custom', isEnabled: 1, remark: 'WMS订单类型', createTime: '2026-02-01 09:00:00' },
-  { id: 5, dictCode: 'wms_goods_type', dictName: '货物类型', dictType: 'custom', isEnabled: 1, remark: '货物类型分类', createTime: '2026-02-01 09:30:00' },
-  { id: 6, dictCode: 'wms_priority', dictName: '优先级', dictType: 'custom', isEnabled: 0, remark: '订单优先级', createTime: '2026-02-15 14:00:00' },
-  { id: 7, dictCode: 'wms_zone_type', dictName: '库区类型', dictType: 'custom', isEnabled: 1, remark: '库区功能分类', createTime: '2026-03-01 08:00:00' },
-  { id: 8, dictCode: 'wms_storage_type', dictName: '货位类型', dictType: 'custom', isEnabled: 1, remark: '货位存储类型', createTime: '2026-03-01 08:30:00' },
+  { id: 1, dictCode: 'sys_user_sex', dictName: '鐢ㄦ埛鎬у埆', dictType: 'system', isEnabled: 1, remark: '绯荤粺鍐呯疆', createTime: '2026-01-01 10:00:00' },
+  { id: 2, dictCode: 'sys_yes_no', dictName: '鏄惁', dictType: 'system', isEnabled: 1, remark: '閫氱敤鏄惁鏍囪瘑', createTime: '2026-01-01 10:05:00' },
+  { id: 3, dictCode: 'sys_normal_disable', dictName: '鐘舵€?, dictType: 'system', isEnabled: 1, remark: '姝ｅ父/鍋滅敤鐘舵€?, createTime: '2026-01-01 10:10:00' },
+  { id: 4, dictCode: 'wms_order_type', dictName: '璁㈠崟绫诲瀷', dictType: 'custom', isEnabled: 1, remark: 'WMS璁㈠崟绫诲瀷', createTime: '2026-02-01 09:00:00' },
+  { id: 5, dictCode: 'wms_goods_type', dictName: '璐х墿绫诲瀷', dictType: 'custom', isEnabled: 1, remark: '璐х墿绫诲瀷鍒嗙被', createTime: '2026-02-01 09:30:00' },
+  { id: 6, dictCode: 'wms_priority', dictName: '浼樺厛绾?, dictType: 'custom', isEnabled: 0, remark: '璁㈠崟浼樺厛绾?, createTime: '2026-02-15 14:00:00' },
+  { id: 7, dictCode: 'wms_zone_type', dictName: '搴撳尯绫诲瀷', dictType: 'custom', isEnabled: 1, remark: '搴撳尯鍔熻兘鍒嗙被', createTime: '2026-03-01 08:00:00' },
+  { id: 8, dictCode: 'wms_storage_type', dictName: '璐т綅绫诲瀷', dictType: 'custom', isEnabled: 1, remark: '璐т綅瀛樺偍绫诲瀷', createTime: '2026-03-01 08:30:00' },
 ];
 
 const MOCK_DICT_DATA_LIST: DictDataResult[] = [
-  { id: 1, dictType: 'sys_user_sex', dictTypeName: '用户性别', dictLabel: '男', dictValue: '1', sortOrder: 1, isEnabled: 1, createTime: '2026-01-01 10:00:00' },
-  { id: 2, dictType: 'sys_user_sex', dictTypeName: '用户性别', dictLabel: '女', dictValue: '2', sortOrder: 2, isEnabled: 1, createTime: '2026-01-01 10:00:00' },
-  { id: 3, dictType: 'sys_user_sex', dictTypeName: '用户性别', dictLabel: '未知', dictValue: '0', sortOrder: 3, isEnabled: 1, createTime: '2026-01-01 10:00:00' },
-  { id: 4, dictType: 'sys_yes_no', dictTypeName: '是否', dictLabel: '是', dictValue: 'Y', sortOrder: 1, isEnabled: 1, createTime: '2026-01-01 10:05:00' },
-  { id: 5, dictType: 'sys_yes_no', dictTypeName: '是否', dictLabel: '否', dictValue: 'N', sortOrder: 2, isEnabled: 1, createTime: '2026-01-01 10:05:00' },
-  { id: 6, dictType: 'sys_normal_disable', dictTypeName: '状态', dictLabel: '正常', dictValue: '1', sortOrder: 1, isEnabled: 1, createTime: '2026-01-01 10:10:00' },
-  { id: 7, dictType: 'sys_normal_disable', dictTypeName: '状态', dictLabel: '停用', dictValue: '0', sortOrder: 2, isEnabled: 1, createTime: '2026-01-01 10:10:00' },
-  { id: 8, dictType: 'wms_order_type', dictTypeName: '订单类型', dictLabel: '入库单', dictValue: 'IN', sortOrder: 1, isEnabled: 1, createTime: '2026-02-01 09:00:00' },
-  { id: 9, dictType: 'wms_order_type', dictTypeName: '订单类型', dictLabel: '出库单', dictValue: 'OUT', sortOrder: 2, isEnabled: 1, createTime: '2026-02-01 09:00:00' },
-  { id: 10, dictType: 'wms_order_type', dictTypeName: '订单类型', dictLabel: '调拨单', dictValue: 'TRANSFER', sortOrder: 3, isEnabled: 1, createTime: '2026-02-01 09:00:00' },
-  { id: 11, dictType: 'wms_goods_type', dictTypeName: '货物类型', dictLabel: '普通货物', dictValue: 'NORMAL', sortOrder: 1, isEnabled: 1, createTime: '2026-02-01 09:30:00' },
-  { id: 12, dictType: 'wms_goods_type', dictTypeName: '货物类型', dictLabel: '危险品', dictValue: 'DANGER', sortOrder: 2, isEnabled: 0, createTime: '2026-02-01 09:30:00' },
-  { id: 13, dictType: 'wms_goods_type', dictTypeName: '货物类型', dictLabel: '易碎品', dictValue: 'FRAGILE', sortOrder: 3, isEnabled: 1, createTime: '2026-02-01 09:30:00' },
-  { id: 14, dictType: 'wms_priority', dictTypeName: '优先级', dictLabel: '紧急', dictValue: 'URGENT', sortOrder: 1, isEnabled: 1, createTime: '2026-02-15 14:00:00' },
-  { id: 15, dictType: 'wms_priority', dictTypeName: '优先级', dictLabel: '高', dictValue: 'HIGH', sortOrder: 2, isEnabled: 1, createTime: '2026-02-15 14:00:00' },
-  { id: 16, dictType: 'wms_priority', dictTypeName: '优先级', dictLabel: '普通', dictValue: 'NORMAL', sortOrder: 3, isEnabled: 1, createTime: '2026-02-15 14:00:00' },
-  { id: 17, dictType: 'wms_zone_type', dictTypeName: '库区类型', dictLabel: '存储区', dictValue: 'STORAGE', sortOrder: 1, isEnabled: 1, createTime: '2026-03-01 08:00:00' },
-  { id: 18, dictType: 'wms_zone_type', dictTypeName: '库区类型', dictLabel: '拣货区', dictValue: 'PICK', sortOrder: 2, isEnabled: 1, createTime: '2026-03-01 08:00:00' },
-  { id: 19, dictType: 'wms_zone_type', dictTypeName: '库区类型', dictLabel: '退货区', dictValue: 'RETURN', sortOrder: 3, isEnabled: 1, createTime: '2026-03-01 08:00:00' },
-  { id: 20, dictType: 'wms_zone_type', dictTypeName: '库区类型', dictLabel: '集货区', dictValue: 'COLLECT', sortOrder: 4, isEnabled: 1, createTime: '2026-03-01 08:00:00' },
-  { id: 21, dictType: 'wms_storage_type', dictTypeName: '货位类型', dictLabel: '平面', dictValue: 'PLANE', sortOrder: 1, isEnabled: 1, createTime: '2026-03-01 08:30:00' },
-  { id: 22, dictType: 'wms_storage_type', dictTypeName: '货位类型', dictLabel: '立体', dictValue: 'STEREO', sortOrder: 2, isEnabled: 1, createTime: '2026-03-01 08:30:00' },
-  { id: 23, dictType: 'wms_storage_type', dictTypeName: '货位类型', dictLabel: '货架', dictValue: 'RACK', sortOrder: 3, isEnabled: 1, createTime: '2026-03-01 08:30:00' },
+  { id: 1, dictType: 'sys_user_sex', dictTypeName: '鐢ㄦ埛鎬у埆', dictLabel: '鐢?, dictValue: '1', sortOrder: 1, isEnabled: 1, createTime: '2026-01-01 10:00:00' },
+  { id: 2, dictType: 'sys_user_sex', dictTypeName: '鐢ㄦ埛鎬у埆', dictLabel: '濂?, dictValue: '2', sortOrder: 2, isEnabled: 1, createTime: '2026-01-01 10:00:00' },
+  { id: 3, dictType: 'sys_user_sex', dictTypeName: '鐢ㄦ埛鎬у埆', dictLabel: '鏈煡', dictValue: '0', sortOrder: 3, isEnabled: 1, createTime: '2026-01-01 10:00:00' },
+  { id: 4, dictType: 'sys_yes_no', dictTypeName: '鏄惁', dictLabel: '鏄?, dictValue: 'Y', sortOrder: 1, isEnabled: 1, createTime: '2026-01-01 10:05:00' },
+  { id: 5, dictType: 'sys_yes_no', dictTypeName: '鏄惁', dictLabel: '鍚?, dictValue: 'N', sortOrder: 2, isEnabled: 1, createTime: '2026-01-01 10:05:00' },
+  { id: 6, dictType: 'sys_normal_disable', dictTypeName: '鐘舵€?, dictLabel: '姝ｅ父', dictValue: '1', sortOrder: 1, isEnabled: 1, createTime: '2026-01-01 10:10:00' },
+  { id: 7, dictType: 'sys_normal_disable', dictTypeName: '鐘舵€?, dictLabel: '鍋滅敤', dictValue: '0', sortOrder: 2, isEnabled: 1, createTime: '2026-01-01 10:10:00' },
+  { id: 8, dictType: 'wms_order_type', dictTypeName: '璁㈠崟绫诲瀷', dictLabel: '鍏ュ簱鍗?, dictValue: 'IN', sortOrder: 1, isEnabled: 1, createTime: '2026-02-01 09:00:00' },
+  { id: 9, dictType: 'wms_order_type', dictTypeName: '璁㈠崟绫诲瀷', dictLabel: '鍑哄簱鍗?, dictValue: 'OUT', sortOrder: 2, isEnabled: 1, createTime: '2026-02-01 09:00:00' },
+  { id: 10, dictType: 'wms_order_type', dictTypeName: '璁㈠崟绫诲瀷', dictLabel: '璋冩嫧鍗?, dictValue: 'TRANSFER', sortOrder: 3, isEnabled: 1, createTime: '2026-02-01 09:00:00' },
+  { id: 11, dictType: 'wms_goods_type', dictTypeName: '璐х墿绫诲瀷', dictLabel: '鏅€氳揣鐗?, dictValue: 'NORMAL', sortOrder: 1, isEnabled: 1, createTime: '2026-02-01 09:30:00' },
+  { id: 12, dictType: 'wms_goods_type', dictTypeName: '璐х墿绫诲瀷', dictLabel: '鍗遍櫓鍝?, dictValue: 'DANGER', sortOrder: 2, isEnabled: 0, createTime: '2026-02-01 09:30:00' },
+  { id: 13, dictType: 'wms_goods_type', dictTypeName: '璐х墿绫诲瀷', dictLabel: '鏄撶鍝?, dictValue: 'FRAGILE', sortOrder: 3, isEnabled: 1, createTime: '2026-02-01 09:30:00' },
+  { id: 14, dictType: 'wms_priority', dictTypeName: '浼樺厛绾?, dictLabel: '绱ф€?, dictValue: 'URGENT', sortOrder: 1, isEnabled: 1, createTime: '2026-02-15 14:00:00' },
+  { id: 15, dictType: 'wms_priority', dictTypeName: '浼樺厛绾?, dictLabel: '楂?, dictValue: 'HIGH', sortOrder: 2, isEnabled: 1, createTime: '2026-02-15 14:00:00' },
+  { id: 16, dictType: 'wms_priority', dictTypeName: '浼樺厛绾?, dictLabel: '鏅€?, dictValue: 'NORMAL', sortOrder: 3, isEnabled: 1, createTime: '2026-02-15 14:00:00' },
+  { id: 17, dictType: 'wms_zone_type', dictTypeName: '搴撳尯绫诲瀷', dictLabel: '瀛樺偍鍖?, dictValue: 'STORAGE', sortOrder: 1, isEnabled: 1, createTime: '2026-03-01 08:00:00' },
+  { id: 18, dictType: 'wms_zone_type', dictTypeName: '搴撳尯绫诲瀷', dictLabel: '鎷ｈ揣鍖?, dictValue: 'PICK', sortOrder: 2, isEnabled: 1, createTime: '2026-03-01 08:00:00' },
+  { id: 19, dictType: 'wms_zone_type', dictTypeName: '搴撳尯绫诲瀷', dictLabel: '閫€璐у尯', dictValue: 'RETURN', sortOrder: 3, isEnabled: 1, createTime: '2026-03-01 08:00:00' },
+  { id: 20, dictType: 'wms_zone_type', dictTypeName: '搴撳尯绫诲瀷', dictLabel: '闆嗚揣鍖?, dictValue: 'COLLECT', sortOrder: 4, isEnabled: 1, createTime: '2026-03-01 08:00:00' },
+  { id: 21, dictType: 'wms_storage_type', dictTypeName: '璐т綅绫诲瀷', dictLabel: '骞抽潰', dictValue: 'PLANE', sortOrder: 1, isEnabled: 1, createTime: '2026-03-01 08:30:00' },
+  { id: 22, dictType: 'wms_storage_type', dictTypeName: '璐т綅绫诲瀷', dictLabel: '绔嬩綋', dictValue: 'STEREO', sortOrder: 2, isEnabled: 1, createTime: '2026-03-01 08:30:00' },
+  { id: 23, dictType: 'wms_storage_type', dictTypeName: '璐т綅绫诲瀷', dictLabel: '璐ф灦', dictValue: 'RACK', sortOrder: 3, isEnabled: 1, createTime: '2026-03-01 08:30:00' },
 ];
 
 const MOCK_USE_MOCK = true;
 
-// ========== 字典类型 API ==========
+// ========== 瀛楀吀绫诲瀷 API ==========
 
 export async function listDictTypePage(params: DictTypeQuery) {
   if (MOCK_USE_MOCK) {
@@ -144,7 +137,7 @@ export async function listDictTypePage(params: DictTypeQuery) {
     const rows = filtered.slice(start, start + (pageSize || 10));
     return { rows, total };
   }
-  const res = await requestClient.get('/base/dict/type/list', { params });
+  const res = await requestClient.get('/sys/dict/type/list', { params });
   const rawRows = res?.rows || res?.list || res?.data?.rows || res?.data?.list || [];
   return { rows: Array.isArray(rawRows) ? rawRows.map(normalizeDictTypeRow) : [], total: Number(res?.total || res?.data?.total || 0) };
 }
@@ -154,7 +147,7 @@ export async function getDictTypeDetail(id: number): Promise<DictTypeResult> {
     const row = MOCK_DICT_TYPE_LIST.find((r) => r.id === id);
     return row ? normalizeDictTypeRow(row) : normalizeDictTypeRow({});
   }
-  const res = await requestClient.get(`/base/dict/type/${id}`);
+  const res = await requestClient.get(`/sys/dict/type/${id}`);
   return normalizeDictTypeRow(res?.data || res);
 }
 
@@ -165,7 +158,7 @@ export async function createDictType(data: Partial<DictTypeResult>) {
     MOCK_DICT_TYPE_LIST.unshift(newRow);
     return { code: 0, data: newRow };
   }
-  return requestClient.post('/base/dict/type', data);
+  return requestClient.post('/sys/dict/type', data);
 }
 
 export async function updateDictType(data: Partial<DictTypeResult>) {
@@ -175,8 +168,8 @@ export async function updateDictType(data: Partial<DictTypeResult>) {
     return { code: 0 };
   }
   const id = data.id;
-  if (!id) throw new Error('字典类型ID不能为空');
-  return requestClient.put(`/base/dict/type/${id}`, data);
+  if (!id) throw new Error('瀛楀吀绫诲瀷ID涓嶈兘涓虹┖');
+  return requestClient.put(`/sys/dict/type/${id}`, data);
 }
 
 export async function toggleDictTypeStatus(id: number, enabled: number) {
@@ -185,7 +178,7 @@ export async function toggleDictTypeStatus(id: number, enabled: number) {
     if (row) row.isEnabled = enabled;
     return { code: 0 };
   }
-  return requestClient.patch(`/base/dict/type/${id}/status`, null, { params: { enabled } });
+  return requestClient.patch(`/sys/dict/type/${id}/status`, null, { params: { enabled } });
 }
 
 export async function deleteDictType(id: number) {
@@ -194,7 +187,7 @@ export async function deleteDictType(id: number) {
     if (idx >= 0) MOCK_DICT_TYPE_LIST.splice(idx, 1);
     return { code: 0 };
   }
-  return requestClient.delete(`/base/dict/type/${id}`);
+  return requestClient.delete(`/sys/dict/type/${id}`);
 }
 
 export async function exportDictType(params: DictTypeQuery) {
@@ -203,10 +196,10 @@ export async function exportDictType(params: DictTypeQuery) {
     const blob = new Blob([JSON.stringify(rows)], { type: 'application/json' });
     return blob;
   }
-  return requestClient.post('/base/dict/type/export', params, { responseType: 'blob' });
+  return requestClient.post('/sys/dict/type/export', params, { responseType: 'blob' });
 }
 
-// ========== 字典数据 API ==========
+// ========== 瀛楀吀鏁版嵁 API ==========
 
 export async function listDictDataPage(params: DictDataQuery) {
   if (MOCK_USE_MOCK) {
@@ -221,7 +214,7 @@ export async function listDictDataPage(params: DictDataQuery) {
     const rows = filtered.slice(start, start + (pageSize || 10));
     return { rows, total };
   }
-  const res = await requestClient.get('/base/dict/data/list', { params });
+  const res = await requestClient.get('/sys/dict/data/list', { params });
   const rawRows = res?.rows || res?.list || res?.data?.rows || res?.data?.list || [];
   return { rows: Array.isArray(rawRows) ? rawRows.map(normalizeDictDataRow) : [], total: Number(res?.total || res?.data?.total || 0) };
 }
@@ -231,7 +224,7 @@ export async function getDictDataDetail(id: number): Promise<DictDataResult> {
     const row = MOCK_DICT_DATA_LIST.find((r) => r.id === id);
     return row ? normalizeDictDataRow(row) : normalizeDictDataRow({});
   }
-  const res = await requestClient.get(`/base/dict/data/${id}`);
+  const res = await requestClient.get(`/sys/dict/data/${id}`);
   return normalizeDictDataRow(res?.data || res);
 }
 
@@ -242,7 +235,7 @@ export async function createDictData(data: Partial<DictDataResult>) {
     MOCK_DICT_DATA_LIST.unshift(newRow);
     return { code: 0, data: newRow };
   }
-  return requestClient.post('/base/dict/data', data);
+  return requestClient.post('/sys/dict/data', data);
 }
 
 export async function updateDictData(data: Partial<DictDataResult>) {
@@ -252,8 +245,8 @@ export async function updateDictData(data: Partial<DictDataResult>) {
     return { code: 0 };
   }
   const id = data.id;
-  if (!id) throw new Error('字典数据ID不能为空');
-  return requestClient.put(`/base/dict/data/${id}`, data);
+  if (!id) throw new Error('瀛楀吀鏁版嵁ID涓嶈兘涓虹┖');
+  return requestClient.put(`/sys/dict/data/${id}`, data);
 }
 
 export async function toggleDictDataStatus(id: number, enabled: number) {
@@ -262,7 +255,7 @@ export async function toggleDictDataStatus(id: number, enabled: number) {
     if (row) row.isEnabled = enabled;
     return { code: 0 };
   }
-  return requestClient.patch(`/base/dict/data/${id}/status`, null, { params: { enabled } });
+  return requestClient.patch(`/sys/dict/data/${id}/status`, null, { params: { enabled } });
 }
 
 export async function deleteDictData(id: number) {
@@ -271,7 +264,7 @@ export async function deleteDictData(id: number) {
     if (idx >= 0) MOCK_DICT_DATA_LIST.splice(idx, 1);
     return { code: 0 };
   }
-  return requestClient.delete(`/base/dict/data/${id}`);
+  return requestClient.delete(`/sys/dict/data/${id}`);
 }
 
 export async function exportDictData(params: DictDataQuery) {
@@ -280,10 +273,10 @@ export async function exportDictData(params: DictDataQuery) {
     const blob = new Blob([JSON.stringify(rows)], { type: 'application/json' });
     return blob;
   }
-  return requestClient.post('/base/dict/data/export', params, { responseType: 'blob' });
+  return requestClient.post('/sys/dict/data/export', params, { responseType: 'blob' });
 }
 
-// 获取所有字典类型（下拉列表用）
+// 鑾峰彇鎵€鏈夊瓧鍏哥被鍨嬶紙涓嬫媺鍒楄〃鐢級
 export async function listDictTypeSimple() {
   if (MOCK_USE_MOCK) {
     return MOCK_DICT_TYPE_LIST.map((r) => ({
@@ -291,10 +284,11 @@ export async function listDictTypeSimple() {
       value: r.dictCode,
     }));
   }
-  const res = await requestClient.get('/base/dict/type/list', { params: { pageNum: 1, pageSize: 999, isEnabled: 1 } });
+  const res = await requestClient.get('/sys/dict/type/list', { params: { pageNum: 1, pageSize: 999, isEnabled: 1 } });
   const rawRows = res?.rows || res?.list || res?.data?.rows || res?.data?.list || [];
   return Array.isArray(rawRows) ? rawRows.map((r: any) => ({
     label: `${r.dict_name ?? r.dictName} (${r.dict_code ?? r.dictCode})`,
     value: r.dict_code ?? r.dictCode,
   })) : [];
 }
+

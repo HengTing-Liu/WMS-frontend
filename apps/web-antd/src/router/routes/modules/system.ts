@@ -6,7 +6,7 @@ const routes: RouteRecordRaw[] = [
       icon: 'ic:baseline-view-in-ar',
       keepAlive: true,
       order: 1000,
-      title: '系统管理',
+      title: '系统设置',
     },
     name: 'System',
     path: '/system',
@@ -21,75 +21,78 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
-          title: '产品分类',
+          title: '角色管理',
         },
-        name: 'ProductCategory',
-        path: '/productCategory',
-        component: () => import('#/views/system/productCategory/index.vue'),
+        name: 'RoleManager',
+        path: '/role',
+        component: () => import('#/views/system/role/index.vue'),
       },
       {
         meta: {
           title: '部门管理',
         },
         name: 'DepartmentManager',
-        path: '/departmentManager',
+        path: '/dept',
         component: () => import('#/views/system/dept/index.vue'),
-      },
-      {
-        meta: {
-          title: '角色管理',
-        },
-        name: 'RoleManager',
-        path: '/roleManager',
-        component: () => import('#/views/system/roleManager/index.vue'),
       },
       {
         meta: {
           title: '菜单管理',
         },
         name: 'Management',
-        path: '/management',
+        path: '/menu',
         component: () => import('#/views/system/menu/index.vue'),
+      },
+      {
+        meta: {
+          title: '权限管理',
+        },
+        name: 'SysPermission',
+        path: '/permission',
+        component: () => import('#/views/system/permission/index.vue'),
       },
       {
         meta: {
           title: '字典管理',
         },
         name: 'DictionaryManagement',
-        path: '/dictionaryManagement',
+        path: '/dict',
         component: () => import('#/views/system/dict/index.vue'),
       },
       {
         meta: {
-          title: 'table_meta',
+          title: '低代码管理',
         },
-        name: 'TableMeta',
-        path: '/meta/table',
-        component: () => import('#/views/system/tableMeta/index.vue'),
+        name: 'LowcodeManager',
+        path: '/lowcode',
+        children: [
+          {
+            meta: { title: '表元数据' },
+            name: 'TableMeta',
+            path: '/system/lowcode/table',
+            component: () => import('#/views/system/tableMeta/index.vue'),
+          },
+          {
+            meta: { title: '字段元数据' },
+            name: 'ColumnMeta',
+            path: '/system/lowcode/column',
+            component: () => import('#/views/system/columnMeta/index.vue'),
+          },
+          {
+            meta: { title: '操作元数据' },
+            name: 'OperationMeta',
+            path: '/system/lowcode/operation',
+            component: () => import('#/views/system/operationMeta/index.vue'),
+          },
+        ],
       },
       {
         meta: {
-          title: 'table_meta',
+          title: '序列号管理',
         },
-        name: 'TableMeta',
-        path: 'meta/table',
-        component: () => import('#/views/system/tableMeta/index.vue'),
-      },
-      {
-        meta: {
-          title: '表元数据',
-        },
-        name: 'TableMeta',
-        path: 'meta/table',
-        component: () => import('#/views/system/tableMeta/index.vue'),
-      },
-      {
-        meta: {
-          title: 'column_meta',
-        },
-        name: 'ColumnMeta',
-        path: 'columnMeta',
-        component: () => import('#/views/system/columnMeta/index.vue'),
+        name: 'SerialManager',
+        path: '/serial',
+        component: () => import('#/views/system/serial/index.vue'),
       },
       {
         meta: {
@@ -112,18 +115,9 @@ const routes: RouteRecordRaw[] = [
             },
             name: 'LoginLog',
             path: '/log/login',
-            // component: () => import('#/views/system/LogManager/loginLog/index.vue'),
             component: () => import('#/views/system/logininfor/index.vue'),
           },
         ],
-      },
-      {
-        meta: {
-          title: '测试数据',
-        },
-        name: 'Testing',
-        path: '/Testing',
-        component: () => import('#/views/system/Testing/index.vue'),
       },
       {
         meta: {
@@ -131,7 +125,7 @@ const routes: RouteRecordRaw[] = [
           title: '数据权限',
         },
         name: 'RoleDataScope',
-        path: '/roleManager/dataScope/:roleId',
+        path: '/role/dataScope/:roleId',
         component: () => import('#/views/system/roleManager/dataScope.vue'),
       },
       {
@@ -141,7 +135,7 @@ const routes: RouteRecordRaw[] = [
           title: '分配用户',
         },
         name: 'RoleAssignUser',
-        path: '/roleManager/assignUser/:roleId',
+        path: '/role/assignUser/:roleId',
         component: () => import('#/views/system/roleManager/assignUser.vue'),
       },
       {
@@ -156,11 +150,29 @@ const routes: RouteRecordRaw[] = [
       {
         meta: {
           hideInMenu: true,
+          title: '产品分类',
+        },
+        name: 'ProductCategory',
+        path: '/productCategory',
+        component: () => import('#/views/system/productCategory/index.vue'),
+      },
+      {
+        meta: {
+          hideInMenu: true,
           title: '产品分类-新增',
         },
         name: 'ProductCategoryAdd',
         path: 'productCategory/add',
         component: () => import('#/views/system/productCategory/add.vue'),
+      },
+      {
+        meta: {
+          hideInMenu: true,
+          title: '测试数据',
+        },
+        name: 'Testing',
+        path: '/Testing',
+        component: () => import('#/views/system/Testing/index.vue'),
       },
     ],
   },

@@ -26,16 +26,22 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/sys/warehouse/warehouse-edit.vue'),
       },
       {
+        meta: { title: '库位管理' },
+        name: 'BaseLocation',
+        path: 'location',
+        component: () => import('#/views/sys/location/index.vue'),
+      },
+      {
+        meta: { title: '字典管理' },
+        name: 'SysDict',
+        path: 'dict',
+        component: () => import('#/views/sys/dict/index.vue'),
+      },
+      {
         meta: { title: '物料管理' },
         name: 'BaseMaterial',
         path: 'material',
         component: () => import('#/views/sys/material/index.vue'),
-      },
-      {
-        meta: { title: '库位档案' },
-        name: 'BaseLocation',
-        path: 'location',
-        component: () => import('#/views/sys/location/index.vue'),
       },
       {
         meta: { title: '货位管理' },
@@ -44,19 +50,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/sys/storage/index.vue'),
       },
       {
-        meta: { title: '权限管理' },
-        name: 'BasePermission',
-        path: 'permission',
-        component: () => import('#/views/sys/permission/index.vue'),
-      },
-      {
-        meta: { title: '基础数据' },
-        name: 'SysDict',
-        path: 'dict',
-        component: () => import('#/views/sys/dict/index.vue'),
-      },
-      {
-        meta: { title: $t('page.system.enum.title') },
+        meta: { title: '枚举管理' },
         name: 'BaseEnum',
         path: 'enum',
         component: () => import('#/views/sys/enum/index.vue'),

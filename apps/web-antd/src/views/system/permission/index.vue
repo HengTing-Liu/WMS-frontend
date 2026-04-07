@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <Page auto-content-height>
     <Grid>
       <template #toolbar-tools>
@@ -68,8 +68,8 @@ import {
   getPermissionTree,
   deletePermission,
   changePermissionStatus,
-} from '#/api/sys/permission';
-import { exportPermission } from '#/api/sys/permission';
+} from '#/api/system/permission';
+import { exportPermission } from '#/api/system/permission';
 import PermissionModal from './modules/permission-modal.vue';
 import PermissionDrawer from './modules/permission-drawer.vue';
 import { NODE_TYPE_CONFIG } from './types/permission';
@@ -218,3 +218,4 @@ async function handleExport() {
   }
 }
 </script>
+
