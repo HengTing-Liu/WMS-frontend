@@ -13,54 +13,6 @@
         </Button>
       </div>
 
-      <!-- 统计卡片区域 -->
-      <div class="mb-6 grid grid-cols-4 gap-4">
-        <Card class="stat-card">
-          <div class="flex items-center">
-            <div class="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-              <IconifyIcon icon="material-symbols:warehouse" class="text-xl text-blue-600" />
-            </div>
-            <div>
-              <div class="text-sm text-gray-500">总仓库数</div>
-              <div class="text-2xl font-bold text-gray-800">{{ stats.totalCount }}</div>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card">
-          <div class="flex items-center">
-            <div class="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-              <IconifyIcon icon="material-symbols:check-circle" class="text-xl text-green-600" />
-            </div>
-            <div>
-              <div class="text-sm text-gray-500">已启用</div>
-              <div class="text-2xl font-bold text-gray-800">{{ stats.enabledCount }}</div>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card">
-          <div class="flex items-center">
-            <div class="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
-              <IconifyIcon icon="material-symbols:inventory-2" class="text-xl text-purple-600" />
-            </div>
-            <div>
-              <div class="text-sm text-gray-500">总容量</div>
-              <div class="text-2xl font-bold text-gray-800">{{ stats.totalCapacity }}</div>
-            </div>
-          </div>
-        </Card>
-        <Card class="stat-card">
-          <div class="flex items-center">
-            <div class="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
-              <IconifyIcon icon="material-symbols:trending-up" class="text-xl text-orange-600" />
-            </div>
-            <div>
-              <div class="text-sm text-gray-500">平均使用率</div>
-              <div class="text-2xl font-bold text-gray-800">{{ stats.avgUsageRate }}%</div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
       <!-- 搜索栏 - 使用 WmsSearchBar（字段由远程接口加载） -->
       <Card class="mb-4">
         <WmsSearchBar
@@ -271,13 +223,6 @@ const dataList = ref<any[]>([]);
 const loading = ref(false);
 const selectedRowKeys = ref<any[]>([]);
 
-// 统计数据
-const stats = reactive({
-  totalCount: 0,
-  enabledCount: 0,
-  totalCapacity: '0㎡',
-  avgUsageRate: 0,
-});
 
 const pagination = reactive({
   current: 1,
@@ -344,7 +289,6 @@ async function loadData() {
     const res = await getWarehouseListApi(params);
     dataList.value = res.rows || res.data?.rows || [];
     pagination.total = res.total || res.data?.total || 0;
-    updateStats();
   } catch (e) {
     console.error('加载失败', e);
   } finally {
@@ -566,15 +510,6 @@ function getQualityZoneColor(zone: string): string {
 // 导出功能
 function handleExport() {
   message.info('导出功能开发中...');
-}
-
-// 更新统计数据
-function updateStats() {
-  stats.totalCount = dataList.value.length;
-  stats.enabledCount = dataList.value.filter((item: any) => item.isEnabled === 1).length;
-  // 模拟数据，实际应从接口获取
-  stats.totalCapacity = '12,500㎡';
-  stats.avgUsageRate = 67;
 }
 
 onMounted(() => {
