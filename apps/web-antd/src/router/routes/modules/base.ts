@@ -13,15 +13,6 @@ const routes: RouteRecordRaw[] = [
       {
         meta: {
           hideInMenu: true,
-          title: '权限管理',
-        },
-        name: 'BasePermission',
-        path: '/base/permission',
-        component: () => import('#/views/base/permission/index.vue'),
-      },
-      {
-        meta: {
-          hideInMenu: true,
           title: '仓库档案',
         },
         name: 'BaseWarehouse',
