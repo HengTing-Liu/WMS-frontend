@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <Drawer
     v-model:open="visible"
     :title="$t('page.warehouse.title')"
@@ -62,7 +62,7 @@ const visible = defineModel<boolean>('open', { required: true });
 
 const detail = ref<WarehouseResult | null>(null);
 
-// 鎵撳紑璇︽儏
+// 打开详情
 const open = async (id: number) => {
   visible.value = true;
   detail.value = null;
@@ -75,7 +75,7 @@ const open = async (id: number) => {
   }
 };
 
-// 鏆撮湶鏂规硶
+// 暴露方法
 defineExpose({
   open,
 });

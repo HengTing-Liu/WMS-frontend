@@ -49,51 +49,17 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
           if (component === 'ParentView') return 'RouteView';
           if (component === 'InnerLink') return 'IFrameView';
           
-          // 已存在的页面直接映射
-          const existingPages = [
-            // 布局组件
-            'BasicLayout',
-            'RouteView',
-            'IFrameView',
-            // 业务页面
-            'dashboard/workspace',
-            'dashboard/analytics/index',
-            'system/user/index',
-            'system/roleManager/index',
-            'system/dept/index',
-            'system/menu/index',
-            'system/dict/index',
-            'system/operlog/index',
-            'system/logininfor/index',
-            'system/serial/index',
-            'basicArchive/productCategory/index',
-            // 新创建的页面
-            'base/permission/index',
-            'base/warehouse/index',
-            'base/location/index',
-            'base/user/index',
-            'base/dict/index',
-            'lowcode/meta/index',
-            'sys/supplier/index',
-            'sys/material/index',
-            'wms/material/index',
-            'system/tableMeta/index',
-            'system/columnMeta/index',
-            'meta/table',
-          ];
-          
+          // 规范化路径：去除前导斜杠和 .vue 后缀
           const normalized = component.replace(/^\/+/, '').replace(/\.vue$/i, '');
-          if (existingPages.includes(normalized)) {
-            // 布局组件使用动态导入，业务页面使用 #/views/ 前缀
-            if (['BasicLayout', 'RouteView', 'IFrameView'].includes(normalized)) {
-              return normalized;
-            }
-            return `../views/${normalized}.vue`;
+          
+          // 布局组件直接返回名称
+          if (['BasicLayout', 'RouteView', 'IFrameView'].includes(normalized)) {
+            return normalized;
           }
           
-          // 其他页面跳过（不映射）
-          console.warn('[Router] Skipping unmapped component:', component);
-          return undefined;
+          // 其他所有路径都映射到 views 目录
+          // 例如: sys/warehouse/index -> ../views/sys/warehouse/index.vue
+          return `../views/${normalized}.vue`;
         };
         
         // 过滤掉无效的路由（没有 path 且没有有效 children 的路由）

@@ -19,12 +19,7 @@ const routes: RouteRecordRaw[] = [
         path: 'warehouse',
         component: () => import('#/views/sys/warehouse/index.vue'),
       },
-      {
-        meta: { title: '仓库编辑' },
-        name: 'BaseWarehouseEdit',
-        path: 'warehouse/edit',
-        component: () => import('#/views/sys/warehouse/warehouse-edit.vue'),
-      },
+
       {
         meta: { title: '库位管理' },
         name: 'BaseLocation',
@@ -44,16 +39,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/sys/material/index.vue'),
       },
       {
-        meta: { title: '货位管理' },
-        name: 'BaseStorage',
-        path: 'storage',
-        component: () => import('#/views/sys/storage/index.vue'),
-      },
-      {
         meta: { title: '枚举管理' },
         name: 'BaseEnum',
         path: 'enum',
         component: () => import('#/views/sys/enum/index.vue'),
+      },
+      {
+        meta: { title: '序列号规则' },
+        name: 'SysSerial',
+        path: 'serial',
+        component: () => import('#/views/system/serial/index.vue'),
       },
     ],
   },

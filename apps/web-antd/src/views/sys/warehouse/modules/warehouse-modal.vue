@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <Modal
     v-model:open="visible"
     :title="modalTitle"
@@ -159,7 +159,7 @@ const formRules = {
   ],
 };
 
-// 鍔犺浇璇︽儏
+// 加载详情
 const loadDetail = async (id: number) => {
   try {
     const res = await getWarehouseDetail(id);
@@ -169,7 +169,8 @@ const loadDetail = async (id: number) => {
   }
 };
 
-// 鎵撳紑寮圭獥鏃跺姞杞芥暟鎹?const open = async (id?: number) => {
+// 打开弹窗时加载数据
+const open = async (id?: number) => {
   visible.value = true;
   resetForm();
   if (id) {
@@ -177,7 +178,7 @@ const loadDetail = async (id: number) => {
   }
 };
 
-// 鎻愪氦
+// 提交
 const handleSubmit = async () => {
   try {
     await formRef.value?.validate();
@@ -194,19 +195,20 @@ const handleSubmit = async () => {
     visible.value = false;
     emit('success');
   } catch (error) {
-    // 琛ㄥ崟楠岃瘉澶辫触鎴栬姹傚け璐?  } finally {
+    // 表单验证失败或请求失败
+  } finally {
     loading.value = false;
   }
 };
 
-// 鍙栨秷
+// 取消
 const handleCancel = () => {
   visible.value = false;
   resetForm();
   emit('cancel');
 };
 
-// 閲嶇疆琛ㄥ崟
+// 重置表单
 const resetForm = () => {
   formData.id = undefined;
   formData.warehouseCode = '';
@@ -223,7 +225,7 @@ const resetForm = () => {
   formRef.value?.resetFields();
 };
 
-// 鏆撮湶鏂规硶
+// 暴露方法
 defineExpose({
   open,
 });

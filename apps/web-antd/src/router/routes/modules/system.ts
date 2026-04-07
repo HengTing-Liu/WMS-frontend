@@ -53,14 +53,6 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
-          title: '字典管理',
-        },
-        name: 'DictionaryManagement',
-        path: '/dict',
-        component: () => import('#/views/system/dict/index.vue'),
-      },
-      {
-        meta: {
           title: '低代码管理',
         },
         name: 'LowcodeManager',
@@ -69,30 +61,23 @@ const routes: RouteRecordRaw[] = [
           {
             meta: { title: '表元数据' },
             name: 'TableMeta',
-            path: '/system/lowcode/table',
+            path: 'table',
             component: () => import('#/views/system/tableMeta/index.vue'),
           },
           {
             meta: { title: '字段元数据' },
             name: 'ColumnMeta',
-            path: '/system/lowcode/column',
+            path: 'column',
             component: () => import('#/views/system/columnMeta/index.vue'),
           },
           {
             meta: { title: '操作元数据' },
             name: 'OperationMeta',
-            path: '/system/lowcode/operation',
+            path: 'operation',
             component: () => import('#/views/system/operationMeta/index.vue'),
           },
+
         ],
-      },
-      {
-        meta: {
-          title: '序列号管理',
-        },
-        name: 'SerialManager',
-        path: '/serial',
-        component: () => import('#/views/system/serial/index.vue'),
       },
       {
         meta: {
