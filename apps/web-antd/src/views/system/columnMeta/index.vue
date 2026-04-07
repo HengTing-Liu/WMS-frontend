@@ -94,9 +94,9 @@
         </template>
 
         <!-- 字段类型 -->
-        <template v-else-if="column.key === 'fieldType'">
-          <Tag :color="getFieldTypeColor(record.fieldType)">
-            {{ getFieldTypeLabel(record.fieldType) }}
+        <template v-else-if="column.key === 'formType'">
+          <Tag :color="getFieldTypeColor(record.formType)">
+            {{ getFieldTypeLabel(record.formType) }}
           </Tag>
         </template>
 
@@ -108,36 +108,36 @@
         </template>
 
         <!-- 是否必填 -->
-        <template v-else-if="column.key === 'isRequired'">
+        <template v-else-if="column.key === 'required'">
           <Switch
-            :checked="record.isRequired === 1"
+            :checked="record.required === 1"
             size="small"
             @change="(checked: boolean) => handleToggleRequired(record, checked)"
           />
         </template>
 
         <!-- 列表显示 -->
-        <template v-else-if="column.key === 'isShowInList'">
+        <template v-else-if="column.key === 'showInList'">
           <Switch
-            :checked="record.isShowInList === 1"
+            :checked="record.showInList === 1"
             size="small"
             @change="(checked: boolean) => handleToggleShowInList(record, checked)"
           />
         </template>
 
         <!-- 表单显示 -->
-        <template v-else-if="column.key === 'isShowInForm'">
+        <template v-else-if="column.key === 'showInForm'">
           <Switch
-            :checked="record.isShowInForm === 1"
+            :checked="record.showInForm === 1"
             size="small"
             @change="(checked: boolean) => handleToggleShowInForm(record, checked)"
           />
         </template>
 
         <!-- 状态 -->
-        <template v-else-if="column.key === 'isEnabled'">
+        <template v-else-if="column.key === 'status'">
           <Switch
-            :checked="record.isEnabled === 1"
+            :checked="record.status === 1"
             size="small"
             @change="(checked: boolean) => handleToggleStatus(record, checked)"
           />
@@ -252,15 +252,15 @@ const currentRecord = ref<ColumnMetaApi.ColumnMeta | null>(null);
 // ========== 表格列定义 ==========
 const columns = computed<TableColumnsType>(() => [
   { title: '排序', key: 'seq', width: 70, align: 'center' },
-  { title: '字段编码', dataIndex: 'columnCode', key: 'columnCode', width: 150 },
-  { title: '字段名称', dataIndex: 'columnName', key: 'columnName', width: 150 },
-  { title: '字段类型', key: 'fieldType', width: 120, align: 'center' },
+  { title: '字段编码', dataIndex: 'field', key: 'field', width: 150 },
+  { title: '字段名称', dataIndex: 'title', key: 'title', width: 150 },
+  { title: '字段类型', key: 'formType', width: 120, align: 'center' },
   { title: '数据类型', key: 'dataType', width: 100, align: 'center' },
-  { title: '必填', key: 'isRequired', width: 70, align: 'center' },
-  { title: '列表显示', key: 'isShowInList', width: 90, align: 'center' },
-  { title: '表单显示', key: 'isShowInForm', width: 90, align: 'center' },
+  { title: '必填', key: 'required', width: 70, align: 'center' },
+  { title: '列表显示', key: 'showInList', width: 90, align: 'center' },
+  { title: '表单显示', key: 'showInForm', width: 90, align: 'center' },
   { title: '排序号', dataIndex: 'sortOrder', key: 'sortOrder', width: 80, align: 'center' },
-  { title: '状态', key: 'isEnabled', width: 70, align: 'center' },
+  { title: '状态', key: 'status', width: 70, align: 'center' },
   { title: '操作', key: 'action', width: 120, align: 'center', fixed: 'right' },
 ]);
 
@@ -305,8 +305,8 @@ async function loadData() {
       const keyword = searchKeyword.value.toLowerCase();
       rows = rows.filter(
         (item) =>
-          item.columnCode.toLowerCase().includes(keyword) ||
-          item.columnName.toLowerCase().includes(keyword)
+          (item.field || item.columnCode || '').toLowerCase().includes(keyword) ||
+          (item.title || item.columnName || '').toLowerCase().includes(keyword)
       );
     }
     tableData.value = rows.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
@@ -405,7 +405,7 @@ async function handleToggleStatus(record: ColumnMetaApi.ColumnMeta, checked: boo
   try {
     await updateColumnMeta({
       ...record,
-      isEnabled: checked ? 1 : 0,
+      status: checked ? 1 : 0,
     });
     message.success(checked ? '已启用' : '已停用');
     loadData();
@@ -419,7 +419,7 @@ async function handleToggleRequired(record: ColumnMetaApi.ColumnMeta, checked: b
   try {
     await updateColumnMeta({
       ...record,
-      isRequired: checked ? 1 : 0,
+      required: checked ? 1 : 0,
     });
     message.success(checked ? '已设为必填' : '已取消必填');
     loadData();
@@ -433,7 +433,7 @@ async function handleToggleShowInList(record: ColumnMetaApi.ColumnMeta, checked:
   try {
     await updateColumnMeta({
       ...record,
-      isShowInList: checked ? 1 : 0,
+      showInList: checked ? 1 : 0,
     });
     message.success(checked ? '列表显示已开启' : '列表显示已关闭');
     loadData();
@@ -447,7 +447,7 @@ async function handleToggleShowInForm(record: ColumnMetaApi.ColumnMeta, checked:
   try {
     await updateColumnMeta({
       ...record,
-      isShowInForm: checked ? 1 : 0,
+      showInForm: checked ? 1 : 0,
     });
     message.success(checked ? '表单显示已开启' : '表单显示已关闭');
     loadData();

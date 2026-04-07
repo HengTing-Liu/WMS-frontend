@@ -30,7 +30,34 @@ export async function fetchColumnSchema(tableCode: string): Promise<ColumnMeta[]
   });
   // 兼容多层包装：data.rows / data / 直接数组
   const rows = res?.data?.rows ?? res?.data ?? res ?? [];
-  return Array.isArray(rows) ? rows : [];
+  const list = Array.isArray(rows) ? rows : [];
+  // 统一字段名：后端返回 ColumnMeta 实体，前端使用 field/title/formType 等
+  return list.map((item: any) => ({
+    id: item.id,
+    tableCode: item.tableCode,
+    field: item.field || item.columnCode,
+    title: item.title || item.columnName,
+    dataType: item.dataType,
+    formType: item.formType || item.fieldType,
+    dictType: item.dictType,
+    isShowInList: item.showInList ?? item.isShowInList,
+    isShowInForm: item.showInForm ?? item.isShowInForm,
+    isSearchable: item.searchable ?? item.isSearchable,
+    isSortable: item.sortable ?? item.isSortable,
+    isRequired: item.required ?? item.isRequired,
+    width: item.width ?? item.listWidth,
+    sortOrder: item.sortOrder,
+    rulesJson: item.rulesJson || item.validRules,
+    placeholder: item.placeholder,
+    defaultValue: item.defaultValue,
+    colSpan: item.colSpan,
+    sectionKey: item.sectionKey,
+    i18nKey: item.i18nKey,
+    visibleCondition: item.visibleCondition,
+    status: item.status ?? item.isEnabled,
+    options: item.options,
+    dataSource: item.dataSource,
+  }));
 }
 
 /**

@@ -27,7 +27,7 @@
           <Col :span="6">
             <FormItem label="字段编码" required :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
               <Input
-                v-model:value="item.columnCode"
+                v-model:value="item.field"
                 placeholder="字段编码"
                 size="small"
               />
@@ -36,7 +36,7 @@
           <Col :span="6">
             <FormItem label="字段名称" required :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
               <Input
-                v-model:value="item.columnName"
+                v-model:value="item.title"
                 placeholder="字段名称"
                 size="small"
               />
@@ -44,7 +44,7 @@
           </Col>
           <Col :span="6">
             <FormItem label="字段类型" required :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
-              <Select v-model:value="item.fieldType" size="small" placeholder="选择类型">
+              <Select v-model:value="item.formType" size="small" placeholder="选择类型">
                 <SelectOption value="text">文本</SelectOption>
                 <SelectOption value="textarea">多行文本</SelectOption>
                 <SelectOption value="number">数字</SelectOption>
@@ -72,17 +72,17 @@
         <Row :gutter="16">
           <Col :span="6">
             <FormItem label="必填" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
-              <Switch v-model:checked="item.isRequired" :checked-value="1" :un-checked-value="0" size="small" />
+              <Switch v-model:checked="item.required" :checked-value="1" :un-checked-value="0" size="small" />
             </FormItem>
           </Col>
           <Col :span="6">
             <FormItem label="列表显示" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
-              <Switch v-model:checked="item.isShowInList" :checked-value="1" :un-checked-value="0" size="small" />
+              <Switch v-model:checked="item.showInList" :checked-value="1" :un-checked-value="0" size="small" />
             </FormItem>
           </Col>
           <Col :span="6">
             <FormItem label="表单显示" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
-              <Switch v-model:checked="item.isShowInForm" :checked-value="1" :un-checked-value="0" size="small" />
+              <Switch v-model:checked="item.showInForm" :checked-value="1" :un-checked-value="0" size="small" />
             </FormItem>
           </Col>
           <Col :span="6">
@@ -122,7 +122,7 @@ import { IconifyIcon } from '@vben/icons';
 import { batchAddColumnMeta } from '#/api/system/columnMeta';
 
 const props = defineProps<{
-  tableId?: number;
+  tableCode?: string;
 }>();
 
 const emit = defineEmits<{
@@ -135,15 +135,15 @@ const loading = ref(false);
 
 // 单条字段模板
 const fieldTemplate = {
-  columnCode: '',
-  columnName: '',
-  fieldType: 'text',
+  field: '',
+  title: '',
+  formType: 'text',
   dataType: 'string',
-  isRequired: 0,
-  isShowInList: 1,
-  isShowInForm: 1,
+  required: 0,
+  showInList: 1,
+  showInForm: 1,
   sortOrder: 1,
-  isEnabled: 1,
+  status: 1,
 };
 
 const fieldList = ref<Record<string, any>[]>([{ ...fieldTemplate, sortOrder: 1 }]);
@@ -168,7 +168,7 @@ function removeField(index: number) {
 }
 
 async function handleSubmit() {
-  if (!props.tableId) {
+  if (!props.tableCode) {
     message.error('请先选择表');
     return;
   }
@@ -176,16 +176,16 @@ async function handleSubmit() {
   // 校验数据
   for (let i = 0; i < fieldList.value.length; i++) {
     const item = fieldList.value[i];
-    if (!item.columnCode?.trim()) {
+    if (!item.field?.trim()) {
       message.error(`第 ${i + 1} 行字段编码不能为空`);
       return;
     }
-    if (!item.columnName?.trim()) {
+    if (!item.title?.trim()) {
       message.error(`第 ${i + 1} 行字段名称不能为空`);
       return;
     }
     // 校验字段编码格式
-    if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(item.columnCode)) {
+    if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(item.field)) {
       message.error(`第 ${i + 1} 行字段编码格式不正确，必须以字母开头，只能包含字母、数字和下划线`);
       return;
     }
@@ -196,9 +196,9 @@ async function handleSubmit() {
 
     const data = fieldList.value.map(item => ({
       ...item,
-      tableId: props.tableId,
-      columnCode: item.columnCode.trim(),
-      columnName: item.columnName.trim(),
+      tableCode: props.tableCode,
+      field: item.field.trim(),
+      title: item.title.trim(),
     }));
 
     await batchAddColumnMeta(data);

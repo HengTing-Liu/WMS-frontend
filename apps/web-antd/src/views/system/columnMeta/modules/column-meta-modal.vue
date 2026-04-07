@@ -17,23 +17,23 @@
       <!-- 基本信息 -->
       <div class="form-section">
         <div class="section-title">基本信息</div>
-        <FormItem label="字段编码" name="columnCode">
+        <FormItem label="字段编码" name="field">
           <Input
-            v-model:value="formData.columnCode"
+            v-model:value="formData.field"
             placeholder="请输入字段编码"
             :disabled="isEdit"
             :maxlength="50"
           />
         </FormItem>
-        <FormItem label="字段名称" name="columnName">
+        <FormItem label="字段名称" name="title">
           <Input
-            v-model:value="formData.columnName"
+            v-model:value="formData.title"
             placeholder="请输入字段名称"
             :maxlength="100"
           />
         </FormItem>
-        <FormItem label="字段类型" name="fieldType">
-          <Select v-model:value="formData.fieldType" placeholder="请选择字段类型">
+        <FormItem label="字段类型" name="formType">
+          <Select v-model:value="formData.formType" placeholder="请选择字段类型">
             <SelectOption value="text">文本</SelectOption>
             <SelectOption value="textarea">多行文本</SelectOption>
             <SelectOption value="number">数字</SelectOption>
@@ -57,7 +57,7 @@
 
       <!-- 字典类型（仅select/radio/checkbox时显示） -->
       <FormItem
-        v-if="['select', 'radio', 'checkbox'].includes(formData.fieldType)"
+        v-if="['select', 'radio', 'checkbox'].includes(formData.formType)"
         label="字典类型"
       >
         <Input
@@ -73,7 +73,7 @@
         <Row :gutter="16">
           <Col :span="8">
             <FormItem :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" label="必填">
-              <Switch v-model:checked="formData.isRequired" :checked-value="1" :un-checked-value="0" />
+              <Switch v-model:checked="formData.required" :checked-value="1" :un-checked-value="0" />
             </FormItem>
           </Col>
           <Col :span="8">
@@ -83,24 +83,24 @@
           </Col>
           <Col :span="8">
             <FormItem :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" label="状态">
-              <Switch v-model:checked="formData.isEnabled" :checked-value="1" :un-checked-value="0" />
+              <Switch v-model:checked="formData.status" :checked-value="1" :un-checked-value="0" />
             </FormItem>
           </Col>
         </Row>
         <Row :gutter="16">
           <Col :span="8">
             <FormItem :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" label="列表显示">
-              <Switch v-model:checked="formData.isShowInList" :checked-value="1" :un-checked-value="0" />
+              <Switch v-model:checked="formData.showInList" :checked-value="1" :un-checked-value="0" />
             </FormItem>
           </Col>
           <Col :span="8">
             <FormItem :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" label="表单显示">
-              <Switch v-model:checked="formData.isShowInForm" :checked-value="1" :un-checked-value="0" />
+              <Switch v-model:checked="formData.showInForm" :checked-value="1" :un-checked-value="0" />
             </FormItem>
           </Col>
           <Col :span="8">
             <FormItem :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" label="可排序">
-              <Switch v-model:checked="formData.isSortable" :checked-value="1" :un-checked-value="0" />
+              <Switch v-model:checked="formData.sortable" :checked-value="1" :un-checked-value="0" />
             </FormItem>
           </Col>
         </Row>
@@ -111,7 +111,7 @@
         <div class="section-title">布局设置</div>
         <FormItem label="列表列宽">
           <InputNumber
-            v-model:value="formData.listWidth"
+            v-model:value="formData.width"
             :min="50"
             :max="500"
             style="width: 100%"
@@ -161,7 +161,7 @@
         <div class="section-title">校验规则（JSON格式）</div>
         <FormItem label="校验规则" :wrapper-col="{ span: 18 }">
           <Textarea
-            v-model:value="formData.validRules"
+            v-model:value="formData.rulesJson"
             placeholder='{"pattern": "", "min": 0, "max": 100}'
             :rows="3"
             :maxlength="500"
@@ -202,7 +202,7 @@ import {
 const props = defineProps<{
   mode: 'add' | 'edit';
   data?: ColumnMetaApi.ColumnMeta | null;
-  tableId?: number;
+  tableCode?: string;
 }>();
 
 const emit = defineEmits<{
@@ -219,37 +219,37 @@ const modalTitle = computed(() => (isEdit.value ? '编辑字段' : '新增字段
 
 const formData = reactive<Record<string, any>>({
   id: undefined,
-  tableId: undefined,
-  columnCode: '',
-  columnName: '',
-  fieldType: 'text',
+  tableCode: undefined,
+  field: '',
+  title: '',
+  formType: 'text',
   dataType: 'string',
   dictType: '',
-  isRequired: 0,
+  required: 0,
   isUnique: 0,
-  isShowInList: 1,
-  isShowInForm: 1,
-  isSortable: 0,
-  listWidth: 120,
+  showInList: 1,
+  showInForm: 1,
+  sortable: 0,
+  width: 120,
   formColSpan: 24,
   defaultValue: '',
   placeholder: '',
-  validRules: '',
+  rulesJson: '',
   sortOrder: 1,
-  isEnabled: 1,
+  status: 1,
 });
 
 const formRules = {
-  columnCode: [
+  field: [
     { required: true, message: '请输入字段编码', trigger: 'blur' },
     { max: 50, message: '字段编码最多50个字符', trigger: 'blur' },
     { pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, message: '字段编码必须以字母开头，只能包含字母、数字和下划线', trigger: 'blur' },
   ],
-  columnName: [
+  title: [
     { required: true, message: '请输入字段名称', trigger: 'blur' },
     { max: 100, message: '字段名称最多100个字符', trigger: 'blur' },
   ],
-  fieldType: [
+  formType: [
     { required: true, message: '请选择字段类型', trigger: 'change' },
   ],
   dataType: [
@@ -278,9 +278,9 @@ async function handleSubmit() {
     if (!valid) return;
 
     // 校验JSON格式
-    if (formData.validRules) {
+    if (formData.rulesJson) {
       try {
-        JSON.parse(formData.validRules);
+        JSON.parse(formData.rulesJson);
       } catch {
         message.error('校验规则JSON格式不正确');
         return;
@@ -291,7 +291,7 @@ async function handleSubmit() {
 
     const data = {
       ...formData,
-      tableId: props.tableId,
+      tableCode: props.tableCode,
     };
 
     if (isEdit.value) {
@@ -318,24 +318,24 @@ function resetForm() {
   formRef.value?.resetFields();
   Object.assign(formData, {
     id: undefined,
-    tableId: props.tableId,
-    columnCode: '',
-    columnName: '',
-    fieldType: 'text',
+    tableCode: props.tableCode,
+    field: '',
+    title: '',
+    formType: 'text',
     dataType: 'string',
     dictType: '',
-    isRequired: 0,
+    required: 0,
     isUnique: 0,
-    isShowInList: 1,
-    isShowInForm: 1,
-    isSortable: 0,
-    listWidth: 120,
+    showInList: 1,
+    showInForm: 1,
+    sortable: 0,
+    width: 120,
     formColSpan: 24,
     defaultValue: '',
     placeholder: '',
-    validRules: '',
+    rulesJson: '',
     sortOrder: 1,
-    isEnabled: 1,
+    status: 1,
   });
 }
 

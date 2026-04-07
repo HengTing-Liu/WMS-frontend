@@ -22,8 +22,8 @@
             v-for="table in availableTables"
             :key="table.id"
             class="table-item"
-            :class="{ active: selectedSourceTableId === table.id }"
-            @click="selectSourceTable(table.id)"
+            :class="{ active: selectedSourceTableCode === table.tableCode }"
+            @click="selectSourceTable(table.tableCode)"
           >
             <div class="table-code">{{ table.tableCode }}</div>
             <div class="table-name">{{ table.tableName }}</div>
@@ -44,7 +44,7 @@
           </Checkbox>
         </div>
 
-        <div v-if="!selectedSourceTableId" class="empty-tip">
+        <div v-if="!selectedSourceTableCode" class="empty-tip">
           请先选择左侧的源表
         </div>
 
@@ -62,12 +62,12 @@
               <Checkbox :value="col.id">
                 <div class="column-info">
                   <div class="column-main">
-                    <span class="column-code">{{ col.columnCode }}</span>
-                    <span class="column-name">{{ col.columnName }}</span>
+                    <span class="column-code">{{ col.field || col.columnCode }}</span>
+                    <span class="column-name">{{ col.title || col.columnName }}</span>
                   </div>
                   <div class="column-tags">
-                    <Tag size="small" :color="getFieldTypeColor(col.fieldType)">
-                      {{ getFieldTypeLabel(col.fieldType) }}
+                    <Tag size="small" :color="getFieldTypeColor(col.formType || col.fieldType)">
+                      {{ getFieldTypeLabel(col.formType || col.fieldType) }}
                     </Tag>
                     <Tag size="small" :color="getDataTypeColor(col.dataType)">
                       {{ col.dataType }}
@@ -106,7 +106,7 @@ import {
 } from '#/api/system/columnMeta';
 
 const props = defineProps<{
-  tableId?: number;
+  tableCode?: string;
   tableList: { id: number; tableCode: string; tableName: string }[];
 }>();
 
@@ -117,13 +117,13 @@ const emit = defineEmits<{
 const visible = defineModel<boolean>('visible', { required: true });
 
 const loading = ref(false);
-const selectedSourceTableId = ref<number | undefined>(undefined);
+const selectedSourceTableCode = ref<string | undefined>(undefined);
 const sourceColumns = ref<ColumnMetaApi.ColumnMeta[]>([]);
 const selectedColumnIds = ref<(number | string)[]>([]);
 
 // 过滤掉当前表
 const availableTables = computed(() =>
-  props.tableList.filter((t) => t.id !== props.tableId)
+  props.tableList.filter((t) => t.tableCode !== props.tableCode)
 );
 
 // 全选状态
@@ -140,12 +140,12 @@ const isIndeterminate = computed(() => {
   );
 });
 
-async function selectSourceTable(tableId: number) {
-  selectedSourceTableId.value = tableId;
+async function selectSourceTable(tableCode: string) {
+  selectedSourceTableCode.value = tableCode;
   selectedColumnIds.value = [];
 
   try {
-    const columns = await getColumnMetaByTableId(tableId);
+    const columns = await getColumnMetaByTableId(tableCode);
     sourceColumns.value = columns.sort(
       (a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)
     );
@@ -167,8 +167,8 @@ function handleSelectAll(e: any) {
 }
 
 async function handleSubmit() {
-  if (!props.tableId) {
-    message.error('目标表ID不存在');
+  if (!props.tableCode) {
+    message.error('目标表不存在');
     return;
   }
 
@@ -180,28 +180,28 @@ async function handleSubmit() {
   try {
     loading.value = true;
 
-    // 准备复制的数据（去除id，更新tableId）
+    // 准备复制的数据（去除id，更新tableCode）
     const dataToCopy = sourceColumns.value
       .filter((col) => selectedColumnIds.value.includes(col.id!))
       .map((col, index) => ({
-        tableId: props.tableId!,
-        columnCode: col.columnCode,
-        columnName: col.columnName,
-        fieldType: col.fieldType,
+        tableCode: props.tableCode!,
+        field: col.field || col.columnCode,
+        title: col.title || col.columnName,
+        formType: col.formType || col.fieldType,
         dataType: col.dataType,
         dictType: col.dictType,
-        isRequired: col.isRequired,
+        required: col.required ?? col.isRequired,
         isUnique: col.isUnique,
-        isShowInList: col.isShowInList,
-        isShowInForm: col.isShowInForm,
-        isSortable: col.isSortable,
-        listWidth: col.listWidth,
+        showInList: col.showInList ?? col.isShowInList,
+        showInForm: col.showInForm ?? col.isShowInForm,
+        sortable: col.sortable ?? col.isSortable,
+        width: col.width ?? col.listWidth,
         formColSpan: col.formColSpan,
         defaultValue: col.defaultValue,
         placeholder: col.placeholder,
-        validRules: col.validRules,
+        rulesJson: col.rulesJson || col.validRules,
         sortOrder: col.sortOrder,
-        isEnabled: col.isEnabled,
+        status: col.status ?? col.isEnabled,
       }));
 
     await batchAddColumnMeta(dataToCopy);
@@ -220,7 +220,7 @@ function handleCancel() {
 }
 
 function resetForm() {
-  selectedSourceTableId.value = undefined;
+  selectedSourceTableCode.value = undefined;
   sourceColumns.value = [];
   selectedColumnIds.value = [];
 }

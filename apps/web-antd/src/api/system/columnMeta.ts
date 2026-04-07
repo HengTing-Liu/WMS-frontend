@@ -2,31 +2,40 @@ import type { Recordable } from '@vben/types';
 import { requestClient } from '#/api/request';
 
 export namespace ColumnMetaApi {
-  // 字段元数据接口
+  // 字段元数据接口（与后端 ColumnMeta 实体字段名一致）
   export interface ColumnMeta {
     id?: number;
-    tableId: number;
-    columnCode: string;
-    columnName: string;
-    fieldType: string;
+    tableCode: string;
+    field: string;             // 对应前端的 columnCode
+    title: string;             // 对应前端的 columnName
     dataType: string;
+    formType: string;          // 对应前端的 fieldType
     dictType?: string;
-    isRequired: number;
+    required: number;          // 对应前端的 isRequired
     isUnique?: number;
-    isShowInList: number;
-    isShowInForm: number;
-    isSortable?: number;
-    listWidth?: number;
+    showInList: number;        // 对应前端的 isShowInList
+    showInForm: number;        // 对应前端的 isShowInForm
+    sortable?: number;
+    width?: number;
     formColSpan?: number;
     defaultValue?: string;
     placeholder?: string;
-    validRules?: string;
+    rulesJson?: string;        // 对应前端的 validRules
     sortOrder: number;
-    isEnabled: number;
+    status: number;            // 对应前端的 isEnabled
     createBy?: string;
     createTime?: string;
     updateBy?: string;
     updateTime?: string;
+    // 兼容旧字段名（后端返回时自动映射）
+    columnCode?: string;
+    columnName?: string;
+    fieldType?: string;
+    isRequired_?: number;
+    isEnabled_?: number;
+    isShowInList_?: number;
+    isShowInForm_?: number;
+    validRules_?: string;
   }
 
   // 列表查询响应
