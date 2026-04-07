@@ -10,8 +10,8 @@ const routes: RouteRecordRaw[] = [
       order: 100,
       title: '基础设置',
     },
-    name: 'WmsBase',
-    path: '/wms',
+    name: 'SysBase',
+    path: '/sys',
     children: [
       {
         meta: { title: '供应商管理' },
