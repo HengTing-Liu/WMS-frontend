@@ -22,15 +22,6 @@ const routes: RouteRecordRaw[] = [
       {
         meta: {
           hideInMenu: true,
-          title: '基础数据',
-        },
-        name: 'BaseDict',
-        path: '/base/dict',
-        component: () => import('#/views/base/dict/index.vue'),
-      },
-      {
-        meta: {
-          hideInMenu: true,
           title: '仓库档案',
         },
         name: 'BaseWarehouse',
