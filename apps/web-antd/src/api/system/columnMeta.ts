@@ -60,12 +60,15 @@ export interface SortOrderItem {
  * 获取字段元数据列表（分页+模糊搜索）
  */
 export async function getColumnMetaList(params?: ColumnMetaQuery) {
-  // requestClient 已自动提取 data 字段，所以 res 直接就是数组
+  // 修正：后端接口为 /column/list/{tableCode}，不是 /column
+  const tableCode = params?.tableCode;
+  if (!tableCode) {
+    return { total: 0, rows: [] };
+  }
   const res = await requestClient.get<any>(
-    '/api/system/meta/column',
-    { params },
+    `/api/system/meta/column/list/${tableCode}`,
+    { params: { pageNum: params.pageNum, pageSize: params.pageSize } },
   );
-  // res 已经是数组格式了
   return {
     total: res?.length || 0,
     rows: Array.isArray(res) ? res : [],
@@ -143,10 +146,9 @@ export async function getTableMetaListForSelect() {
  * 获取指定表的字段列表（用于复制）
  */
 export async function getColumnMetaByTableId(tableCode: string) {
-  // requestClient 已自动提取 data 字段
+  // 修正：后端接口为 /column/list/{tableCode}，不是 /column
   const res = await requestClient.get<any>(
-    '/api/system/meta/column',
-    { params: { tableCode, pageNum: 1, pageSize: 1000 } },
+    `/api/system/meta/column/list/${tableCode}`,
   );
   return Array.isArray(res) ? res : [];
 }
