@@ -85,6 +85,14 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
+          title: 'column_meta',
+        },
+        name: 'ColumnMeta',
+        path: 'columnMeta',
+        component: () => import('#/views/system/columnMeta/index.vue'),
+      },
+      {
+        meta: {
           title: '日志管理',
         },
         name: 'LogManager',
