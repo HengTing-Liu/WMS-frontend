@@ -14,18 +14,6 @@ const routes: RouteRecordRaw[] = [
     path: '/wms',
     children: [
       {
-        meta: { title: '仓库档案' },
-        name: 'BaseWarehouseList',
-        path: 'warehouse',
-        component: () => import('#/views/sys/warehouse/index.vue'),
-      },
-      {
-        meta: { title: '仓库编辑' },
-        name: 'BaseWarehouseEdit',
-        path: 'warehouse/edit',
-        component: () => import('#/views/sys/warehouse/warehouse-edit.vue'),
-      },
-      {
         meta: { title: '供应商管理' },
         name: 'BaseSupplier',
         path: 'supplier',

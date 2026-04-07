@@ -31,15 +31,6 @@ const routes: RouteRecordRaw[] = [
       {
         meta: {
           hideInMenu: true,
-          title: '库位档案',
-        },
-        name: 'BaseLocation',
-        path: '/base/location',
-        component: () => import('#/views/base/location/index.vue'),
-      },
-      {
-        meta: {
-          hideInMenu: true,
           title: '仓库档案',
         },
         name: 'BaseWarehouse',
