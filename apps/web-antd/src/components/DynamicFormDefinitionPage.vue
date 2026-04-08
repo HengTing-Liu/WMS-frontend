@@ -765,6 +765,28 @@ async function ensureFieldSelectOptions(field: NormalizedField) {
   const optKey = field.path;
   const fieldTypeEarly = String(field.fieldCode).toLowerCase();
   const cachedList = selectOptionsByFieldPath[optKey] || [];
+
+  // 优先使用 field.options（低代码表单从后端 meta 直接获取的选项）
+  if (field.options && field.options.length > 0) {
+    if (!cachedList.length) {
+      selectOptionsByFieldPath[optKey] = field.options;
+    }
+    // 详情回显：如果当前值不在选项中，尝试通过 label 匹配
+    const curVal = getValue(field.path);
+    if (
+      curVal != null &&
+      curVal !== '' &&
+      curVal !== EMPTY_SELECT_VALUE &&
+      !cachedList.some((o) => String(o.value) === String(curVal))
+    ) {
+      const matchByLabel = (field.options || cachedList).find(
+        (o) => String(o.label) === String(curVal),
+      );
+      if (matchByLabel) setValue(field.path, matchByLabel.value);
+    }
+    return;
+  }
+
   if (cachedList.length) {
     // 编辑回显：常现顺序是先 merge BU（触发拉 SBU 选项）再 merge SBU 值，此时会走此处 return，
     // 若详情里 sbu 存的是名称而选项 value 为编码，必须仍做一次 label→value，否则会不回显
