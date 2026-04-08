@@ -91,8 +91,6 @@ const formParams = computed(() => ({
 
 /** 构建表单定义接口（复用现有 DynamicFormDefinitionPage 的 fetchDefinition 签名） */
 async function buildFetchDefinition(params: Record<string, any>): Promise<Record<string, any>> {
-  // 默认使用后端通用字段 Schema 接口
-  // 该接口返回 { rows: ColumnMeta[] }，DynamicFormDefinitionPage 会自动解析
   const tableCode = props.tableCode;
   const url = props.formDefinitionUrl ?? '/api/system/meta/column/schema';
 
@@ -102,29 +100,134 @@ async function buildFetchDefinition(params: Record<string, any>): Promise<Record
 
   const res = await requestClient.get<any>(url, { params: queryParams });
 
+  // 标准化返回数据格式
+  // 后端返回可能是数组 [ColumnMetaVO] 或已包装的对象 { basicInfo: { fields: [...] } }
+  let normalized = normalizeResponse(res);
+
   // 如果有 record（编辑模式），需要额外获取详情数据
   if (props.record?.id) {
     const detailUrl = `${inferDetailUrl()}/${props.record.id}`;
     try {
       const detailRes = await requestClient.get<any>(detailUrl);
       const detail = detailRes?.data ?? detailRes ?? {};
-      // 合并：schema（用于渲染字段）+ 详情数据（用于填充表单）
-      return { ...res, ...detail };
+      // 合并详情数据到 normalized
+      normalized = mergeDetailData(normalized, detail);
     } catch {
+      // 忽略详情加载失败
+    }
+  }
+
+  return normalized;
+}
+
+/**
+ * 标准化后端响应
+ * 后端返回数组 [ColumnMetaVO] → 转换为 { basicInfo: { fields: [...] } }
+ * 后端返回对象 { basicInfo: { fields: [...] } } → 直接返回
+ */
+function normalizeResponse(res: any): Record<string, any> {
+  // 已经是对象格式（前端期望的格式），直接返回
+  if (res && typeof res === 'object' && !Array.isArray(res)) {
+    // 检查是否已经是区块格式
+    const keys = Object.keys(res);
+    const hasSectionFormat = keys.some((k) => {
+      const v = res[k];
+      return v && typeof v === 'object' && Array.isArray(v.fields || v.items || v.fieldList);
+    });
+    if (hasSectionFormat) {
       return res;
     }
   }
 
-  return res;
+  // 处理数组格式：[{ code, label, type, formType, ... }]
+  if (Array.isArray(res)) {
+    const defaultSection: Record<string, any> = {
+      fields: res.map((col: any, idx: number) => ({
+        fieldCode: col.code ?? col.field ?? `field_${idx}`,
+        fieldName: col.label ?? col.title ?? col.fieldCode ?? '',
+        fieldType: mapFieldType(col.formType ?? col.type),
+        isRequired: col.isRequired === true || col.isRequired === 1,
+        defaultValue: col.defaultValue,
+        options: col.options,
+        apiUrl: col.apiUrl,
+        dictType: col.dictType,
+        colSpan: col.colSpan ?? 6,
+        sortNum: col.sortOrder ?? idx,
+      })),
+    };
+
+    // 将详情数据提取出来放在 basicInfo 同级（mergeDetailData 会处理）
+    return { basicInfo: defaultSection };
+  }
+
+  // 其他情况返回空结构
+  return { basicInfo: { fields: [] } };
+}
+
+/**
+ * 映射表单类型
+ */
+function mapFieldType(type?: string): string {
+  if (!type) return 'text';
+  const lower = type.toLowerCase();
+  const map: Record<string, string> = {
+    input: 'text',
+    text: 'text',
+    textarea: 'textarea',
+    select: 'select',
+    date: 'date',
+    datetime: 'datetime',
+    number: 'number',
+    switch: 'select',
+  };
+  return map[lower] ?? 'text';
+}
+
+/**
+ * 合并详情数据到表单定义
+ * 将详情数据的字段值填充到 basicInfo.fields 对应的默认值中
+ */
+function mergeDetailData(normalized: Record<string, any>, detail: Record<string, any>): Record<string, any> {
+  // 找出 basicInfo 或其他区块
+  for (const key of Object.keys(normalized)) {
+    const section = normalized[key];
+    if (section && typeof section === 'object' && Array.isArray(section.fields)) {
+      // 填充详情值
+      section.fields.forEach((field: any) => {
+        const fieldCode = field.fieldCode;
+        if (fieldCode && detail[fieldCode] !== undefined) {
+          field.defaultValue = detail[fieldCode];
+        }
+      });
+    }
+  }
+  return normalized;
 }
 
 function inferDetailUrl(): string {
-  // 根据 tableCode 推断详情接口（需与后端协商约定）
+  // 精确匹配：tableCode → 接口路径
   const urlMap: Record<string, string> = {
     WMS0010: '/api/base/warehouse',
     WMS0030: '/api/base/material',
+    sys_warehouse: '/api/base/warehouse',
+    sys_material: '/api/base/material',
+    sys_user: '/api/system/user',
+    sys_role: '/api/system/role',
   };
-  return urlMap[props.tableCode] ?? `/api/base/${props.tableCode.replace(/^WMS\d+$/, (m) => m.replace(/^WMS/, '').toLowerCase())}`;
+
+  if (urlMap[props.tableCode]) {
+    return urlMap[props.tableCode];
+  }
+
+  // 兜底：WMS开头则去掉前缀映射，否则保留原名转小写
+  if (/^WMS\d+$/.test(props.tableCode)) {
+    return `/api/base/${props.tableCode.replace(/^WMS/, '').toLowerCase()}`;
+  }
+
+  // 其他情况：取 tableCode 最后一段（支持 sys_warehouse → warehouse）
+  const segments = props.tableCode.split('_');
+  const entityName = segments[segments.length - 1];
+  return `/api/base/${entityName}`;
 }
 
 /** 获取提交接口 URL */
