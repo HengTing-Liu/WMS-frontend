@@ -8,7 +8,7 @@
           <h1 class="text-2xl font-bold text-gray-800">WMS0010 仓库档案</h1>
           <p class="mt-1 text-sm text-gray-500">管理仓库基本信息、温区、质检分区等</p>
         </div>
-        <Button type="primary" size="large" @click="handleEdit()">
+        <Button type="primary" size="large" @click="handleCreate">
           <IconifyIcon icon="material-symbols:add" class="mr-1" /> 新建仓库
         </Button>
       </div>
@@ -153,32 +153,14 @@
       </WmsDataTable>
     </div>
 
-    <!-- 新增/修改弹窗 -->
-    <Modal v-model:open="modalVisible" :title="modalTitle" @ok="handleSubmit" width="600px">
-      <Form :model="formData" :label-col="{ span: 6 }">
-        <FormItem label="仓库编码" name="warehouseCode" required>
-          <Input v-model:value="formData.warehouseCode" placeholder="请输入仓库编码" />
-        </FormItem>
-        <FormItem label="仓库名称" name="warehouseName" required>
-          <Input v-model:value="formData.warehouseName" placeholder="请输入仓库名称" />
-        </FormItem>
-        <FormItem label="所属公司" name="company" required>
-          <Input v-model:value="formData.company" placeholder="请输入所属公司" />
-        </FormItem>
-        <FormItem label="温度区" name="temperatureZone">
-          <Input v-model:value="formData.temperatureZone" placeholder="如：常温区、冷藏区" />
-        </FormItem>
-        <FormItem label="质量区" name="qualityZone">
-          <Input v-model:value="formData.qualityZone" placeholder="如：合格品区" />
-        </FormItem>
-        <FormItem label="状态" name="isEnabled">
-          <Switch v-model:checked="formData.isEnabled" checked-children="启用" un-checked-children="停用" />
-        </FormItem>
-        <FormItem label="备注" name="remark">
-          <Textarea v-model:value="formData.remark" placeholder="请输入备注" :rows="3" />
-        </FormItem>
-      </Form>
-    </Modal>
+    <!-- 新增/编辑抽屉 - 字段由后端 meta 驱动 -->
+    <LowcodeDrawer
+      v-model:open="drawerVisible"
+      table-code="sys_warehouse"
+      :record="currentRecord"
+      submit-url="/api/base/warehouse"
+      @success="handleFormSuccess"
+    />
 
     <!-- 收货地址管理弹窗 -->
     <WarehouseReceiverModal
@@ -192,18 +174,18 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
-import { Button, Switch, Popconfirm, Modal, Form, FormItem, Input, Textarea, Select, SelectOption, Card, Progress, Tag, Tooltip } from 'ant-design-vue';
+import { Button, Popconfirm, Card, Progress, Tag, Tooltip } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 import { Page } from '@vben/common-ui';
 
 import {
   getWarehouseListApi,
-  addWarehouseApi,
   updateWarehouseApi,
   deleteWarehouseApi,
 } from '#/api/core/warehouse';
 import WmsSearchBar from '#/components/common/WmsSearchBar.vue';
 import WmsDataTable from '#/components/common/WmsDataTable.vue';
+import LowcodeDrawer from '#/lowcode/LowcodeDrawer.vue';
 import WarehouseReceiverModal from '#/views/sys/warehouse/modules/warehouse-receiver-modal.vue';
 
 const columns = [
@@ -223,7 +205,6 @@ const dataList = ref<any[]>([]);
 const loading = ref(false);
 const selectedRowKeys = ref<any[]>([]);
 
-
 const pagination = reactive({
   current: 1,
   pageSize: 10,
@@ -238,31 +219,20 @@ const searchForm = reactive({
   warehouseCode: '',
   warehouseName: '',
   company: undefined as string | undefined,
-  isEnabled: 1, // 默认已启用（后端参数）
-  is_enabled: 1, // WmsSearchBar 动态添加的字段，默认启用
+  isEnabled: 1,
+  is_enabled: 1,
 });
 
-// 远程字段接口 URL（后端根据 dict_type 自动加载下拉选项）
+// 远程字段接口 URL
 const remoteFieldsUrl = '/api/system/meta/column/schema?tableCode=sys_warehouse';
 
-// 弹窗
-const modalVisible = ref(false);
-const modalTitle = ref('新增仓库');
-const isEdit = ref(false);
+// 低代码抽屉
+const drawerVisible = ref(false);
+const currentRecord = ref<Record<string, any> | null>(null);
 
 // 收货地址弹窗
 const receiverModalVisible = ref(false);
 const currentReceiver = ref<{ warehouseCode: string; warehouseName: string } | null>(null);
-const formData = reactive({
-  id: undefined as number | undefined,
-  warehouseCode: '',
-  warehouseName: '',
-  company: '',
-  temperatureZone: '',
-  qualityZone: '',
-  isEnabled: true,
-  remark: '',
-});
 
 // 加载列表
 async function loadData() {
@@ -279,7 +249,6 @@ async function loadData() {
     if (wn !== '' && wn !== undefined && wn !== null) params.warehouseName = wn;
     const comp = sf.company;
     if (comp !== '' && comp !== undefined && comp !== null) params.company = comp;
-    // 只有明确设置了 isEnabled（有值）才传给后端
     if (sf.is_enabled !== undefined && sf.is_enabled !== null && sf.is_enabled !== '') {
       const v = typeof sf.is_enabled === 'boolean' ? (sf.is_enabled ? 1 : 0) : Number(sf.is_enabled);
       params.isEnabled = v;
@@ -296,7 +265,6 @@ async function loadData() {
   }
 }
 
-// 搜索：WmsSearchBar emit 的是蛇形键（warehouse_code），loadData 已经有回退逻辑
 function handleSearch(formFromBar?: Record<string, any>) {
   if (formFromBar && typeof formFromBar === 'object') {
     Object.assign(searchForm, formFromBar);
@@ -305,19 +273,17 @@ function handleSearch(formFromBar?: Record<string, any>) {
   loadData();
 }
 
-// 重置：恢复默认筛选条件（已启用仓库）
 function handleReset() {
   searchForm.keyword = '';
   searchForm.warehouseCode = '';
   searchForm.warehouseName = '';
   searchForm.company = undefined;
-  searchForm.isEnabled = 1; // 默认已启用
+  searchForm.isEnabled = 1;
   searchForm.is_enabled = 1;
   pagination.current = 1;
   loadData();
 }
 
-// WmsDataTable 分页配置（适配组件接口）
 const paginationConfig = computed(() => ({
   current: pagination.current,
   pageSize: pagination.pageSize,
@@ -326,7 +292,6 @@ const paginationConfig = computed(() => ({
   showTotal: (total: number) => `共 ${total} 条`,
 }));
 
-// WmsDataTable 事件处理
 function onPageChange({ page, pageSize }: { page: number; pageSize: number }) {
   pagination.current = page;
   pagination.pageSize = pageSize;
@@ -337,48 +302,23 @@ function onSelectionChange(keys: any[]) {
   selectedRowKeys.value = keys;
 }
 
-// 新增/修改
-function handleEdit(row?: any) {
-  if (row) {
-    isEdit.value = true;
-    modalTitle.value = '修改仓库';
-    Object.assign(formData, row, { isEnabled: row.isEnabled === 1 });
-  } else {
-    isEdit.value = false;
-    modalTitle.value = '新增仓库';
-    Object.assign(formData, {
-      id: undefined,
-      warehouseCode: '',
-      warehouseName: '',
-      company: '',
-      temperatureZone: '',
-      qualityZone: '',
-      isEnabled: true,
-      remark: '',
-    });
-  }
-  modalVisible.value = true;
+// 新增
+function handleCreate() {
+  currentRecord.value = null;
+  drawerVisible.value = true;
 }
 
-// 提交
-async function handleSubmit() {
-  try {
-    const data = {
-      ...formData,
-      isEnabled: formData.isEnabled ? 1 : 0,
-    };
-    if (isEdit.value) {
-      await updateWarehouseApi(data);
-      message.success('修改成功');
-    } else {
-      await addWarehouseApi(data);
-      message.success('新增成功');
-    }
-    modalVisible.value = false;
-    loadData();
-  } catch (e: any) {
-    message.error(e.message || '操作失败');
-  }
+// 编辑
+function handleEdit(record: any) {
+  currentRecord.value = record;
+  drawerVisible.value = true;
+}
+
+// 表单保存成功回调
+function handleFormSuccess() {
+  drawerVisible.value = false;
+  currentRecord.value = null;
+  loadData();
 }
 
 // 删除
@@ -505,11 +445,6 @@ function getQualityZoneColor(zone: string): string {
     '不合格区': 'default',
   };
   return colorMap[zone] || 'default';
-}
-
-// 导出功能
-function handleExport() {
-  message.info('导出功能开发中...');
 }
 
 onMounted(() => {
