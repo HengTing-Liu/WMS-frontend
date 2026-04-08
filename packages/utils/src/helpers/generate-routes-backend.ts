@@ -22,7 +22,7 @@ async function generateRoutesByBackend(
     // - 刷新时：优先返回缓存，避免重复请求
     const menuRoutes = await fetchMenuListAsync?.();
 
-    if (!menuRoutes) {
+    if (!menuRoutes || !Array.isArray(menuRoutes)) {
       return [];
     }
     const normalizePageMap: ComponentRecordType = {};

@@ -17,7 +17,6 @@ function getFirstMenuPath(menus: MenuRecordRaw[]): string | null {
   if (!menus?.length) return null;
   const first = menus[0];
   const path = first?.path?.trim();
-  // 跳过根布局（path="/" 且 redirect="noRedirect"）和重定向路由
   if (path && path !== 'noRedirect' && !(path === '/' && first.redirect === 'noRedirect')) {
     if (first.children?.length) {
       const childPath = getFirstMenuPath(first.children);
@@ -31,16 +30,12 @@ function getFirstMenuPath(menus: MenuRecordRaw[]): string | null {
 
 /**
  * 通用守卫配置
- * @param router
  */
 function setupCommonGuard(router: Router) {
-  // 记录已经加载的页面
   const loadedPaths = new Set<string>();
 
   router.beforeEach((to) => {
     to.meta.loaded = loadedPaths.has(to.path);
-
-    // 页面加载进度条
     if (!to.meta.loaded && preferences.transition.progress) {
       startProgress();
     }
@@ -48,11 +43,7 @@ function setupCommonGuard(router: Router) {
   });
 
   router.afterEach((to) => {
-    // 记录页面是否加载,如果已经加载，后续的页面切换动画等效果不在重复执行
-
     loadedPaths.add(to.path);
-
-    // 关闭页面加载进度条
     if (preferences.transition.progress) {
       stopProgress();
     }
@@ -61,15 +52,14 @@ function setupCommonGuard(router: Router) {
 
 /**
  * 权限访问守卫配置
- * @param router
  */
 function setupAccessGuard(router: Router) {
-  router.beforeEach(async (to, from) => {
+  router.beforeEach(async (to, _from) => {
     const accessStore = useAccessStore();
     const userStore = useUserStore();
     const authStore = useAuthStore();
 
-    // 登录页单独处理：已登录时一律跳转到首页（后端返回的第一个菜单，不写死）
+    // ---- 已登录，访问登录页 -> 跳首页 ----
     if (coreRouteNames.includes(to.name as string) && to.path === LOGIN_PATH) {
       if (accessStore.accessToken) {
         return (
@@ -81,110 +71,138 @@ function setupAccessGuard(router: Router) {
       return true;
     }
 
-    // accessToken 检查
+    // ---- 无 token -> 跳登录 ----
     if (!accessStore.accessToken) {
-     
-      // 明确声明忽略权限访问权限，则可以访问
       if (to.meta.ignoreAccess) {
         return true;
       }
-
-      // 没有访问权限，跳转登录页面
       if (to.fullPath !== LOGIN_PATH) {
-        const defaultPath = accessStore.getFirstMenuPath?.() || preferences.app.defaultHomePath;
         return {
           path: LOGIN_PATH,
-          query:
-            to.fullPath === defaultPath
-              ? {}
-              : { redirect: encodeURIComponent(to.fullPath) },
-          // 携带当前跳转的页面，登录后重新跳转该页面
+          query: { redirect: encodeURIComponent(to.fullPath) },
           replace: true,
         };
       }
       return to;
     }
-    
-      // 过期登出
-      // const expires_in = accessStore.expires_in;
-      // const currentTime = Date.now() / 1000;
-      // if ((expires_in*1000) < currentTime) {
-      //   console.log(expires_in*1000,'currentTime',currentTime);
-      //   authStore.logout()
-      //   return 
-      //   } 
-    // 是否已经生成过动态路由
-    // 注意：刷新页面时 Vue Router 会被重置，但 accessRoutes 还在 store 中
-    // 如果已经检查过权限且有路由数据，直接跳过重新生成
+
+    // ---- 已登录但 Vue Router 里没有该路由（刷新后动态路由丢失） ----
     if (accessStore.isAccessChecked && accessStore.accessRoutes?.length > 0) {
-      // 刷新后 Vue Router 中的动态路由可能已被重置
-      // 检查当前路由是否已经在 router 中
-      const currentRoute = to;
       const existingRoutes = router.getRoutes();
       const routeExists = existingRoutes.some(
-        (r) => r.path === currentRoute.path || r.name === currentRoute.name
+        (r) => r.path === to.path || r.name === to.name
       );
-      
-      if (routeExists) {
-        // 路由已在 router 中，继续
-        return true;
-      }
-      
-      // 路由不在 router 中，需要添加
-      // 递归添加路由到 router
-      const addRoutesToRouter = (routes: any[], parentPath = '') => {
-        for (const route of routes) {
-          const fullPath = parentPath ? `${parentPath}/${route.path}`.replace(/\/\//g, '/') : route.path;
-          if (route.component || route.children) {
-            router.addRoute(fullPath, route);
+
+      if (!routeExists) {
+        console.log('[Router] Route not found in Vue Router, regenerating...');
+        const userInfo = userStore.userInfo || (await authStore.fetchUserInfo());
+        const userRoles = userInfo.roles ?? [];
+
+        const result = await generateAccess({
+          roles: userRoles,
+          router,
+          routes: accessRoutes,
+          bypassMenuCache: true,
+        });
+
+        const menus = result?.accessibleMenus ?? [];
+        const routes = result?.accessibleRoutes ?? [];
+        if (routes.length > 0) {
+          accessStore.setAccessMenus(menus);
+          accessStore.setAccessRoutes(routes);
+
+          const fp = getFirstMenuPath(menus);
+          if (fp) {
+            const afterRoutes = router.getRoutes();
+            const fpExists = afterRoutes.some(
+              (r) => r.path === fp || r.name === fp
+            );
+            if (fpExists) {
+              accessStore.setFirstMenuPath(fp);
+              return { path: fp, replace: true };
+            }
           }
-          if (route.children) {
-            addRoutesToRouter(route.children, fullPath);
-          }
+          // 新算出的 firstPath 也不在 Vue Router 里？回 login
+          accessStore.setCachedMenuRoutes([]);
+          accessStore.setAccessRoutes([]);
+          accessStore.setIsAccessChecked(false);
+          return {
+            path: LOGIN_PATH,
+            query: { redirect: encodeURIComponent(to.fullPath) },
+            replace: true,
+          };
         }
-      };
-      
-      // 从 Root 开始添加
-      const rootRoute = router.getRoutes().find(r => r.path === '/' || r.name === 'Root');
-      if (rootRoute && rootRoute.children) {
-        // 先添加父路由的子路由
-        for (const route of accessStore.accessRoutes) {
-          router.addRoute(route);
-        }
+
+        accessStore.setCachedMenuRoutes([]);
+        accessStore.setAccessRoutes([]);
+        accessStore.setIsAccessChecked(false);
+        return {
+          path: LOGIN_PATH,
+          query: { redirect: encodeURIComponent(to.fullPath) },
+          replace: true,
+        };
       }
-      
-      // 继续导航
+
       return true;
     }
 
-    // 生成路由表
-    // 当前登录用户拥有的角色标识列表
+    // ---- 首次访问，生成动态路由 ----
     const userInfo = userStore.userInfo || (await authStore.fetchUserInfo());
     const userRoles = userInfo.roles ?? [];
 
-    // 生成菜单和路由
-    const { accessibleMenus, accessibleRoutes } = await generateAccess({
+    const gen = await generateAccess({
       roles: userRoles,
       router,
-      // 则会在菜单中显示，但是访问会被重定向到403
       routes: accessRoutes,
     });
 
-    // 保存菜单信息和路由信息
+    const accessibleMenus = gen?.accessibleMenus ?? [];
+    const accessibleRoutes = gen?.accessibleRoutes ?? [];
+
+    if (!accessibleRoutes.length) {
+      accessStore.setCachedMenuRoutes([]);
+      accessStore.setIsAccessChecked(false);
+      return {
+        path: LOGIN_PATH,
+        query: { redirect: encodeURIComponent(to.fullPath) },
+        replace: true,
+      };
+    }
+
     accessStore.setAccessMenus(accessibleMenus);
     accessStore.setAccessRoutes(accessibleRoutes);
     accessStore.setIsAccessChecked(true);
 
-    // 默认首页 = 后端返回的第一个可访问菜单路径（不写死）
     const firstPath = getFirstMenuPath(accessibleMenus);
-    if (firstPath) accessStore.setFirstMenuPath(firstPath);
-    const redirectPath =
-      firstPath
-      || userInfo.homePath
-      || preferences.app.defaultHomePath;
 
+    // 验证 firstPath 是否真的在 Vue Router 里（不是 localStorage 里残留的旧路径）
+    if (firstPath) {
+      const afterRoutes = router.getRoutes();
+      const fpExists = afterRoutes.some(
+        (r) => r.path === firstPath || r.name === firstPath
+      );
+      if (fpExists) {
+        accessStore.setFirstMenuPath(firstPath);
+        return { path: firstPath, replace: true };
+      }
+    }
+
+    // firstPath 不存在，用 userInfo.homePath 或兜底，但必须验证存在
+    const finalPath =
+      userInfo.homePath || preferences.app.defaultHomePath;
+    const finalRoutes = router.getRoutes();
+    const finalExists = finalRoutes.some(
+      (r) => r.path === finalPath || r.name === finalPath
+    );
+    if (finalExists) {
+      return { path: finalPath, replace: true };
+    }
+
+    //兜底路径也不存在：回到登录页
+    accessStore.setFirstMenuPath(null);
     return {
-      ...router.resolve(redirectPath),
+      path: LOGIN_PATH,
+      query: { redirect: encodeURIComponent(to.fullPath) },
       replace: true,
     };
   });
@@ -192,12 +210,9 @@ function setupAccessGuard(router: Router) {
 
 /**
  * 项目守卫配置
- * @param router
  */
 function createRouterGuard(router: Router) {
-  /** 通用 */
   setupCommonGuard(router);
-  /** 权限访问 */
   setupAccessGuard(router);
 }
 

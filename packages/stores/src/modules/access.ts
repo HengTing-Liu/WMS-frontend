@@ -16,9 +16,13 @@ interface AccessState {
    */
   accessMenus: MenuRecordRaw[];
   /**
-   * 可访问的路由列表
+   * 可访问的路由列表（内存）
    */
   accessRoutes: RouteRecordRaw[];
+  /**
+   * 原始菜单路由（可序列化，用于持久化）
+   */
+  cachedMenuRoutes: any[];
   /**
    * 登录 accessToken
    */
@@ -94,6 +98,12 @@ export const useAccessStore = defineStore('core-access', {
     setAccessRoutes(routes: RouteRecordRaw[]) {
       this.accessRoutes = routes;
     },
+    setCachedMenuRoutes(routes: any[]) {
+      this.cachedMenuRoutes = routes;
+    },
+    getCachedMenuRoutes(): any[] {
+      return this.cachedMenuRoutes ?? [];
+    },
     setAccessToken(token: AccessToken) {
       this.accessToken = token;
     },
@@ -116,11 +126,12 @@ export const useAccessStore = defineStore('core-access', {
     },
   },
   persist: {
-    // 持久化
+    // 持久化（不持久化 cachedMenuRoutes：易序列化损坏导致无限报错，刷新时走接口重建即可）
     pick: [
       'accessToken',
       'refreshToken',
       'accessCodes',
+      'accessMenus',
       'isLockScreen',
       'lockScreenPassword',
       'isAccessChecked',
@@ -131,6 +142,7 @@ export const useAccessStore = defineStore('core-access', {
     accessCodes: [],
     accessMenus: [],
     accessRoutes: [],
+    cachedMenuRoutes: [],
     accessToken: null,
     firstMenuPath: null,
     isAccessChecked: false,

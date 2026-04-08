@@ -1,8 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router';
 
 import { LOGIN_PATH } from '@vben/constants';
-import { preferences } from '@vben/preferences';
-import { useAccessStore } from '@vben/stores';
 
 import { $t } from '#/locales';
 
@@ -37,8 +35,8 @@ const coreRoutes: RouteRecordRaw[] = [
     },
     name: 'Root',
     path: '/',
-    // 默认首页 = 后端返回的第一个菜单路径（不写死）
-    redirect: () => useAccessStore().getFirstMenuPath?.() ?? preferences.app.defaultHomePath,
+    // 不在这里 redirect！所有重定向逻辑统一在 guard.ts 的 beforeEach 里处理
+    // 否则 localStorage 里的旧 firstMenuPath 会在 guard 之前就跳走
     children: [
       {
         name: 'Profile',

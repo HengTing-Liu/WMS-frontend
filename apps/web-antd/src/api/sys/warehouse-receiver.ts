@@ -24,6 +24,7 @@ export interface WarehouseReceiverResult {
   detailedAddress: string;
   postalCode?: string;
   isDefault: number;
+  remark?: string;
   createTime: string;
   createBy?: string;
   updateTime: string;
