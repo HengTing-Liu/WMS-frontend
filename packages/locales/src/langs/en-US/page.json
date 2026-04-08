@@ -28,7 +28,8 @@
       "setDefault": "Set as Default",
       "setDefaultSuccess": "Set successfully",
       "setAsDefault": "Set as Default Receiver",
-      "confirmDeleteReceiver": "Are you sure to delete receiver \"{name}\"?"
+      "confirmDeleteReceiver": "Are you sure to delete receiver \"{name}\"?",
+      "remark": "Remark"
     },
     "common": {
       "inputPlaceholder": "Please enter",

@@ -67,7 +67,8 @@
       "setDefault": "Set Default",
       "setDefaultSuccess": "Set as default successfully",
       "setAsDefault": "Set as default receiver",
-      "confirmDeleteReceiver": "Are you sure to delete receiver \"{name}\"?"
+      "confirmDeleteReceiver": "Are you sure to delete receiver \"{name}\"?",
+      "remark": "Remark"
     },
     "wms": {
       "filter": {

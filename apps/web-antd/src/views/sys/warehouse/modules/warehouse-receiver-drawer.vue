@@ -26,7 +26,7 @@
           v-model:value="formData.phoneNumber"
           :placeholder="$t('page.common.inputPlaceholder')"
           allow-clear
-          maxlength="11"
+          :maxlength="11"
         />
       </FormItem>
 
@@ -113,7 +113,7 @@
           v-model:value="formData.postalCode"
           :placeholder="$t('page.common.inputPlaceholder')"
           allow-clear
-          maxlength="6"
+          :maxlength="6"
         />
       </FormItem>
 
@@ -121,6 +121,16 @@
         <Checkbox v-model:checked="isDefaultChecked"
           >{{ $t('page.warehouse.setAsDefault') }}</Checkbox
         >
+      </FormItem>
+
+      <FormItem :label="$t('page.warehouse.remark')" name="remark">
+        <Textarea
+          v-model:value="formData.remark"
+          :placeholder="$t('page.common.inputPlaceholder')"
+          :rows="2"
+          allow-clear
+          :maxlength="500"
+        />
       </FormItem>
     </Form>
 
@@ -195,13 +205,14 @@ const formData = ref({
   warehouseCode: '',
   consignee: '',
   phoneNumber: '',
-  country: $t('page.common.china'),
+  country: $t('page.warehouse.china'),
   province: '',
   city: '',
   district: '',
   detailedAddress: '',
   postalCode: '',
   isDefault: 0,
+  remark: '',
 });
 
 // 默认地址复选框
@@ -268,21 +279,21 @@ const handleCityChange = () => {
 const fetchDetail = async () => {
   if (!props.receiverId) return;
   try {
-    const res = await getWarehouseReceiverDetail(props.receiverId);
-    const data = res.data;
+    const data = await getWarehouseReceiverDetail(props.receiverId);
     if (data) {
       formData.value = {
         id: data.id,
         warehouseCode: data.warehouseCode,
         consignee: data.consignee,
         phoneNumber: data.phoneNumber,
-        country: data.country || '中国',
+        country: data.country || $t('page.warehouse.china'),
         province: data.province,
         city: data.city,
         district: data.district,
         detailedAddress: data.detailedAddress,
         postalCode: data.postalCode || '',
         isDefault: data.isDefault,
+        remark: data.remark || '',
       };
     }
   } catch {
@@ -324,30 +335,37 @@ const handleClose = () => {
   visible.value = false;
 };
 
-// 监听打开状态
+// 重置表单方法
+const resetForm = () => {
+  formData.value = {
+    id: undefined,
+    warehouseCode: props.warehouseCode,
+    consignee: '',
+    phoneNumber: '',
+    country: $t('page.warehouse.china'),
+    province: '',
+    city: '',
+    district: '',
+    detailedAddress: '',
+    postalCode: '',
+    isDefault: 0,
+    remark: '',
+  };
+};
+
+// 监听 receiverId 变化
 watch(
-  () => props.open,
-  (val) => {
-    if (val) {
-      // 重置表单
-      formData.value = {
-        id: undefined,
-        warehouseCode: props.warehouseCode,
-        consignee: '',
-        phoneNumber: '',
-        country: $t('page.common.china'),
-        province: '',
-        city: '',
-        district: '',
-        detailedAddress: '',
-        postalCode: '',
-        isDefault: 0,
-      };
-      if (props.receiverId) {
-        fetchDetail();
-      }
+  () => props.receiverId,
+  (newId) => {
+    if (newId) {
+      // 有ID时加载详情
+      fetchDetail();
+    } else {
+      // 无ID时重置表单（新增模式）
+      resetForm();
     }
-  }
+  },
+  { immediate: true }
 );
 </script>
 

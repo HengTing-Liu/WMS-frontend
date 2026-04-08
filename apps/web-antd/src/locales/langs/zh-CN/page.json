@@ -41,7 +41,8 @@
       "setDefault": "设为默认",
       "setDefaultSuccess": "设置成功",
       "setAsDefault": "设为默认收货人",
-      "confirmDeleteReceiver": "确定要删除收货人\"{name}\"吗？"
+      "confirmDeleteReceiver": "确定要删除收货人\"{name}\"吗？",
+      "remark": "备注"
     },
     "wms": {
       "filter": {
