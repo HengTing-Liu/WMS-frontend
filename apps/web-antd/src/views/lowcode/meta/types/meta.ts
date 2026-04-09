@@ -11,6 +11,11 @@ export interface TableMeta {
   isTree: boolean;
   status: number;
   remark?: string;
+  // 数据权限相关
+  isDeletedColumn?: string;
+  hasDataPermission?: number;
+  permissionField?: string;
+  permissionScope?: string;
 }
 
 // 列元数据类型
@@ -33,6 +38,17 @@ export interface ColumnMeta {
   rulesJson?: string;
   placeholder?: string;
   defaultValue?: string;
+  // 补全的字段
+  colSpan?: number;
+  sectionKey?: string;
+  i18nKey?: string;
+  visibleCondition?: string;
+  dataSource?: string;
+  apiUrl?: string;
+  labelField?: string;
+  valueField?: string;
+  remark?: string;
+  componentProps?: string;
 }
 
 // 操作按钮类型
@@ -47,4 +63,6 @@ export interface TableOperation {
   permission?: string;
   position: string;
   sortOrder: number;
+  status?: number;
+  menuId?: number;
 }

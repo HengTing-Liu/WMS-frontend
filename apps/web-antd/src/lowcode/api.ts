@@ -102,20 +102,24 @@ export async function fetchPageMeta(tableCode: string) {
 
 // ==================== 通用 CRUD 接口 ====================
 
-/** 根据表编码推断 CRUD 接口前缀（需与后端协商约定） */
+/** 根据表编码推断 CRUD 接口前缀 */
 export function inferCrudPrefix(tableCode: string): string {
-  // 约定：WMS系统基础数据前缀为 /api/base/{entity}
-  // 例如：WMS0010 → /api/base/warehouse
-  // 通用处理：将 tableCode 转成 entity 名称
-  // WMS{数字} → base/{去掉WMS前缀，转小写}
-  // 更通用：按约定规则转换或直接由调用方传入
-  // 此处用简单映射，后续可扩展
   const entityMap: Record<string, string> = {
+    // WMS编码
     WMS0010: '/api/base/warehouse',
     WMS0030: '/api/base/material',
     WMS0040: '/api/base/basicData',
+    // 物理表名（低代码专用）
+    sys_warehouse: '/api/wms/crud/sys_warehouse',
+    sys_warehouse_receiver: '/api/wms/crud/sys_warehouse_receiver',
+    sys_user: '/api/wms/crud/sys_user',
   };
-  return entityMap[tableCode] ?? `/api/base/${tableCode.replace(/^WMS\d+$/, (m) => m.replace(/^WMS/, '').toLowerCase())}`;
+  if (entityMap[tableCode]) return entityMap[tableCode];
+  // 兜底规则
+  if (tableCode.startsWith('sys_')) {
+    return `/api/wms/crud/${tableCode}`;
+  }
+  return `/api/base/${tableCode.replace(/^WMS\d+$/, (m) => m.replace(/^WMS/, '').toLowerCase())}`;
 }
 
 /** 通用列表查询 */

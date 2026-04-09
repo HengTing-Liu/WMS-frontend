@@ -95,11 +95,55 @@
       <Switch v-model:checked="form.isTree" />
     </FormItem>
 
-    <FormItem label="$t('page.common.remark')" name="remark">
+    <Divider orientation="left">{{ $t('page.lowcode.meta.permissionConfig') }}</Divider>
+
+    <Row :gutter="16">
+      <Col :span="12">
+        <FormItem :label="$t('page.lowcode.meta.hasDataPermission')" name="hasDataPermission">
+          <Switch
+            v-model:checked="form.hasDataPermission"
+            :checkedValue="1"
+            :unCheckedValue="0"
+          />
+        </FormItem>
+      </Col>
+      <Col :span="12">
+        <FormItem :label="$t('page.lowcode.meta.permissionField')" name="permissionField">
+          <Select v-model:value="form.permissionField" :placeholder="$t('page.lowcode.meta.selectPermissionField')">
+            <SelectOption value="dept_id">dept_id</SelectOption>
+            <SelectOption value="company_id">company_id</SelectOption>
+            <SelectOption value="create_by">create_by</SelectOption>
+          </Select>
+        </FormItem>
+      </Col>
+    </Row>
+
+    <Row :gutter="16">
+      <Col :span="12">
+        <FormItem :label="$t('page.lowcode.meta.permissionScope')" name="permissionScope">
+          <Select v-model:value="form.permissionScope" :placeholder="$t('page.lowcode.meta.selectPermissionScope')">
+            <SelectOption value="DEPT">DEPT</SelectOption>
+            <SelectOption value="COMPANY">COMPANY</SelectOption>
+            <SelectOption value="ALL">ALL</SelectOption>
+          </Select>
+        </FormItem>
+      </Col>
+      <Col :span="12">
+        <FormItem :label="$t('page.lowcode.meta.isDeletedColumn')" name="isDeletedColumn">
+          <Input
+            v-model:value="form.isDeletedColumn"
+            placeholder="isdeleted"
+            allow-clear
+          />
+        </FormItem>
+      </Col>
+    </Row>
+
+    <FormItem :label="$t('page.common.remark')" name="remark">
       <Textarea
         v-model:value="form.remark"
         :rows="3"
-        :placeholder="$t('page.common.inputPlaceholder')"
+        :placeholder="$t('page.common.inputRemark')"
         allow-clear
       />
     </FormItem>
@@ -110,6 +154,7 @@
 import { reactive, watch } from 'vue';
 import {
   Col,
+  Divider,
   Form,
   FormItem,
   Input,
@@ -148,6 +193,11 @@ const form = reactive<Partial<TableMeta>>({
   isTree: false,
   status: 1,
   remark: '',
+  // 数据权限相关字段
+  hasDataPermission: 0,
+  permissionField: 'dept_id',
+  permissionScope: 'DEPT',
+  isDeletedColumn: 'isdeleted',
   ...props.modelValue,
 });
 

@@ -145,6 +145,99 @@
       </Col>
     </Row>
 
+    <Row :gutter="16">
+      <Col :span="8">
+        <FormItem :label="$t('page.lowcode.meta.colSpan')" name="colSpan">
+          <InputNumber
+            v-model:value="form.colSpan"
+            :min="1"
+            :max="24"
+            style="width: 100%"
+          />
+        </FormItem>
+      </Col>
+      <Col :span="8">
+        <FormItem :label="$t('page.lowcode.meta.sectionKey')" name="sectionKey">
+          <Input
+            v-model:value="form.sectionKey"
+            :placeholder="$t('page.lowcode.meta.sectionKeyPlaceholder')"
+            allow-clear
+          />
+        </FormItem>
+      </Col>
+      <Col :span="8">
+        <FormItem :label="$t('page.lowcode.meta.i18nKey')" name="i18nKey">
+          <Input
+            v-model:value="form.i18nKey"
+            :placeholder="$t('page.lowcode.meta.i18nKeyPlaceholder')"
+            allow-clear
+          />
+        </FormItem>
+      </Col>
+    </Row>
+
+    <FormItem :label="$t('page.lowcode.meta.visibleCondition')" name="visibleCondition">
+      <Textarea
+        v-model:value="form.visibleCondition"
+        :rows="2"
+        :placeholder="$t('page.lowcode.meta.visibleConditionPlaceholder')"
+        allow-clear
+      />
+    </FormItem>
+
+    <Divider orientation="left">{{ $t('page.lowcode.meta.dataSourceConfig') }}</Divider>
+
+    <Row :gutter="16">
+      <Col :span="12">
+        <FormItem :label="$t('page.lowcode.meta.dataSource')" name="dataSource">
+          <Select v-model:value="form.dataSource" :placeholder="$t('page.lowcode.meta.selectDataSource')">
+            <SelectOption value="dict">{{ $t('page.lowcode.meta.dict') }}</SelectOption>
+            <SelectOption value="api">{{ $t('page.lowcode.meta.api') }}</SelectOption>
+            <SelectOption value="static">{{ $t('page.lowcode.meta.static') }}</SelectOption>
+          </Select>
+        </FormItem>
+      </Col>
+      <Col :span="12">
+        <FormItem :label="$t('page.lowcode.meta.apiUrl')" name="apiUrl">
+          <Input
+            v-model:value="form.apiUrl"
+            :placeholder="$t('page.lowcode.meta.apiUrlPlaceholder')"
+            allow-clear
+          />
+        </FormItem>
+      </Col>
+    </Row>
+
+    <Row :gutter="16">
+      <Col :span="12">
+        <FormItem :label="$t('page.lowcode.meta.labelField')" name="labelField">
+          <Input
+            v-model:value="form.labelField"
+            :placeholder="$t('page.lowcode.meta.labelFieldPlaceholder')"
+            allow-clear
+          />
+        </FormItem>
+      </Col>
+      <Col :span="12">
+        <FormItem :label="$t('page.lowcode.meta.valueField')" name="valueField">
+          <Input
+            v-model:value="form.valueField"
+            :placeholder="$t('page.lowcode.meta.valueFieldPlaceholder')"
+            allow-clear
+          />
+        </FormItem>
+      </Col>
+    </Row>
+
+    <FormItem :label="$t('page.common.remark')" name="remark">
+      <Textarea
+        v-model:value="form.remark"
+        :rows="2"
+        :placeholder="$t('page.common.inputRemark')"
+        allow-clear
+      />
+    </FormItem>
+
     <FormItem :label="$t('page.lowcode.meta.linkageConfig')" name="linkageJson">
       <Textarea
         v-model:value="form.linkageJson"
@@ -215,6 +308,16 @@ const form = reactive<Partial<ColumnMeta>>({
   rulesJson: '',
   placeholder: '',
   defaultValue: '',
+  // 补全的字段
+  colSpan: 24,
+  sectionKey: '',
+  i18nKey: '',
+  visibleCondition: '',
+  dataSource: '',
+  apiUrl: '',
+  labelField: '',
+  valueField: '',
+  remark: '',
   ...props.modelValue,
 });
 

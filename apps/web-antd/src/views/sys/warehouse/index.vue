@@ -1,453 +1,131 @@
 <template>
-  <Page auto-content-height>
-    <div style="display:none" data-page="warehouse">Warehouse Page Loaded</div>
-    <div class="p-4">
-      <!-- 页面标题区 -->
-      <div class="mb-6 flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-800">WMS0010 仓库档案</h1>
-          <p class="mt-1 text-sm text-gray-500">管理仓库基本信息、温区、质检分区等</p>
-        </div>
-        <Button type="primary" size="large" @click="handleCreate">
-          <IconifyIcon icon="material-symbols:add" class="mr-1" /> 新建仓库
-        </Button>
-      </div>
-
-      <!-- 搜索栏 - 使用 WmsSearchBar（字段由远程接口加载） -->
-      <Card class="mb-4">
-        <WmsSearchBar
-          v-model="searchForm"
-          :remote-fields-url="remoteFieldsUrl"
-          cache-key="warehouse-fields-cache"
-          @search="handleSearch"
-          @reset="handleReset"
-        />
-      </Card>
-
-      <!-- 工具栏 -->
-      <div class="mb-4 flex items-center justify-between">
-        <div class="text-sm text-gray-500">
-          已选择 <span class="font-medium text-blue-600">{{ selectedRowKeys.length }}</span> 项
-        </div>
-        <div class="flex gap-2">
-          <Popconfirm title="是否确认批量删除?" ok-text="确认" cancel-text="取消" @confirm="handleBatchDelete">
-            <Button danger :disabled="selectedRowKeys.length === 0">
-              <IconifyIcon icon="material-symbols:delete" class="mr-1" /> 批量删除
+  <LowcodePage
+    ref="lowcodePageRef"
+    table-code="sys_warehouse"
+    page-title="WMS0010 仓库档案"
+    page-desc="管理仓库基本信息、温区、质检分区等"
+    :crud-prefix="crudPrefix"
+    @form-success="handleFormSuccess"
+  >
+    <!-- 操作列插槽：保留收货地址按钮 -->
+    <template #bodyCell="{ column, record }">
+      <template v-if="column.key === 'action'">
+        <div class="flex items-center gap-2">
+          <Tooltip title="编辑">
+            <Button type="link" size="small" class="p-0" @click="handleEdit(record)">
+              <IconifyIcon icon="material-symbols:edit" class="text-lg" />
             </Button>
-          </Popconfirm>
-        </div>
-      </div>
+          </Tooltip>
 
-      <!-- 表格 - 使用 WmsDataTable -->
-      <WmsDataTable
-        :columns="columns"
-        :data-source="dataList"
-        :loading="loading"
-        :pagination="paginationConfig"
-        row-key="id"
-        :enable-selection="true"
-        @page-change="onPageChange"
-        @selection-change="onSelectionChange"
-      >
-        <template #bodyCell="{ column, record, index }">
-          <!-- 序号 -->
-          <template v-if="column.key === 'seq'">
-            {{ (pagination.current - 1) * pagination.pageSize + index + 1 }}
-          </template>
-
-          <!-- 仓库名称带图标 -->
-          <template v-else-if="column.key === 'warehouseName'">
-            <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded bg-blue-100">
-                <IconifyIcon icon="material-symbols:warehouse" class="text-blue-600" />
-              </div>
-              <span>{{ record.warehouseName }}</span>
-            </div>
-          </template>
-
-          <!-- 类型标签 -->
-          <template v-else-if="column.key === 'warehouseType'">
-            <Tag :color="getTypeColor(record.warehouseType)">
-              {{ getTypeLabel(record.warehouseType) }}
-            </Tag>
-          </template>
-
-          <!-- 温区显示 -->
-          <template v-else-if="column.key === 'temperatureZone'">
-            <div class="flex items-center gap-1">
-              <IconifyIcon :icon="getTempIcon(record.temperatureZone)" class="text-gray-500" />
-              <span>{{ getTempLabel(record.temperatureZone) }}</span>
-            </div>
-          </template>
-
-          <!-- 质检分区 -->
-          <template v-else-if="column.key === 'qualityZone'">
-            <Tag :color="getQualityZoneColor(record.qualityZone)" size="small">
-              {{ record.qualityZone || '-' }}
-            </Tag>
-          </template>
-
-          <!-- 使用率进度条 -->
-          <template v-else-if="column.key === 'usageRate'">
-            <div class="w-24">
-              <Progress
-                :percent="record.usageRate || 0"
-                size="small"
-                :status="getUsageStatus(record.usageRate)"
-                :stroke-color="getUsageColor(record.usageRate)"
+          <Tooltip :title="record.isEnabled === 1 ? '停用' : '启用'">
+            <Button
+              type="link"
+              size="small"
+              class="p-0"
+              @click="handleToggleStatus(record, record.isEnabled !== 1)"
+            >
+              <IconifyIcon
+                :icon="record.isEnabled === 1 ? 'material-symbols:toggle-on' : 'material-symbols:toggle-off'"
+                :class="record.isEnabled === 1 ? 'text-green-500 text-2xl' : 'text-gray-400 text-2xl'"
               />
-            </div>
-          </template>
+            </Button>
+          </Tooltip>
 
-          <!-- 状态标签 -->
-          <template v-else-if="column.key === 'isEnabled'">
-            <Tag :color="record.isEnabled === 1 ? 'success' : 'default'">
-              {{ record.isEnabled === 1 ? '启用' : '停用' }}
-            </Tag>
-          </template>
+          <Tooltip title="删除">
+            <Popconfirm title="是否确认删除?" ok-text="确认" cancel-text="取消" @confirm="handleDelete(record.id)">
+              <Button type="link" size="small" danger class="p-0">
+                <IconifyIcon icon="material-symbols:delete" class="text-lg" />
+              </Button>
+            </Popconfirm>
+          </Tooltip>
 
-          <!-- 操作按钮 -->
-          <template v-else-if="column.key === 'action'">
-            <div class="flex items-center gap-2">
-              <Tooltip title="编辑">
-                <Button type="link" size="small" class="p-0" @click="handleEdit(record)">
-                  <IconifyIcon icon="material-symbols:edit" class="text-lg" />
-                </Button>
-              </Tooltip>
+          <Tooltip title="收货地址">
+            <Button
+              type="link"
+              size="small"
+              class="p-0"
+              @click="handleReceiver(record)"
+            >
+              <IconifyIcon icon="material-symbols:location-on" class="text-lg" />
+            </Button>
+          </Tooltip>
+        </div>
+      </template>
+    </template>
+  </LowcodePage>
 
-              <Tooltip :title="record.isEnabled === 1 ? '停用' : '启用'">
-                <Button
-                  type="link"
-                  size="small"
-                  class="p-0"
-                  @click="handleChangeStatus(record, record.isEnabled !== 1)"
-                >
-                  <IconifyIcon
-                    :icon="record.isEnabled === 1 ? 'material-symbols:toggle-on' : 'material-symbols:toggle-off'"
-                    :class="record.isEnabled === 1 ? 'text-green-500 text-2xl' : 'text-gray-400 text-2xl'"
-                  />
-                </Button>
-              </Tooltip>
-
-              <Tooltip title="删除">
-                <Popconfirm title="是否确认删除?" ok-text="确认" cancel-text="取消" @confirm="handleDelete(record.id)">
-                  <Button type="link" size="small" danger class="p-0">
-                    <IconifyIcon icon="material-symbols:delete" class="text-lg" />
-                  </Button>
-                </Popconfirm>
-              </Tooltip>
-
-              <Tooltip title="收货地址">
-                <Button
-                  type="link"
-                  size="small"
-                  class="p-0"
-                  @click="handleReceiver(record)"
-                >
-                  <IconifyIcon icon="material-symbols:location-on" class="text-lg" />
-                </Button>
-              </Tooltip>
-            </div>
-          </template>
-        </template>
-      </WmsDataTable>
-    </div>
-
-    <!-- 新增/编辑抽屉 - 字段由后端 meta 驱动 -->
-    <LowcodeDrawer
-      v-model:open="drawerVisible"
-      table-code="sys_warehouse"
-      :record="currentRecord"
-      submit-url="/api/base/warehouse"
-      @success="handleFormSuccess"
-    />
-
-    <!-- 收货地址管理弹窗 -->
-    <WarehouseReceiverModal
-      v-model:open="receiverModalVisible"
-      :warehouse-code="currentReceiver?.warehouseCode || ''"
-      :warehouse-name="currentReceiver?.warehouseName || ''"
-    />
-  </Page>
+  <!-- 收货地址管理弹窗 -->
+  <WarehouseReceiverModal
+    v-model:open="receiverModalVisible"
+    :warehouse-code="currentReceiver?.warehouseCode || ''"
+    :warehouse-name="currentReceiver?.warehouseName || ''"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
-import { message } from 'ant-design-vue';
-import { Button, Popconfirm, Card, Progress, Tag, Tooltip } from 'ant-design-vue';
+import { ref } from 'vue';
+import { Tooltip, Popconfirm, Button } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
-import { Page } from '@vben/common-ui';
-
-import {
-  getWarehouseListApi,
-  updateWarehouseApi,
-  deleteWarehouseApi,
-} from '#/api/core/warehouse';
-import WmsSearchBar from '#/components/common/WmsSearchBar.vue';
-import WmsDataTable from '#/components/common/WmsDataTable.vue';
-import LowcodeDrawer from '#/lowcode/LowcodeDrawer.vue';
+import LowcodePage from '#/lowcode/LowcodePage.vue';
 import WarehouseReceiverModal from '#/views/sys/warehouse/modules/warehouse-receiver-modal.vue';
+import { toggleRecord, deleteRecord } from '#/lowcode/api';
+import { message } from 'ant-design-vue';
 
-const columns = [
-  { title: '序号', key: 'seq', width: 60, align: 'center' },
-  { title: '仓库编号', dataIndex: 'warehouseCode', width: 100, align: 'center' },
-  { title: '仓库名称', key: 'warehouseName', width: 180 },
-  { title: '类型', key: 'warehouseType', width: 100, align: 'center' },
-  { title: '温区', key: 'temperatureZone', width: 120, align: 'center' },
-  { title: '质检分区', key: 'qualityZone', width: 100, align: 'center' },
-  { title: '负责人', dataIndex: 'managerName', width: 100, align: 'center' },
-  { title: '使用率', key: 'usageRate', width: 120, align: 'center' },
-  { title: '状态', key: 'isEnabled', width: 80, align: 'center' },
-  { title: '操作', key: 'action', width: 150, align: 'center', fixed: 'right' },
-];
+const crudPrefix = '/api/wms/crud/sys_warehouse';
 
-const dataList = ref<any[]>([]);
-const loading = ref(false);
-const selectedRowKeys = ref<any[]>([]);
-
-const pagination = reactive({
-  current: 1,
-  pageSize: 10,
-  total: 0,
-  showSizeChanger: true,
-  showTotal: (total: number) => `共 ${total} 条`,
-});
-
-// 搜索表单（默认筛选已启用的仓库）
-const searchForm = reactive({
-  keyword: '',
-  warehouseCode: '',
-  warehouseName: '',
-  company: undefined as string | undefined,
-  isEnabled: 1,
-  is_enabled: 1,
-});
-
-// 远程字段接口 URL
-const remoteFieldsUrl = '/api/system/meta/column/schema?tableCode=sys_warehouse';
-
-// 低代码抽屉
-const drawerVisible = ref(false);
-const currentRecord = ref<Record<string, any> | null>(null);
+// LowcodePage 引用
+const lowcodePageRef = ref<InstanceType<typeof LowcodePage> | null>(null);
 
 // 收货地址弹窗
 const receiverModalVisible = ref(false);
 const currentReceiver = ref<{ warehouseCode: string; warehouseName: string } | null>(null);
 
-// 加载列表
-async function loadData() {
-  loading.value = true;
-  try {
-    const sf = searchForm as Record<string, any>;
-    const params: Record<string, any> = {
-      pageNum: pagination.current,
-      pageSize: pagination.pageSize,
-    };
-    const wc = sf.warehouse_code ?? sf.warehouseCode;
-    if (wc !== '' && wc !== undefined && wc !== null) params.warehouseCode = wc;
-    const wn = sf.warehouse_name ?? sf.warehouseName;
-    if (wn !== '' && wn !== undefined && wn !== null) params.warehouseName = wn;
-    const comp = sf.company;
-    if (comp !== '' && comp !== undefined && comp !== null) params.company = comp;
-    if (sf.is_enabled !== undefined && sf.is_enabled !== null && sf.is_enabled !== '') {
-      const v = typeof sf.is_enabled === 'boolean' ? (sf.is_enabled ? 1 : 0) : Number(sf.is_enabled);
-      params.isEnabled = v;
-    } else if (sf.isEnabled !== undefined && sf.isEnabled !== null) {
-      params.isEnabled = sf.isEnabled;
-    }
-    const res = await getWarehouseListApi(params);
-    dataList.value = res.rows || res.data?.rows || [];
-    pagination.total = res.total || res.data?.total || 0;
-  } catch (e) {
-    console.error('加载失败', e);
-  } finally {
-    loading.value = false;
-  }
+function reloadList() {
+  lowcodePageRef.value?.reload();
 }
 
-function handleSearch(formFromBar?: Record<string, any>) {
-  if (formFromBar && typeof formFromBar === 'object') {
-    Object.assign(searchForm, formFromBar);
-  }
-  pagination.current = 1;
-  loadData();
+function handleEdit(record: Record<string, any>) {
+  lowcodePageRef.value?.handleEdit(record);
 }
 
-function handleReset() {
-  searchForm.keyword = '';
-  searchForm.warehouseCode = '';
-  searchForm.warehouseName = '';
-  searchForm.company = undefined;
-  searchForm.isEnabled = 1;
-  searchForm.is_enabled = 1;
-  pagination.current = 1;
-  loadData();
-}
-
-const paginationConfig = computed(() => ({
-  current: pagination.current,
-  pageSize: pagination.pageSize,
-  total: pagination.total,
-  showSizeChanger: true,
-  showTotal: (total: number) => `共 ${total} 条`,
-}));
-
-function onPageChange({ page, pageSize }: { page: number; pageSize: number }) {
-  pagination.current = page;
-  pagination.pageSize = pageSize;
-  loadData();
-}
-
-function onSelectionChange(keys: any[]) {
-  selectedRowKeys.value = keys;
-}
-
-// 新增
-function handleCreate() {
-  currentRecord.value = null;
-  drawerVisible.value = true;
-}
-
-// 编辑
-function handleEdit(record: any) {
-  currentRecord.value = record;
-  drawerVisible.value = true;
-}
-
-// 表单保存成功回调
 function handleFormSuccess() {
-  drawerVisible.value = false;
-  currentRecord.value = null;
-  loadData();
+  reloadList();
 }
 
-// 删除
-async function handleDelete(id: number) {
+async function handleDelete(id: number | string) {
   try {
-    await deleteWarehouseApi(id);
-    message.success('删除成功');
-    loadData();
-  } catch (e: any) {
-    message.error(e.message || '删除失败');
-  }
-}
-
-// 批量删除
-async function handleBatchDelete() {
-  if (selectedRowKeys.value.length === 0) {
-    message.warning('请选择要删除的数据');
-    return;
-  }
-  try {
-    for (const id of selectedRowKeys.value) {
-      await deleteWarehouseApi(Number(id));
-    }
-    message.success('删除成功');
-    selectedRowKeys.value = [];
-    loadData();
-  } catch (e: any) {
-    message.error(e.message || '删除失败');
-  }
-}
-
-// 状态切换
-async function handleChangeStatus(record: any, checked: boolean) {
-  try {
-    await updateWarehouseApi({
-      ...record,
-      isEnabled: checked ? 1 : 0,
+    await deleteRecord({
+      tableCode: 'sys_warehouse',
+      prefix: '/api/wms/crud/sys_warehouse',
+      id,
     });
-    message.success('状态更新成功');
-    loadData();
+    message.success('删除成功');
+    reloadList();
   } catch (e: any) {
-    message.error(e.message || '状态更新失败');
-    loadData();
+    message.error(e?.message || '删除失败');
   }
 }
 
-// 收货地址管理
-function handleReceiver(record: any) {
+async function handleToggleStatus(record: Record<string, any>, enabled: boolean) {
+  try {
+    await toggleRecord({
+      tableCode: 'sys_warehouse',
+      prefix: '/api/wms/crud/sys_warehouse',
+      id: record.id,
+      enabled,
+    });
+    message.success(enabled ? '启用成功' : '停用成功');
+    reloadList();
+  } catch (e: any) {
+    message.error(e?.message || '状态更新失败');
+  }
+}
+
+function handleReceiver(record: Record<string, any>) {
   currentReceiver.value = {
     warehouseCode: record.warehouseCode,
     warehouseName: record.warehouseName,
   };
   receiverModalVisible.value = true;
 }
-
-// 辅助函数：获取仓库类型标签
-function getTypeLabel(type: string): string {
-  const typeMap: Record<string, string> = {
-    sales: '销售仓',
-    isolation: '隔离仓',
-    front: '前置仓',
-    transit: '中转仓',
-    return: '退货仓',
-  };
-  return typeMap[type] || type || '-';
-}
-
-// 辅助函数：获取仓库类型颜色
-function getTypeColor(type: string): string {
-  const colorMap: Record<string, string> = {
-    sales: 'blue',
-    isolation: 'red',
-    front: 'green',
-    transit: 'orange',
-    return: 'purple',
-  };
-  return colorMap[type] || 'default';
-}
-
-// 辅助函数：获取温区标签
-function getTempLabel(temp: string): string {
-  const tempMap: Record<string, string> = {
-    normal: '常温',
-    cold: '2-8℃',
-    frozen: '-18℃',
-    ultraCold: '-40℃',
-  };
-  return tempMap[temp] || temp || '-';
-}
-
-// 辅助函数：获取温区图标
-function getTempIcon(temp: string): string {
-  const iconMap: Record<string, string> = {
-    normal: 'material-symbols:thermometer',
-    cold: 'material-symbols:ac-unit',
-    frozen: 'material-symbols:snowing',
-    ultraCold: 'material-symbols:snowing-heavy',
-  };
-  return iconMap[temp] || 'material-symbols:thermometer';
-}
-
-// 辅助函数：获取使用率状态
-function getUsageStatus(rate: number): string {
-  if (!rate) return 'normal';
-  if (rate >= 80) return 'exception';
-  if (rate >= 50) return 'active';
-  return 'success';
-}
-
-// 辅助函数：获取使用率颜色
-function getUsageColor(rate: number): string {
-  if (!rate) return '#52c41a';
-  if (rate >= 80) return '#ff4d4f';
-  if (rate >= 50) return '#faad14';
-  return '#52c41a';
-}
-
-// 辅助函数：获取质检分区颜色
-function getQualityZoneColor(zone: string): string {
-  const colorMap: Record<string, string> = {
-    '合格区': 'success',
-    '待检区': 'warning',
-    '隔离区': 'error',
-    '不合格区': 'default',
-  };
-  return colorMap[zone] || 'default';
-}
-
-onMounted(() => {
-  loadData();
-});
 </script>
