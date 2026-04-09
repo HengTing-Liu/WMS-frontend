@@ -11,10 +11,10 @@
   />
 -->
 <template>
-  <a-drawer
+  <Drawer
     v-model:open="internalOpen"
     :title="drawerTitle"
-    :width="drawerWidth"
+    :width="width"
     :destroy-on-close="true"
     :mask-closable="false"
     @close="handleClose"
@@ -30,13 +30,12 @@
         :on-cancel="handleClose"
       />
     </Spin>
-  </a-drawer>
+  </Drawer>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { Spin } from 'ant-design-vue';
-import { Drawer as ADrawer } from 'ant-design-vue';
+import { Drawer, Spin } from 'ant-design-vue';
 import { requestClient } from '#/api/request';
 import DynamicFormDefinitionPage from '#/components/DynamicFormDefinitionPage.vue';
 

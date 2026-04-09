@@ -16,7 +16,7 @@
  */
 
 import { requestClient } from '#/api/request';
-import type { ColumnMeta, TableMeta, TableOperation } from '../types';
+import type { ColumnMeta, TableMeta, TableOperation } from './types';
 
 // ==================== Meta 接口 ====================
 
@@ -31,33 +31,52 @@ export async function fetchColumnSchema(tableCode: string): Promise<ColumnMeta[]
   // 兼容多层包装：data.rows / data / 直接数组
   const rows = res?.data?.rows ?? res?.data ?? res ?? [];
   const list = Array.isArray(rows) ? rows : [];
-  // 统一字段名：后端返回 ColumnMeta 实体，前端使用 field/title/formType 等
-  return list.map((item: any) => ({
-    id: item.id,
-    tableCode: item.tableCode,
-    field: item.field || item.columnCode,
-    title: item.title || item.columnName,
-    dataType: item.dataType,
-    formType: item.formType || item.fieldType,
-    dictType: item.dictType,
-    isShowInList: item.showInList ?? item.isShowInList,
-    isShowInForm: item.showInForm ?? item.isShowInForm,
-    isSearchable: item.searchable ?? item.isSearchable,
-    isSortable: item.sortable ?? item.isSortable,
-    isRequired: item.required ?? item.isRequired,
-    width: item.width ?? item.listWidth,
-    sortOrder: item.sortOrder,
-    rulesJson: item.rulesJson || item.validRules,
-    placeholder: item.placeholder,
-    defaultValue: item.defaultValue,
-    colSpan: item.colSpan,
-    sectionKey: item.sectionKey,
-    i18nKey: item.i18nKey,
-    visibleCondition: item.visibleCondition,
-    status: item.status ?? item.isEnabled,
-    options: item.options,
-    dataSource: item.dataSource,
-  }));
+  /**
+   * 后端 ColumnMetaVO 使用 code / label / isVisible / type；
+   * 数据库实体 ColumnMeta 使用 field / title / showInList。
+   * 此处两种都要兼容，否则 field、title 为空会导致表头与 dataIndex 全错。
+   */
+  return list.map((item: any) => {
+    const code = item.field ?? item.code ?? item.columnCode ?? '';
+    const title =
+      item.title ?? item.label ?? item.columnName ?? item.column_name ?? code;
+    let isShowInList =
+      item.showInList ??
+      item.show_in_list ??
+      item.isShowInList ??
+      item.is_show_in_list;
+    if (isShowInList === undefined && typeof item.isVisible === 'boolean') {
+      isShowInList = item.isVisible ? 1 : 0;
+    }
+    return {
+      id: item.id,
+      tableCode: item.tableCode,
+      code,
+      field: code,
+      label: item.label ?? item.title,
+      title,
+      dataType: item.dataType ?? item.type,
+      formType: item.formType || item.fieldType,
+      dictType: item.dictType,
+      isShowInList,
+      isShowInForm: item.showInForm ?? item.isShowInForm ?? item.show_in_form,
+      isSearchable: item.searchable ?? item.isSearchable,
+      isSortable: item.sortable ?? item.isSortable,
+      isRequired: item.required ?? item.isRequired,
+      width: item.width ?? item.listWidth,
+      sortOrder: item.sortOrder,
+      rulesJson: item.rulesJson || item.validRules,
+      placeholder: item.placeholder,
+      defaultValue: item.defaultValue,
+      colSpan: item.colSpan,
+      sectionKey: item.sectionKey,
+      i18nKey: item.i18nKey,
+      visibleCondition: item.visibleCondition,
+      status: item.status ?? item.isEnabled,
+      options: item.options,
+      dataSource: item.dataSource,
+    };
+  });
 }
 
 /**

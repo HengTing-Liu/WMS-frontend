@@ -26,7 +26,7 @@
         <!-- 工具栏按钮（由操作配置决定） -->
         <div v-if="toolbarActions.length" class="flex gap-2">
           <template v-for="action in toolbarActions" :key="action.key">
-            <a-button
+            <Button
               v-if="action.key === 'create'"
               type="primary"
               size="large"
@@ -34,14 +34,11 @@
             >
               <IconifyIcon icon="material-symbols:add" class="mr-1" />
               {{ action.label }}
-            </a-button>
-            <a-button
-              v-else-if="action.key === 'export'"
-              @click="handleExport"
-            >
+            </Button>
+            <Button v-else-if="action.key === 'export'" @click="handleExport">
               <IconifyIcon icon="material-symbols:file-download" class="mr-1" />
               {{ action.label }}
-            </a-button>
+            </Button>
           </template>
         </div>
       </div>
@@ -141,6 +138,7 @@
                   </Popconfirm>
                 </Tooltip>
               </template>
+              <slot name="appendAction" :record="record" />
             </div>
           </template>
 
@@ -151,8 +149,10 @@
             </Tag>
           </template>
 
-          <!-- 默认单元格：透传插槽给父组件自定义 -->
-          <slot v-else name="bodyCell" v-bind="{ column, record, index }" />
+          <!-- 默认单元格：父级可覆盖；未覆盖时显示字段值（避免仅写了 #bodyCell 中 action 分支导致数据列全空） -->
+          <slot v-else name="bodyCell" v-bind="{ column, record, index }">
+            {{ formatDefaultCell(record, column) }}
+          </slot>
         </template>
       </WmsDataTable>
     </div>
@@ -290,7 +290,8 @@ const columns = computed<any[]>(() => {
     const code = col.code ?? col.field;
     const title = col.label ?? col.title ?? code;
 
-    if (!col.isShowInList) continue;
+    // 未配置时默认展示列表列（仅明确为 0 / false 时隐藏）
+    if (col.isShowInList === 0 || col.isShowInList === false) continue;
 
     const tableCol: any = {
       title,
@@ -328,6 +329,26 @@ function formatStatValue(value: any, config: StatsCardConfig): string {
   if (config.format) return config.format(value);
   if (value === null || value === undefined) return '0';
   return String(value);
+}
+
+/** 表格单元格取值：兼容列 dataIndex 与接口字段驼峰/蛇形不一致 */
+function pickRecordField(record: Record<string, any>, key: string): unknown {
+  if (!record || key == null || key === '') return undefined;
+  if (Object.prototype.hasOwnProperty.call(record, key)) return record[key];
+  const snake = key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
+  if (Object.prototype.hasOwnProperty.call(record, snake)) return record[snake];
+  const camel = key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+  if (Object.prototype.hasOwnProperty.call(record, camel)) return record[camel];
+  return record[key];
+}
+
+function formatDefaultCell(record: Record<string, any>, column: any): string {
+  const key = column?.dataIndex ?? column?.key;
+  if (key == null || key === 'seq' || key === 'action') return '';
+  const raw = pickRecordField(record, String(key));
+  if (raw === null || raw === undefined) return '';
+  if (typeof raw === 'object') return JSON.stringify(raw);
+  return String(raw);
 }
 
 // ==================== 数据加载 ====================

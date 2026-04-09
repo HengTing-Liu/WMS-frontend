@@ -33,8 +33,14 @@ const mounted = (el: Element, binding: DirectiveBinding<string | string[]>) => {
   isAccessible(el, binding);
 };
 
+const updated = (el: Element, binding: DirectiveBinding<string | string[]>) => {
+  // 支持动态权限变化（如切换角色后）实时响应
+  isAccessible(el, binding);
+};
+
 const authDirective: Directive = {
   mounted,
+  updated,
 };
 
 export function registerAccessDirective(app: App) {
