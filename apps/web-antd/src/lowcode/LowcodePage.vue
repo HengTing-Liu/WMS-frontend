@@ -17,54 +17,8 @@
 <template>
   <Page auto-content-height>
     <div class="lowcode-page p-4">
-      <!-- 页面标题区 -->
-      <div class="mb-6 flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-800">{{ pageTitle }}</h1>
-          <p v-if="pageDesc" class="mt-1 text-sm text-gray-500">{{ pageDesc }}</p>
-        </div>
-        <!-- 工具栏按钮（由操作配置决定） -->
-        <div v-if="toolbarActions.length" class="flex gap-2">
-          <template v-for="action in toolbarActions" :key="action.key">
-            <Button
-              v-if="action.key === 'create'"
-              type="primary"
-              size="large"
-              @click="handleCreate"
-            >
-              <IconifyIcon icon="material-symbols:add" class="mr-1" />
-              {{ action.label }}
-            </Button>
-            <Button v-else-if="action.key === 'export'" @click="handleExport">
-              <IconifyIcon icon="material-symbols:file-download" class="mr-1" />
-              {{ action.label }}
-            </Button>
-          </template>
-        </div>
-      </div>
-
-      <!-- 统计卡片区域 -->
-      <div v-if="showStats && statsConfig.length" class="mb-6 grid grid-cols-4 gap-4">
-        <Card v-for="stat in statsConfig" :key="stat.key" class="stat-card">
-          <div class="flex items-center">
-            <div
-              class="mr-4 flex h-12 w-12 items-center justify-center rounded-full"
-              :style="{ backgroundColor: `${stat.color}20` }"
-            >
-              <IconifyIcon :icon="stat.icon" class="text-xl" :style="{ color: stat.color }" />
-            </div>
-            <div>
-              <div class="text-sm text-gray-500">{{ stat.label }}</div>
-              <div class="text-2xl font-bold text-gray-800">
-                {{ formatStatValue(stats[stat.key], stat) }}
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      <!-- 搜索栏 - 使用 WmsSearchBar（字段由后端 meta 驱动） -->
-      <Card class="mb-4">
+      <!-- 搜索栏 -->
+      <div class="mb-4">
         <WmsSearchBar
           v-model="searchForm"
           :remote-fields-url="searchFieldsUrl"
@@ -72,12 +26,23 @@
           @search="handleSearch"
           @reset="handleReset"
         />
-      </Card>
+      </div>
 
-      <!-- 工具栏（行操作） -->
-      <div v-if="selectedRowKeys.length" class="mb-4 flex items-center justify-between">
+      <!-- 工具栏：新建按钮 + 行选择提示 -->
+      <div class="mb-4 flex items-center justify-between">
         <div class="text-sm text-gray-500">
-          已选择 <span class="font-medium text-blue-600">{{ selectedRowKeys.length }}</span> 项
+          <template v-if="selectedRowKeys.length">
+            已选择 <span class="font-medium text-blue-600">{{ selectedRowKeys.length }}</span> 项
+          </template>
+          <template v-else>
+            共 <span class="font-medium">{{ pagination.total }}</span> 条
+          </template>
+        </div>
+        <div v-if="toolbarActions.some(a => a.key === 'create')" class="flex gap-2">
+          <Button type="primary" @click="handleCreate">
+            <IconifyIcon icon="material-symbols:add" class="mr-1" />
+            新建
+          </Button>
         </div>
       </div>
 
@@ -159,9 +124,12 @@
 
     <!-- 新增/编辑抽屉 -->
     <LowcodeDrawer
+      ref="drawerRef"
       v-model:open="drawerVisible"
       :table-code="tableCode"
       :record="currentRecord"
+      :fullscreen="drawerFullscreen"
+      @update:fullscreen="drawerFullscreen = $event"
       @success="handleFormSuccess"
       @close="handleDrawerClose"
     />
@@ -173,7 +141,6 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { message } from 'ant-design-vue';
 import {
   Button,
-  Card,
   Popconfirm,
   Tag,
   Tooltip,
@@ -233,8 +200,10 @@ const dataList = ref<any[]>([]);
 const selectedRowKeys = ref<any[]>([]);
 const searchForm = reactive<Record<string, any>>({});
 
+const drawerRef = ref();
 // 抽屉
 const drawerVisible = ref(false);
+const drawerFullscreen = ref(false);
 const currentRecord = ref<Record<string, any> | null>(null);
 
 // 分页
@@ -523,17 +492,12 @@ watch(
 defineExpose({
   reload: loadData,
   handleEdit,
+  drawerRef,
 });
 </script>
 
 <style scoped>
 .lowcode-page {
   min-height: 100%;
-}
-.stat-card {
-  transition: box-shadow 0.2s;
-}
-.stat-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
 }
 </style>

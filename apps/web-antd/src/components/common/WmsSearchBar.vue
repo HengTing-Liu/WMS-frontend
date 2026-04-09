@@ -1,70 +1,64 @@
 <template>
   <div class="wms-search-bar">
-    <a-row :gutter="16" align="middle">
-      <a-col :span="20">
-        <a-row :gutter="16">
-          <a-col
-            v-for="field in displayedFields"
-            :key="field.key"
-            :xs="24"
-            :sm="12"
-            :md="8"
-            :lg="6"
-            class="mb-4"
-          >
-            <a-form-item :label="field.label" class="mb-0">
-              <a-input
-                v-if="field.type === 'input'"
-                v-model:value="formModel[field.key]"
-                :placeholder="`请输入${field.label}`"
-                @press-enter="handleSearch"
-              />
-              <a-select
-                v-else-if="field.type === 'select'"
-                v-model:value="formModel[field.key]"
-                :placeholder="`请选择${field.label}`"
-                :options="field.options"
-                allow-clear
-                style="width: 100%"
-              />
-              <a-switch
-                v-else-if="field.type === 'switch'"
-                v-model:checked="formModel[field.key]"
-                :checked-children="field.options?.[0]?.label || '启用'"
-                :un-checked-children="field.options?.[1]?.label || '停用'"
-              />
-            </a-form-item>
-          </a-col>
-        </a-row>
-      </a-col>
-      <a-col :span="4" class="text-right">
-        <a-space>
-          <a-button type="primary" @click="handleSearch">
-            <IconifyIcon icon="material-symbols:search" class="mr-1" /> 搜索
+    <div class="search-bar-body">
+      <!-- 字段区域（自动换行，按钮始终靠右不换行） -->
+      <div class="search-fields">
+        <a-form-item
+          v-for="field in displayedFields"
+          :key="field.key"
+          :label="field.label"
+          class="search-field-item"
+        >
+          <a-input
+            v-if="field.type === 'input'"
+            v-model:value="formModel[field.key]"
+            :placeholder="`请输入${field.label}`"
+            @press-enter="handleSearch"
+          />
+          <a-select
+            v-else-if="field.type === 'select'"
+            v-model:value="formModel[field.key]"
+            :placeholder="`请选择${field.label}`"
+            :options="field.options"
+            allow-clear
+            style="width: 100%"
+          />
+          <a-switch
+            v-else-if="field.type === 'switch'"
+            v-model:checked="formModel[field.key]"
+            :checked-children="field.options?.[0]?.label || '启用'"
+            :un-checked-children="field.options?.[1]?.label || '停用'"
+          />
+        </a-form-item>
+      </div>
+
+      <!-- 操作按钮（固定靠右，不参与 flex-wrap） -->
+      <div class="search-actions">
+        <a-button type="primary" @click="handleSearch">
+          <IconifyIcon icon="material-symbols:search" /> 搜索
+        </a-button>
+        <a-button @click="handleReset">
+          <IconifyIcon icon="material-symbols:refresh" /> 重置
+        </a-button>
+        <a-dropdown>
+          <a-button>
+            <IconifyIcon icon="material-symbols:tune" /> 字段
           </a-button>
-          <a-button @click="handleReset">
-            <IconifyIcon icon="material-symbols:refresh" class="mr-1" /> 重置
-          </a-button>
-          <a-dropdown>
-            <a-button>
-              <IconifyIcon icon="material-symbols:settings" class="mr-1" /> 字段
-            </a-button>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item v-for="field in allFields" :key="field.key">
-                  <a-checkbox
-                    :checked="selectedKeys.includes(field.key)"
-                    @change="() => toggleField(field.key)"
-                  >
-                    {{ field.label }}
-                  </a-checkbox>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
-        </a-space>
-      </a-col>
-    </a-row>
+          <template #overlay>
+            <a-menu>
+              <a-menu-item v-for="field in allFields" :key="field.key">
+                <a-checkbox
+                  :checked="selectedKeys.includes(field.key)"
+                  @change="() => toggleField(field.key)"
+                >
+                  {{ field.label }}
+                </a-checkbox>
+              </a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -73,15 +67,12 @@ import { computed, onMounted, ref, watch } from 'vue';
 import {
   Button as AButton,
   Checkbox as ACheckbox,
-  Col as ACol,
   Dropdown as ADropdown,
   FormItem as AFormItem,
   Input as AInput,
   Menu as AMenu,
   MenuItem as AMenuItem,
-  Row as ARow,
   Select as ASelect,
-  Space as ASpace,
   Switch as ASwitch,
 } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
@@ -384,17 +375,47 @@ defineExpose({ updateFieldOptions });
 
 <style scoped>
 .wms-search-bar {
-  padding: 16px;
+  padding: 12px 16px;
   background: #fff;
   border-radius: 4px;
 }
-.mb-4 {
-  margin-bottom: 16px;
+
+.search-bar-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
 }
-.mb-0 {
+
+.search-fields {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  flex: 1;
+  gap: 8px 16px;
+}
+
+.search-field-item {
+  display: flex;
+  align-items: center;
   margin-bottom: 0;
+  min-width: 180px;
 }
-.text-right {
-  text-align: right;
+
+.search-field-item :deep(.ant-form-item-label) {
+  padding: 0 8px 0 0;
+  flex: 0 0 auto;
+}
+
+.search-field-item :deep(.ant-form-item-control) {
+  flex: 1;
+  min-width: 120px;
+}
+
+.search-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 </style>

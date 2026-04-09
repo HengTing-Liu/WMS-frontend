@@ -15,6 +15,7 @@
     v-model:open="internalOpen"
     :title="drawerTitle"
     :width="width"
+    :fullscreen="fullscreen"
     :destroy-on-close="true"
     :mask-closable="false"
     @close="handleClose"
@@ -48,6 +49,8 @@ interface Props {
   record?: Record<string, any> | null;
   /** 抽屉宽度 */
   width?: number | string;
+  /** 是否全屏 */
+  fullscreen?: boolean;
   /** 只读模式 */
   readonly?: boolean;
   /** 表单定义接口路径（默认使用通用 meta 接口） */
@@ -60,12 +63,14 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   width: 600,
+  fullscreen: false,
   readonly: false,
   submitMethod: 'post',
 });
 
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void;
+  (e: 'update:fullscreen', value: boolean): void;
   (e: 'success', record: Record<string, any>): void;
   (e: 'error', err: any): void;
   (e: 'close'): void;
@@ -278,5 +283,11 @@ function reset() {
   formPageRef.value?.reload?.();
 }
 
-defineExpose({ submit, reset });
+/** 切换全屏 */
+function toggleFullscreen() {
+  // 通过 emit 让父组件知道需要切换全屏
+  emit('update:fullscreen', !props.fullscreen);
+}
+
+defineExpose({ submit, reset, toggleFullscreen });
 </script>
