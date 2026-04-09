@@ -25,7 +25,7 @@ export namespace MetaApi {
  * 获取元表列表
  */
 export async function getMetaList(params?: Recordable<any>) {
-  const res = await requestClient.get('/lowcode/meta/list', { params });
+  const res = await requestClient.get('/api/system/meta/list', { params });
   return {
     total: res?.total || 0,
     rows: res?.rows || [],
@@ -36,7 +36,7 @@ export async function getMetaList(params?: Recordable<any>) {
  * 获取元表详情
  */
 export function getMetaById(id: string | number) {
-  return requestClient.get(`/lowcode/meta/${id}`);
+  return requestClient.get(`/api/system/meta/${id}`);
 }
 
 /**
@@ -57,7 +57,7 @@ export function updateMeta(data: any) {
  * 删除元表
  */
 export function deleteMeta(id: string | number) {
-  return requestClient.delete(`/lowcode/meta/${id}`);
+  return requestClient.delete(`/api/system/meta/${id}`);
 }
 
 /**
@@ -71,7 +71,7 @@ export function batchDeleteMeta(ids: (string | number)[]) {
  * 导出元表
  */
 export function exportMeta(params?: Recordable<any>) {
-  return requestClient.download('/lowcode/meta/export', params);
+  return requestClient.download('/api/system/meta/export', params);
 }
 
 // ==================== 字段元数据 API ====================
@@ -80,7 +80,7 @@ export function exportMeta(params?: Recordable<any>) {
  * 获取字段列表
  */
 export async function getColumnList(params?: Recordable<any>) {
-  const res = await requestClient.get('/lowcode/meta/column/list', { params });
+  const res = await requestClient.get('/api/system/meta/column/list', { params });
   return {
     total: res?.total || 0,
     rows: res?.rows || [],
@@ -91,49 +91,49 @@ export async function getColumnList(params?: Recordable<any>) {
  * 获取字段详情
  */
 export function getColumnById(id: string | number) {
-  return requestClient.get(`/lowcode/meta/column/${id}`);
+  return requestClient.get(`/api/system/meta/column/${id}`);
 }
 
 /**
  * 新增字段
  */
 export function addColumn(data: any) {
-  return requestClient.post('/lowcode/meta/column', data);
+  return requestClient.post('/api/system/meta/column', data);
 }
 
 /**
  * 修改字段
  */
 export function updateColumn(data: any) {
-  return requestClient.put('/lowcode/meta/column', data);
+  return requestClient.put('/api/system/meta/column', data);
 }
 
 /**
  * 删除字段
  */
 export function deleteColumn(id: string | number) {
-  return requestClient.delete(`/lowcode/meta/column/${id}`);
+  return requestClient.delete(`/api/system/meta/column/${id}`);
 }
 
 /**
  * 批量删除字段
  */
 export function batchDeleteColumn(ids: (string | number)[]) {
-  return requestClient.delete('/lowcode/meta/column', { data: ids });
+  return requestClient.delete('/api/system/meta/column', { data: ids });
 }
 
 /**
  * 从数据库导入字段
  */
 export function importColumnsFromDb(tableCode: string) {
-  return requestClient.get(`/lowcode/meta/column/import/${tableCode}`);
+  return requestClient.get(`/api/system/meta/column/import/${tableCode}`);
 }
 
 /**
  * 保存字段列表（批量新增/更新）
  */
 export function saveColumnList(data: any[]) {
-  return requestClient.post('/lowcode/meta/column/batch', data);
+  return requestClient.post('/api/system/meta/column/batch', data);
 }
 
 // ==================== 操作配置 API ====================
@@ -142,7 +142,7 @@ export function saveColumnList(data: any[]) {
  * 获取操作列表
  */
 export async function getOperationList(params?: Recordable<any>) {
-  const res = await requestClient.get('/lowcode/meta/operation/list', { params });
+  const res = await requestClient.get('/api/system/meta/operation/list', { params });
   return {
     total: res?.total || 0,
     rows: res?.rows || [],
@@ -153,33 +153,40 @@ export async function getOperationList(params?: Recordable<any>) {
  * 获取操作详情
  */
 export function getOperationById(id: string | number) {
-  return requestClient.get(`/lowcode/meta/operation/${id}`);
+  return requestClient.get(`/api/system/meta/operation/${id}`);
 }
 
 /**
  * 新增操作
  */
 export function addOperation(data: any) {
-  return requestClient.post('/lowcode/meta/operation', data);
+  return requestClient.post('/api/system/meta/operation', data);
 }
 
 /**
  * 修改操作
  */
 export function updateOperation(data: any) {
-  return requestClient.put('/lowcode/meta/operation', data);
+  return requestClient.put('/api/system/meta/operation', data);
 }
 
 /**
  * 删除操作
  */
 export function deleteOperation(id: string | number) {
-  return requestClient.delete(`/lowcode/meta/operation/${id}`);
+  return requestClient.delete(`/api/system/meta/operation/${id}`);
 }
 
 /**
  * 批量删除操作
  */
 export function batchDeleteOperation(ids: (string | number)[]) {
-  return requestClient.delete('/lowcode/meta/operation', { data: ids });
+  return requestClient.delete('/api/system/meta/operation', { data: ids });
+}
+
+/**
+ * 批量更新操作排序
+ */
+export function sortOperations(data: any[]) {
+  return requestClient.put('/api/system/meta/operation/sort', data);
 }

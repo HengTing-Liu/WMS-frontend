@@ -58,7 +58,6 @@ export interface TableOperation {
   operationCode: string;
   operationName: string;
   operationType: string;
-  buttonType: string;
   icon?: string;
   permission?: string;
   position: string;

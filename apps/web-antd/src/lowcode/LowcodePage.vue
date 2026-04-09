@@ -470,7 +470,8 @@ async function init() {
     metaOperations.value = operations.map((op) => ({
       key: op.operationCode,
       label: op.operationName,
-      type: (op.buttonType as any) ?? 'default',
+      // operationType: button→primary, link→text
+      type: op.operationType === 'link' ? 'text' : 'primary',
       icon: op.icon,
       permission: op.permission,
       position: (op.position as any) ?? 'row',

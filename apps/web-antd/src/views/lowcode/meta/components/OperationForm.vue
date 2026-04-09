@@ -48,19 +48,6 @@
 
     <Row :gutter="16">
       <Col :span="12">
-        <FormItem :label="$t('page.lowcode.meta.buttonStyle')" name="buttonType">
-          <Select v-model:value="form.buttonType" :placeholder="$t('page.lowcode.meta.selectButtonStyle')">
-            <SelectOption
-              v-for="item in BUTTON_TYPES"
-              :key="item.value"
-              :value="item.value"
-            >
-              {{ item.label }}
-            </SelectOption>
-          </Select>
-        </FormItem>
-      </Col>
-      <Col :span="12">
         <FormItem label="图标" name="icon">
           <Input
             v-model:value="form.icon"
@@ -124,7 +111,7 @@ import {
 } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 
-import { BUTTON_TYPES, OPERATION_TYPES, POSITION_OPTIONS } from '../constants/meta';
+import { OPERATION_TYPES, POSITION_OPTIONS } from '../constants/meta';
 import type { TableOperation } from '../types/meta';
 
 interface Props {
@@ -145,7 +132,6 @@ const form = reactive<Partial<TableOperation>>({
   operationCode: '',
   operationName: '',
   operationType: 'button',
-  buttonType: 'default',
   icon: '',
   permission: '',
   position: 'toolbar',

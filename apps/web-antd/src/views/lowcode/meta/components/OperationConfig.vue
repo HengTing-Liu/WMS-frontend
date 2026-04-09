@@ -26,6 +26,7 @@
 
         <!-- 操作列表 -->
         <Table
+          class="drag-table"
           :columns="columns"
           :data-source="operations"
           :loading="loading"
@@ -35,14 +36,12 @@
           :scroll="{ y: 400 }"
         >
           <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'drag'">
+              <IconifyIcon icon="material-symbols:drag-indicator" class="drag-icon" />
+            </template>
             <template v-if="column.key === 'operationType'">
               <Tag :color="getOperationTypeColor(record.operationType)">
                 {{ getOperationTypeLabel(record.operationType) }}
-              </Tag>
-            </template>
-            <template v-if="column.key === 'buttonType'">
-              <Tag :color="getButtonTypeColor(record.buttonType)">
-                {{ getButtonTypeLabel(record.buttonType) }}
               </Tag>
             </template>
             <template v-if="column.key === 'position'">
@@ -125,22 +124,6 @@
             </FormItem>
           </Col>
           <Col :span="12">
-            <FormItem :label="$t('page.lowcode.meta.buttonStyle')" name="buttonType">
-              <Select v-model:value="editForm.buttonType" :placeholder="$t('page.lowcode.meta.selectButtonStyle')">
-                <SelectOption
-                  v-for="item in BUTTON_TYPES"
-                  :key="item.value"
-                  :value="item.value"
-                >
-                  {{ item.label }}
-                </SelectOption>
-              </Select>
-            </FormItem>
-          </Col>
-        </Row>
-
-        <Row :gutter="16">
-          <Col :span="12">
             <FormItem :label="$t('page.lowcode.meta.icon')" name="icon">
               <Input
                 v-model:value="editForm.icon"
@@ -209,7 +192,7 @@ import {
 } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 
-import { BUTTON_TYPES, OPERATION_TYPES, POSITION_OPTIONS } from '../constants/meta';
+import { OPERATION_TYPES, POSITION_OPTIONS } from '../constants/meta';
 import type { TableOperation } from '../types/meta';
 import {
   getOperationList,
@@ -217,7 +200,9 @@ import {
   updateOperation,
   deleteOperation,
   batchDeleteOperation,
+  sortOperations,
 } from '#/api/lowcode/meta';
+import { useSortable } from '@vben/hooks';
 
 interface Props {
   modelValue: boolean;
@@ -248,7 +233,6 @@ const editForm = reactive<Partial<TableOperation>>({
   operationCode: '',
   operationName: '',
   operationType: 'button',
-  buttonType: 'default',
   icon: '',
   permission: '',
   position: 'toolbar',
@@ -265,6 +249,12 @@ const editRules = {
 // 表格列定义
 const columns = [
   {
+    title: '',
+    key: 'drag',
+    width: 50,
+    align: 'center',
+  },
+  {
     title: () => $t('page.lowcode.meta.operationCode'),
     dataIndex: 'operationCode',
     key: 'operationCode',
@@ -280,12 +270,6 @@ const columns = [
     title: () => $t('page.lowcode.meta.operationType'),
     dataIndex: 'operationType',
     key: 'operationType',
-    width: 100,
-  },
-  {
-    title: () => $t('page.lowcode.meta.buttonStyle'),
-    dataIndex: 'buttonType',
-    key: 'buttonType',
     width: 100,
   },
   {
@@ -349,24 +333,6 @@ const getOperationTypeLabel = (type: string) => {
   return labelMap[type] || type;
 };
 
-// 获取按钮类型颜色
-const getButtonTypeColor = (type: string) => {
-  const colorMap: Record<string, string> = {
-    primary: 'blue',
-    default: 'default',
-    danger: 'red',
-    dashed: 'purple',
-    text: 'cyan',
-  };
-  return colorMap[type] || 'default';
-};
-
-// 获取按钮类型标签
-const getButtonTypeLabel = (type: string) => {
-  const item = BUTTON_TYPES.find((item) => item.value === type);
-  return item?.label || type;
-};
-
 // Load operations list
 const loadOperations = async () => {
   loading.value = true;
@@ -391,7 +357,6 @@ const handleAdd = () => {
     operationCode: '',
     operationName: '',
     operationType: 'button',
-    buttonType: 'default',
     icon: '',
     permission: '',
     position: 'toolbar',
@@ -509,12 +474,64 @@ const handleClose = () => {
   visible.value = false;
 };
 
+// ========== 拖拽排序 ==========
+let sortableInstance: any = null;
+
+async function initSortable() {
+  const tbody = document.querySelector('.drag-table .ant-table-tbody') as HTMLElement;
+  if (!tbody) return;
+
+  const { initializeSortable } = useSortable(tbody, {
+    handle: '.drag-icon',
+    animation: 150,
+    delay: 0,
+    onEnd: async (evt: any) => {
+      const { oldIndex, newIndex } = evt;
+      if (oldIndex === newIndex || oldIndex === undefined || newIndex === undefined) return;
+
+      // 本地调整顺序
+      const movedItem = operations.value.splice(oldIndex, 1)[0];
+      operations.value.splice(newIndex, 0, movedItem);
+
+      // 重新计算 sortOrder
+      const orders = operations.value.map((item, index) => ({
+        id: item.id!,
+        sortOrder: index + 1,
+      }));
+
+      // 批量更新排序
+      try {
+        await sortOperations(orders);
+        message.success('排序已保存');
+      } catch (error: any) {
+        message.error(error?.message || '排序保存失败');
+        loadOperations();
+      }
+    },
+  });
+
+  sortableInstance = await initializeSortable();
+}
+
+function destroySortable() {
+  if (sortableInstance && sortableInstance.destroy) {
+    sortableInstance.destroy();
+    sortableInstance = null;
+  }
+}
+
 // 监听弹窗打开，加载数据
 watch(
   () => props.modelValue,
-  (val) => {
+  async (val) => {
     if (val) {
       loadOperations();
+      // 等待表格渲染完成后初始化拖拽
+      setTimeout(() => {
+        initSortable();
+      }, 300);
+    } else {
+      destroySortable();
     }
   }
 );
@@ -534,5 +551,15 @@ watch(
 
 .mb-4 {
   margin-bottom: 16px;
+}
+
+.drag-icon {
+  cursor: move;
+  color: #999;
+  font-size: 16px;
+
+  &:hover {
+    color: #1677ff;
+  }
 }
 </style>

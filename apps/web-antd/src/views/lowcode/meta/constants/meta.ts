@@ -38,15 +38,6 @@ export const OPERATION_TYPES = [
   { label: '图标', value: 'icon' }
 ];
 
-// 按钮样式
-export const BUTTON_TYPES = [
-  { label: '主要', value: 'primary' },
-  { label: '默认', value: 'default' },
-  { label: '危险', value: 'danger' },
-  { label: '虚线', value: 'dashed' },
-  { label: '文字', value: 'text' }
-];
-
 // 位置选项
 export const POSITION_OPTIONS = [
   { label: '工具栏', value: 'toolbar' },
