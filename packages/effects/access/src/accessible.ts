@@ -144,6 +144,8 @@ async function generateAccessible(
   if (root) {
     if (Array.isArray(root.children)) {
       root.children = sanitizeRouteList(root.children as RouteRecordRaw[]);
+      // 动态路由与静态子路由合并后，再跑一遍，防止仍出现父子同名（如 WmsBase）
+      root.children = fixAncestorRouteNames(root.children as RouteRecordRaw[]);
     }
     if (root.name) {
       router.removeRoute(root.name);
