@@ -37,6 +37,7 @@ interface Props {
   pagination?: PaginationProps;
   rowKey?: string;
   enableSelection?: boolean;
+  selectedRowKeys?: Key[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -68,6 +69,7 @@ const rowSelection = computed(() => {
   if (!props.enableSelection) return undefined;
   return {
     type: 'checkbox' as const,
+    selectedRowKeys: props.selectedRowKeys ?? [],
     onChange: (selectedRowKeys: Key[]) => {
       emit('selectionChange', selectedRowKeys);
     },

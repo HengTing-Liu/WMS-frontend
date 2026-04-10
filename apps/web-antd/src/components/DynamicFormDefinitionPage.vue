@@ -787,6 +787,17 @@ async function ensureFieldSelectOptions(field: NormalizedField) {
     return;
   }
 
+  // 内置选项：isEnabled/status 等状态字段使用内置启用/禁用选项
+  if (['isenabled', 'status', 'state'].includes(fieldTypeEarly)) {
+    if (!cachedList.length) {
+      selectOptionsByFieldPath[optKey] = [
+        { label: '启用', value: 1 },
+        { label: '停用', value: 0 },
+      ];
+    }
+    return;
+  }
+
   if (cachedList.length) {
     // 编辑回显：常现顺序是先 merge BU（触发拉 SBU 选项）再 merge SBU 值，此时会走此处 return，
     // 若详情里 sbu 存的是名称而选项 value 为编码，必须仍做一次 label→value，否则会不回显

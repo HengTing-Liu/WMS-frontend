@@ -28,7 +28,7 @@
         />
       </div>
 
-      <!-- 工具栏：新建按钮 + 行选择提示 -->
+      <!-- 工具栏：操作按钮 + 行选择提示 -->
       <div class="mb-4 flex items-center justify-between">
         <div class="text-sm text-gray-500">
           <template v-if="selectedRowKeys.length">
@@ -38,11 +38,17 @@
             共 <span class="font-medium">{{ pagination.total }}</span> 条
           </template>
         </div>
-        <div v-if="toolbarActions.some(a => a.key === 'create')" class="flex gap-2">
-          <Button type="primary" @click="handleCreate">
-            <IconifyIcon icon="material-symbols:add" class="mr-1" />
-            新建
-          </Button>
+        <div v-if="visibleToolbarActions.length" class="flex gap-2">
+          <template v-for="action in visibleToolbarActions" :key="action.key">
+            <Button
+              :type="getButtonType(action)"
+              :loading="actionLoading[action.key]"
+              @click="handleToolbarAction(action)"
+            >
+              <IconifyIcon v-if="action.icon" :icon="action.icon" class="mr-1" />
+              {{ action.label }}
+            </Button>
+          </template>
         </div>
       </div>
 
@@ -52,6 +58,7 @@
         :data-source="dataList"
         :loading="loading"
         :pagination="paginationConfig"
+        :selected-row-keys="selectedRowKeys"
         row-key="id"
         :enable-selection="!!selectedRowKeys.length || enableSelection"
         @page-change="onPageChange"
@@ -67,20 +74,26 @@
           <template v-else-if="column.key === 'action'">
             <div class="flex items-center gap-2">
               <template v-for="action in rowActions" :key="action.key">
-                <!-- 编辑 -->
-                <Tooltip v-if="action.key === 'edit'" title="编辑">
-                  <Button type="link" size="small" class="p-0" @click="handleEdit(record)">
+                <!-- 编辑按钮（含 row_edit，与 init_meta_data 脚本一致） -->
+                <Tooltip
+                  v-if="(action.key === 'edit' || action.key === 'row_edit') && canRenderAction(action)"
+                  title="编辑"
+                >
+                  <Button type="link" size="small" class="p-0" @click="handleToolbarAction(action, record)">
                     <IconifyIcon icon="material-symbols:edit" class="text-lg" />
                   </Button>
                 </Tooltip>
 
-                <!-- 启用/停用 -->
-                <Tooltip v-else-if="action.key === 'toggle'" :title="record.isEnabled === 1 ? '停用' : '启用'">
+                <!-- 启用/停用按钮 -->
+                <Tooltip
+                  v-else-if="action.key === 'toggle' && canRenderAction(action)"
+                  :title="record.isEnabled === 1 ? '停用' : '启用'"
+                >
                   <Button
                     type="link"
                     size="small"
                     class="p-0"
-                    @click="handleToggle(record, record.isEnabled !== 1)"
+                    @click="handleToolbarAction(action, record)"
                   >
                     <IconifyIcon
                       :icon="record.isEnabled === 1 ? 'material-symbols:toggle-on' : 'material-symbols:toggle-off'"
@@ -89,19 +102,33 @@
                   </Button>
                 </Tooltip>
 
-                <!-- 删除 -->
-                <Tooltip v-else-if="action.key === 'delete'" title="删除">
+                <!-- 删除按钮（含 row_delete） -->
+                <Tooltip
+                  v-else-if="(action.key === 'delete' || action.key === 'row_delete') && canRenderAction(action)"
+                  title="删除"
+                >
                   <Popconfirm
                     title="是否确认删除?"
                     ok-text="确认"
                     cancel-text="取消"
-                    @confirm="handleDelete(record.id)"
+                    @confirm="handleToolbarAction(action, record)"
                   >
                     <Button type="link" size="small" danger class="p-0">
                       <IconifyIcon icon="material-symbols:delete" class="text-lg" />
                     </Button>
                   </Popconfirm>
                 </Tooltip>
+
+                <!-- 其他自定义行内按钮 -->
+                <Button
+                  v-else-if="canRenderAction(action)"
+                  type="link"
+                  size="small"
+                  @click="handleToolbarAction(action, record)"
+                >
+                  <IconifyIcon v-if="action.icon" :icon="action.icon" class="mr-1" />
+                  {{ action.label }}
+                </Button>
               </template>
               <slot name="appendAction" :record="record" />
             </div>
@@ -147,11 +174,20 @@ import {
 } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 import { Page } from '@vben/common-ui';
+import { useAccess } from '@vben/access';
 import WmsSearchBar from '#/components/common/WmsSearchBar.vue';
 import WmsDataTable from '#/components/common/WmsDataTable.vue';
 import LowcodeDrawer from './LowcodeDrawer.vue';
 import { fetchColumnSchema, fetchPageMeta, fetchList, createRecord, updateRecord, deleteRecord, toggleRecord } from './api';
 import type { ColumnMeta, LowcodeAction, LowcodeSearchField, StatsCardConfig } from './types';
+import {
+  handleAction,
+  executeBuiltinHandler,
+  isExportAction,
+  parseEventConfig,
+  type ActionContext,
+} from './events';
+import { expandAllPermissionCodes } from './permission-utils';
 
 interface Props {
   /** 表编码，对应 sys_table_meta.table_code */
@@ -199,6 +235,7 @@ const loading = ref(false);
 const dataList = ref<any[]>([]);
 const selectedRowKeys = ref<any[]>([]);
 const searchForm = reactive<Record<string, any>>({});
+const actionLoading = ref<Record<string, boolean>>({});
 
 const drawerRef = ref();
 // 抽屉
@@ -236,12 +273,21 @@ const searchFieldsUrl = computed(() =>
 );
 
 // ==================== 解析操作按钮 ====================
+// toolbarActions: position === 'toolbar' 或未定义（包括 null/undefined/空字符串）
 const toolbarActions = computed(() =>
-  metaOperations.value.filter((op) => op.position === 'toolbar' || op.position === undefined)
+  metaOperations.value.filter((op) => {
+    const pos = op.position;
+    return pos === 'toolbar' || !pos;
+  })
 );
 
 const rowActions = computed(() =>
   metaOperations.value.filter((op) => op.position === 'row')
+);
+
+/** 有权限展示的工具栏按钮（避免占位空白） */
+const visibleToolbarActions = computed(() =>
+  toolbarActions.value.filter((op) => canRenderAction(op)),
 );
 
 // ==================== 解析表格列 ====================
@@ -369,7 +415,159 @@ function updateStats(rows: any[]) {
   if (configMap.has('disabledCount')) stats.disabledCount = disabled;
 }
 
-// ==================== 事件处理 ====================
+// ==================== 事件处理上下文 ====================
+const { hasAccessByCodes } = useAccess();
+
+/** 检查按钮是否有权限渲染（支持逗号分隔多码；兼容前缀与同义后缀，见 permission-utils） */
+function canRenderAction(action: LowcodeAction): boolean {
+  const codes = expandAllPermissionCodes(action.permission);
+  if (codes.length === 0) return true;
+  return codes.some((code) => hasAccessByCodes([code]));
+}
+
+/** 获取按钮类型 */
+function getButtonType(action: LowcodeAction): 'primary' | 'default' | 'danger' | 'text' {
+  // 新建按钮默认 primary
+  if (action.key === 'create' || action.key === 'add') {
+    return 'primary';
+  }
+  // 删除按钮默认 danger
+  if (action.key === 'delete') {
+    return 'text';
+  }
+  // link 类型渲染为 text
+  if (action.type === 'link') {
+    return 'text';
+  }
+  return action.type || 'default';
+}
+
+/** 统一事件处理入口 */
+async function handleToolbarAction(action: LowcodeAction, record?: any) {
+  // 设置加载状态
+  actionLoading.value[action.key] = true;
+  try {
+    // 构建上下文
+    const ctx: ActionContext = {
+      crudPrefix: props.crudPrefix,
+      tableCode: props.tableCode,
+      searchForm: { ...searchForm },
+      selectedRowKeys: selectedRowKeys.value,
+      pagination: {
+        current: pagination.current,
+        pageSize: pagination.pageSize,
+      },
+      handleCreate,
+      handleEdit,
+      handleDelete,
+      handleToggle,
+      handleExport: () => handleExportAction(action),
+      reload: loadData,
+    };
+
+    await handleAction(action, ctx, record);
+  } finally {
+    actionLoading.value[action.key] = false;
+  }
+}
+
+/** 驼峰转蛇形 */
+function camelToSnake(str: string): string {
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
+
+/** 过滤空值并转换字段名为蛇形 */
+function buildExportParams(): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(searchForm)) {
+    if (value !== undefined && value !== null && value !== '') {
+      // 转换字段名为蛇形
+      const snakeKey = camelToSnake(key);
+      result[snakeKey] = value;
+    }
+  }
+  return result;
+}
+
+/** 导出动作处理（通过配置决定导出范围） */
+async function handleExportAction(action: LowcodeAction) {
+  const config = parseEventConfig(action.eventConfig);
+
+  // 调试信息（开发环境可见）
+  if (import.meta.env.DEV) {
+    console.log('[Export] action:', action);
+    console.log('[Export] eventConfig raw:', action.eventConfig);
+    console.log('[Export] parsed config:', config);
+  }
+
+  // 构建 URL：优先使用配置的 URL，否则使用通用导出接口
+  let url = config.url;
+  if (!url) {
+    // 优先使用 crudPrefix + /export
+    if (props.crudPrefix) {
+      url = `${props.crudPrefix}/export`;
+    } else if (props.tableCode) {
+      // 使用通用 CRUD 导出接口
+      url = `/api/wms/crud/${props.tableCode}/export`;
+    } else {
+      message.error('导出接口未配置');
+      return;
+    }
+  }
+
+  // 根据 payloadType 决定导出范围
+  const payloadType = config.payloadType || 'filtered';
+
+  // 构建请求参数
+  let params: Record<string, any> = {};
+
+  switch (payloadType) {
+    case 'selected':
+      if (!selectedRowKeys.value.length) {
+        message.warning('请先勾选要导出的数据');
+        return;
+      }
+      params.ids = selectedRowKeys.value;
+      break;
+    case 'currentPage':
+      params = buildExportParams();
+      params.pageNum = pagination.current;
+      params.pageSize = pagination.pageSize;
+      break;
+    case 'all':
+      // 导出全部（忽略分页）
+      params = buildExportParams();
+      params.pageSize = 999999;
+      break;
+    case 'filtered':
+    default:
+      // 导出筛选数据
+      params = buildExportParams();
+      break;
+  }
+
+  // 调试信息
+  if (import.meta.env.DEV) {
+    console.log('[Export] final params:', params);
+    console.log('[Export] final url:', url);
+  }
+
+  // 调用下载
+  const { downloadBlob } = await import('#/utils/download');
+  // 优先使用配置的 filename，否则使用表名+时间
+  const fileName = config.fileName || `${props.pageTitle || props.tableCode}_${new Date().getTime()}.xlsx`;
+
+  try {
+    await downloadBlob(url, params, {
+      method: 'GET', // 使用 GET，参数作为 URL 查询参数
+      fileName,
+    });
+    message.success('导出成功');
+  } catch (error: any) {
+    message.error('导出失败: ' + error.message);
+  }
+}
+
 function handleSearch() {
   pagination.current = 1;
   loadData();
@@ -438,10 +636,6 @@ async function handleDelete(id: number | string) {
   }
 }
 
-function handleExport() {
-  message.info('导出功能开发中...');
-}
-
 function handleFormSuccess(record: Record<string, any>) {
   loadData();
   emit('formSuccess', record);
@@ -457,7 +651,7 @@ async function init() {
     // 加载 meta 配置（字段 + 操作按钮）
     const { columns: metaCols, operations } = await fetchPageMeta(props.tableCode);
     metaColumns.value = metaCols;
-    metaOperations.value = operations.map((op) => ({
+    metaOperations.value = operations.map((op: any) => ({
       key: op.operationCode,
       label: op.operationName,
       // operationType: button→primary, link→text
@@ -465,6 +659,10 @@ async function init() {
       icon: op.icon,
       permission: op.permission,
       position: (op.position as any) ?? 'row',
+      // 事件类型和配置
+      eventType: op.eventType || 'builtin',
+      eventConfig: op.eventConfig,
+      confirmMessage: op.confirmMessage,
       confirm: op.operationType === 'confirm' ? '是否确认该操作?' : undefined,
     }));
 

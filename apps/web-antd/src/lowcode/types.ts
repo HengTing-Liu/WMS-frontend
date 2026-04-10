@@ -64,6 +64,11 @@ export interface TableOperation {
   position?: 'toolbar' | 'row';
   sortOrder?: number;
   status?: number;
+  // 新增字段（支持工具栏事件配置）
+  eventType?: string;
+  eventConfig?: string;
+  confirmMessage?: string;
+  isEnabled?: number;
 }
 
 // ==================== 前端解析后类型 ====================
@@ -87,7 +92,45 @@ export interface LowcodeColumn {
   customRender?: (opts: { text: any; record: any; index: number }) => any;
 }
 
-/** 操作按钮 */
+// ==================== 事件配置类型 ====================
+
+/** 事件类型 */
+export type EventType = 'builtin' | 'api' | 'download' | 'redirect' | 'modal' | 'drawer' | 'custom';
+
+/** 内置动作配置 */
+export interface BuiltinEventConfig {
+  handler: 'create' | 'edit' | 'delete' | 'toggle' | 'export';
+}
+
+/** API 调用配置 */
+export interface ApiEventConfig {
+  url: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  params?: Record<string, any>;
+  payloadType: PayloadType;
+  successMessage?: string;
+  failMessage?: string;
+}
+
+/** 文件下载配置 */
+export interface DownloadEventConfig {
+  url: string;
+  method: 'GET' | 'POST';
+  payloadType: PayloadType;
+  fileName?: string;
+  responseType?: 'blob';
+}
+
+/** 页面跳转配置 */
+export interface RedirectEventConfig {
+  path: string;
+  query?: Record<string, string>;
+}
+
+/** 载荷类型 */
+export type PayloadType = 'none' | 'filtered' | 'selected' | 'currentPage' | 'all';
+
+/** 操作按钮完整配置 */
 export interface LowcodeAction {
   key: string;
   label: string;
@@ -95,6 +138,9 @@ export interface LowcodeAction {
   icon?: string;
   permission?: string;
   position: 'toolbar' | 'row';
+  eventType?: EventType;
+  eventConfig?: string | object;
+  confirmMessage?: string;
   confirm?: string;
 }
 
