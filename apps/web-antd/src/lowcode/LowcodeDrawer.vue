@@ -190,6 +190,7 @@ function mapFieldType(type?: string): string {
 /**
  * 合并详情数据到表单定义
  * 将详情数据的字段值填充到 basicInfo.fields 对应的默认值中
+ * 新增模式时，为 switch/bool 类型字段设置默认值 true
  */
 function mergeDetailData(normalized: Record<string, any>, detail: Record<string, any>): Record<string, any> {
   // 找出 basicInfo 或其他区块
@@ -201,6 +202,12 @@ function mergeDetailData(normalized: Record<string, any>, detail: Record<string,
         const fieldCode = field.fieldCode;
         if (fieldCode && detail[fieldCode] !== undefined) {
           field.defaultValue = detail[fieldCode];
+        } else if (!props.record?.id) {
+          // 新增模式：为 switch/bool 类型字段设置默认值 true
+          const lower = (field.fieldType || '').toLowerCase();
+          if (lower === 'select' || lower === 'switch' || fieldCode === 'isEnabled') {
+            field.defaultValue = true;
+          }
         }
       });
     }

@@ -135,9 +135,9 @@
           </template>
 
           <!-- 状态标签（兼容 1/0 和 true/false，以及 isEnabled/is_enabled 字段名） -->
-          <template v-else-if="column.key === 'isEnabled' || column.key === 'is_enabled'">
-            <Tag :color="isEnabled(record[column.key]) ? 'success' : 'default'">
-              {{ isEnabled(record[column.key]) ? '启用' : '停用' }}
+          <template v-else-if="column.key === 'isEnabled'">
+            <Tag :color="isEnabled(record.isEnabled ?? record.is_enabled) ? 'success' : 'default'">
+              {{ isEnabled(record.isEnabled ?? record.is_enabled) ? '启用' : '停用' }}
             </Tag>
           </template>
 

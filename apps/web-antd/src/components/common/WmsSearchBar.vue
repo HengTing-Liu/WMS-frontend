@@ -141,7 +141,13 @@ const formModel = computed(() => {
         if (alt !== undefined) return target[alt];
       }
       const field = allFields.value.find((f) => f.key === key);
+      // 调试：isEnabled 字段的访问
+      if (key === 'isEnabled' || key === 'is_enabled') {
+        console.log('[DEBUG Proxy get]', key, 'val:', val, 'field:', field ? `${field.type}` : 'null', '→ 返回:', field?.type === 'switch' ? (val === undefined || val === null ? 'true(启用)' : (val ? 'true' : 'false')) : val);
+      }
       if (field?.type === 'switch') {
+        // 如果值为 undefined/null，默认返回 true（启用）
+        if (val === undefined || val === null) return true;
         if (val === 1 || val === '1' || val === true) return true;
         if (val === 0 || val === '0' || val === false) return false;
       }
@@ -203,11 +209,26 @@ function parseMetaFields(metaData: any[]): SearchField[] {
   const result: SearchField[] = [];
 
   for (const col of metaData) {
+    // 跳过不可搜索的字段
     if (!col.isSearchable) continue;
 
     const key = col.code;
     const label = col.label || key;
     const formType = col.formType || 'input';
+
+    // is_enabled / isEnabled 字段特殊处理：强制渲染为 switch（忽略后端的 formType）
+    if (key === 'is_enabled' || key === 'isEnabled') {
+      result.push({
+        key,
+        label,
+        type: 'switch',
+        options: [
+          { label: '启用', value: 1 },
+          { label: '停用', value: 0 },
+        ],
+      });
+      continue;
+    }
 
     if (formType === 'input' || formType === 'textarea' || formType === 'text') {
       result.push({ key, label, type: 'input' });
@@ -288,6 +309,19 @@ async function loadRemoteFields() {
         if (!key) continue;
         const label = col.label || col.columnLabel || key;
         const formType = col.formType || 'input';
+        // is_enabled / isEnabled 字段特殊处理：强制渲染为 switch
+        if (key === 'is_enabled' || key === 'isEnabled') {
+          fields.push({
+            key,
+            label,
+            type: 'switch',
+            options: [
+              { label: '启用', value: 1 },
+              { label: '停用', value: 0 },
+            ],
+          });
+          continue;
+        }
         if (formType === 'input' || formType === 'textarea' || formType === 'text') {
           fields.push({ key, label, type: 'input' });
         } else if (formType === 'select' || formType === 'radio') {
@@ -312,8 +346,19 @@ async function loadRemoteFields() {
     await Promise.all(loaders);
 
     allFields.value = fields;
+    // 初始化 switch 字段的默认值：若 searchForm 中没有该字段，则默认设为 1（启用）
+    // 直接设置到 modelValue（父组件传入的响应式对象）
+    if (props.modelValue) {
+      for (const field of fields) {
+        if (field.type === 'switch' && props.modelValue[field.key] === undefined) {
+          props.modelValue[field.key] = 1;
+        }
+      }
+    }
+    console.log('[DEBUG WmsSearchBar] 加载完成 allFields:', JSON.stringify(fields.map(f => f.key)));
   } catch {
     allFields.value = props.fields;
+    console.error('[DEBUG WmsSearchBar] 加载失败，使用 props.fields');
   }
   initSelectedKeys();
   // 最终兜底：以上都没有就用 props.fields
