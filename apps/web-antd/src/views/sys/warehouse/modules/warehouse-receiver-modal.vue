@@ -59,7 +59,7 @@
     <WarehouseReceiverDrawer
       v-model:open="drawerVisible"
       :receiver-id="editId"
-      :warehouse-code="warehouseCode"
+      :warehouse-code="props.warehouseCode"
       @success="handleDrawerSuccess"
     />
   </Modal>
@@ -153,15 +153,9 @@ const fetchData = async () => {
   if (!props.warehouseCode) return;
   loading.value = true;
   try {
-    const res = await getWarehouseReceiverList({
+    tableData.value = await getWarehouseReceiverList({
       warehouseCode: props.warehouseCode,
     });
-    // Support both wrapped {code, data: {list: []}} and unwrapped [] formats
-    if (Array.isArray(res)) {
-      tableData.value = res;
-    } else {
-      tableData.value = res.data?.list || res.data || [];
-    }
   } finally {
     loading.value = false;
   }
@@ -225,12 +219,13 @@ const handleCancel = () => {
 
 // 监听弹窗打开，获取数据
 watch(
-  () => props.open,
-  (val) => {
-    if (val) {
+  [() => props.open, () => props.warehouseCode],
+  ([isOpen, warehouseCode]) => {
+    if (isOpen && warehouseCode) {
       fetchData();
     }
-  }
+  },
+  { immediate: true },
 );
 </script>
 

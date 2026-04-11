@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Tooltip, Button } from 'ant-design-vue';
+import { Button, Tooltip, message } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 import LowcodePage from '#/lowcode/LowcodePage.vue';
 import WarehouseReceiverModal from '#/views/sys/warehouse/modules/warehouse-receiver-modal.vue';
@@ -51,10 +51,35 @@ function handleFormSuccess() {
   reloadList();
 }
 
+function pickString(record: Record<string, any>, keys: string[]) {
+  for (const key of keys) {
+    const value = record?.[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return '';
+}
+
 function handleReceiver(record: Record<string, any>) {
+  const warehouseCode = pickString(record, [
+    'warehouseCode',
+    'warehouse_code',
+    'code',
+  ]);
+  const warehouseName = pickString(record, [
+    'warehouseName',
+    'warehouse_name',
+    'name',
+  ]);
+  if (!warehouseCode) {
+    console.warn('[Warehouse] Missing warehouseCode in record:', record);
+    message.error('当前行缺少仓库编码，无法维护收货地址');
+    return;
+  }
   currentReceiver.value = {
-    warehouseCode: record.warehouseCode,
-    warehouseName: record.warehouseName,
+    warehouseCode,
+    warehouseName,
   };
   receiverModalVisible.value = true;
 }
