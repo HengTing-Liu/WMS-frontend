@@ -99,7 +99,12 @@ export async function fetchTableMeta(tableCode: string): Promise<TableMeta | nul
 export async function fetchTableOperations(tableCode: string): Promise<TableOperation[]> {
   try {
     const res = await requestClient.get<any>(`/api/system/meta/operation/list/${tableCode}`);
-    const rows = res?.data ?? res ?? [];
+    const rows =
+      res?.rows ??
+      res?.data?.rows ??
+      res?.data ??
+      res ??
+      [];
     return Array.isArray(rows) ? rows : [];
   } catch {
     return [];

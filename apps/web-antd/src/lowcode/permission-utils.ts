@@ -10,15 +10,28 @@ export function expandPermissionVariants(code: string): string[] {
   if (!trimmed) return [];
   const out = new Set<string>([trimmed]);
 
+  // 兼容历史前缀：wms:base:* / wms:system:* 与 base:* / system:* 互通
+  if (trimmed.startsWith('wms:')) {
+    out.add(trimmed.slice(4));
+  } else {
+    out.add(`wms:${trimmed}`);
+  }
+
   const prefixPairs: [RegExp, string][] = [
     [/^system:warehouse:/, 'base:warehouse:'],
     [/^base:warehouse:/, 'system:warehouse:'],
     [/^system:warehouseReceiver:/, 'base:warehouseReceiver:'],
     [/^base:warehouseReceiver:/, 'system:warehouseReceiver:'],
+    [/^wms:system:warehouse:/, 'wms:base:warehouse:'],
+    [/^wms:base:warehouse:/, 'wms:system:warehouse:'],
+    [/^wms:system:warehouseReceiver:/, 'wms:base:warehouseReceiver:'],
+    [/^wms:base:warehouseReceiver:/, 'wms:system:warehouseReceiver:'],
   ];
-  for (const [from, to] of prefixPairs) {
-    if (from.test(trimmed)) {
-      out.add(trimmed.replace(from, to));
+  for (const c of [...out]) {
+    for (const [from, to] of prefixPairs) {
+      if (from.test(c)) {
+        out.add(c.replace(from, to));
+      }
     }
   }
 

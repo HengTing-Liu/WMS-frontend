@@ -439,7 +439,16 @@ const { hasAccessByCodes } = useAccess();
 function canRenderAction(action: LowcodeAction): boolean {
   const codes = expandAllPermissionCodes(action.permission);
   if (codes.length === 0) return true;
-  return codes.some((code) => hasAccessByCodes([code]));
+  const matched = codes.find((code) => hasAccessByCodes([code]));
+  if (!matched && import.meta.env.DEV && props.tableCode === 'sys_warehouse') {
+    console.warn('[LowcodePage] action hidden by permission check', {
+      actionKey: action.key,
+      actionLabel: action.label,
+      rawPermission: action.permission,
+      expandedCodes: codes,
+    });
+  }
+  return !!matched;
 }
 
 /** 获取按钮类型 */
@@ -682,6 +691,14 @@ async function init() {
       confirmMessage: op.confirmMessage,
       confirm: op.operationType === 'confirm' ? '是否确认该操作?' : undefined,
     }));
+
+    if (import.meta.env.DEV && props.tableCode === 'sys_warehouse') {
+      console.warn('[LowcodePage] meta operations loaded', {
+        tableCode: props.tableCode,
+        operationCount: operations.length,
+        operations,
+      });
+    }
 
     // 加载数据
     await loadData();
