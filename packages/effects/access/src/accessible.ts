@@ -100,10 +100,8 @@ async function generateAccessible(
   const { router } = options;
 
   options.routes = cloneDeep(options.routes);
-  // 生成路由
-  let accessibleRoutes = await generateRoutes(mode, options);
-  accessibleRoutes = sanitizeRouteList(accessibleRoutes);
-  accessibleRoutes = fixAncestorRouteNames(accessibleRoutes);
+  // 生成路由（内部已完成 sanitize + fixAncestorRouteNames）
+  const accessibleRoutes = await generateRoutes(mode, options);
 
   const root = router.getRoutes().find((item) => item.path === '/');
 
@@ -117,7 +115,7 @@ async function generateAccessible(
 
   // 动态添加到router实例内
   accessibleRoutes.forEach((rawRoute) => {
-    const route = sanitizeRouteRecord(rawRoute);
+    const route = rawRoute;
     if (root && !route.meta?.noBasicLayout) {
       // 为了兼容之前的版本用法，如果包含子路由，则将component移除，以免出现多层BasicLayout
       // 如果你的项目已经跟进了本次修改，移除了所有自定义菜单首级的BasicLayout，可以将这段if代码删除
@@ -197,6 +195,10 @@ async function generateRoutes(
       break;
     }
   }
+
+  // 必须在 mapTree（keepAlive 包装用 route.name）之前执行去重，否则 keepAlive 包装后组件名仍可能重复
+  resultRoutes = sanitizeRouteList(resultRoutes);
+  resultRoutes = fixAncestorRouteNames(resultRoutes);
 
   /**
    * 调整路由树，做以下处理：

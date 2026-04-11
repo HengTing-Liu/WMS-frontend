@@ -335,12 +335,24 @@ function toggleField(key: string) {
 
 function handleSearch() {
   const model = { ...props.modelValue };
-  if (model.is_enabled !== undefined) {
-    if (model.is_enabled === true) model.is_enabled = 1;
-    else if (model.is_enabled === false) model.is_enabled = 0;
+  // 兼容后端返回 true/false（boolean）和 1/0（number/字符串）两种格式
+  const rawEnabled = model.is_enabled ?? model.isEnabled;
+  if (rawEnabled !== undefined && rawEnabled !== null) {
+    // 转为整数 1（启用）或 0（停用）
+    model.is_enabled = isEnabledValue(rawEnabled) ? 1 : 0;
     model.isEnabled = model.is_enabled;
   }
   emit('search', model);
+}
+
+/**
+ * 统一布尔值判断：兼容 1/0 和 true/false
+ * 1/true/'1'/'true' → true（启用），0/false/'0'/'false'/undefined/null → false（停用）
+ */
+function isEnabledValue(raw: any): boolean {
+  if (raw === 1 || raw === true || raw === '1' || raw === 'true') return true;
+  if (raw === 0 || raw === false || raw === '0' || raw === 'false') return false;
+  return false;
 }
 
 function handleReset() {

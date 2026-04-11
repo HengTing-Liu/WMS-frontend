@@ -84,10 +84,10 @@
                   </Button>
                 </Tooltip>
 
-                <!-- 启用/停用按钮 -->
+                <!-- 启用/停用按钮（兼容 1/0 和 true/false） -->
                 <Tooltip
                   v-else-if="action.key === 'toggle' && canRenderAction(action)"
-                  :title="record.isEnabled === 1 ? '停用' : '启用'"
+                  :title="isEnabled(record.isEnabled) ? '停用' : '启用'"
                 >
                   <Button
                     type="link"
@@ -96,8 +96,8 @@
                     @click="handleToolbarAction(action, record)"
                   >
                     <IconifyIcon
-                      :icon="record.isEnabled === 1 ? 'material-symbols:toggle-on' : 'material-symbols:toggle-off'"
-                      :class="record.isEnabled === 1 ? 'text-green-500 text-2xl' : 'text-gray-400 text-2xl'"
+                      :icon="isEnabled(record.isEnabled) ? 'material-symbols:toggle-on' : 'material-symbols:toggle-off'"
+                      :class="isEnabled(record.isEnabled) ? 'text-green-500 text-2xl' : 'text-gray-400 text-2xl'"
                     />
                   </Button>
                 </Tooltip>
@@ -134,10 +134,10 @@
             </div>
           </template>
 
-          <!-- 状态标签 -->
-          <template v-else-if="column.key === 'isEnabled'">
-            <Tag :color="record.isEnabled === 1 ? 'success' : 'default'">
-              {{ record.isEnabled === 1 ? '启用' : '停用' }}
+          <!-- 状态标签（兼容 1/0 和 true/false，以及 isEnabled/is_enabled 字段名） -->
+          <template v-else-if="column.key === 'isEnabled' || column.key === 'is_enabled'">
+            <Tag :color="isEnabled(record[column.key]) ? 'success' : 'default'">
+              {{ isEnabled(record[column.key]) ? '启用' : '停用' }}
             </Tag>
           </template>
 
@@ -188,6 +188,23 @@ import {
   type ActionContext,
 } from './events';
 import { expandAllPermissionCodes } from './permission-utils';
+
+/**
+ * 统一布尔值判断：兼容 1/0（整数）和 true/false（JSON反序列化后的boolean）
+ * 约定：1 / true → 启用态，0 / false → 停用态
+ */
+function isEnabledValue(raw: any): boolean {
+  if (raw === 1 || raw === true || raw === '1' || raw === 'true') return true;
+  if (raw === 0 || raw === false || raw === '0' || raw === 'false') return false;
+  return false;
+}
+
+/**
+ * 判断记录是否启用（兼容多种值类型）
+ */
+function isEnabled(raw: any): boolean {
+  return raw === 1 || raw === true || raw === '1' || raw === 'true';
+}
 
 interface Props {
   /** 表编码，对应 sys_table_meta.table_code */
@@ -318,8 +335,8 @@ const columns = computed<any[]>(() => {
 
     if (col.isSortable) tableCol.sorter = true;
 
-    // isEnabled 列特殊处理：渲染成 Tag
-    if (code === 'isEnabled') {
+    // isEnabled / is_enabled 列特殊处理：渲染成 Tag
+    if (code === 'isEnabled' || code === 'is_enabled') {
       tableCol.key = 'isEnabled';
     }
 
@@ -405,7 +422,7 @@ async function loadData() {
 function updateStats(rows: any[]) {
   if (!props.statsConfig.length) return;
   const total = rows.length;
-  const enabled = rows.filter((r) => r.isEnabled === 1).length;
+  const enabled = rows.filter((r) => isEnabled(r.isEnabled)).length;
   const disabled = total - enabled;
 
   // 默认统计：总数、已启用、已停用
