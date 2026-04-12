@@ -63,7 +63,7 @@ export async function getTableMetaList(params?: TableMetaQuery) {
  */
 export async function getTableMetaById(id: string | number) {
   return requestClient.get<TableMetaApi.TableMetaResult>(
-    `/api/system/meta/table/${id}`,
+    `/api/system/meta/table/id/${id}`,
   );
 }
 
@@ -106,8 +106,8 @@ export async function deleteTableMeta(id: string | number) {
 /**
  * 启用/禁用切换
  */
-export async function toggleTableMetaStatus(id: string | number, status: number) {
-  return requestClient.put(`/api/system/meta/table/${id}/toggle`, { status }, {
+export async function toggleTableMetaStatus(id: string | number, _status: number) {
+  return requestClient.put(`/api/system/meta/table/${id}/toggle`, undefined, {
     responseReturn: 'body',
   });
 }

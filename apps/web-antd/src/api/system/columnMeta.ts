@@ -1,54 +1,66 @@
-import type { Recordable } from '@vben/types';
 import { requestClient } from '#/api/request';
 
 export namespace ColumnMetaApi {
-  // 字段元数据接口（与后端 ColumnMeta 实体字段名一致）
   export interface ColumnMeta {
     id?: number;
     tableCode: string;
-    field: string;             // 对应前端的 columnCode
-    title: string;             // 对应前端的 columnName
+    field: string;
+    title: string;
     dataType: string;
-    formType: string;          // 对应前端的 fieldType
+    formType: string;
     dictType?: string;
-    required: number;          // 对应前端的 isRequired
+    linkageJson?: string;
+    required: number;
     isUnique?: number;
-    showInList: number;        // 对应前端的 isShowInList
-    showInForm: number;        // 对应前端的 isShowInForm
+    showInList: number;
+    showInForm: number;
+    showInExport?: number;
+    searchable?: number;
     sortable?: number;
     width?: number;
-    formColSpan?: number;
+    colSpan?: number;
     defaultValue?: string;
     placeholder?: string;
-    rulesJson?: string;        // 对应前端的 validRules
+    rulesJson?: string;
     sortOrder: number;
-    status: number;            // 对应前端的 isEnabled
-    createBy?: string;
-    createTime?: string;
-    updateBy?: string;
-    updateTime?: string;
-    // 兼容旧字段名（后端返回时自动映射）
-    columnCode?: string;
+    status: number;
+    remark?: string;
+    componentProps?: string;
+    dataSource?: string;
+    apiUrl?: string;
+    labelField?: string;
+    valueField?: string;
+    sectionKey?: string;
+    i18nKey?: string;
+    visibleCondition?: string;
     columnName?: string;
+    columnType?: string;
+    primaryKey?: boolean;
+    nullable?: boolean;
+    columnSize?: number;
+    decimalDigits?: number;
+
+    // legacy aliases from older payloads
+    columnCode?: string;
+    columnNameLegacy?: string;
     fieldType?: string;
-    isRequired_?: number;
-    isEnabled_?: number;
-    isShowInList_?: number;
-    isShowInForm_?: number;
-    validRules_?: string;
+    isRequired?: number;
+    isEnabled?: number;
+    isShowInList?: number;
+    isShowInForm?: number;
+    validRules?: string;
+    listWidth?: number;
+    formColSpan?: number;
   }
 
-  // 列表查询响应
   export interface ColumnMetaListResult {
     total: number;
     rows: ColumnMeta[];
   }
 
-  // 单条记录结果
   export interface ColumnMetaResult extends ColumnMeta {}
 }
 
-// 导出请求参数
 export interface ColumnMetaQuery {
   tableCode?: string;
   tableId?: number;
@@ -59,88 +71,155 @@ export interface ColumnMetaQuery {
   pageSize?: number;
 }
 
-// 批量排序参数
 export interface SortOrderItem {
   id: number;
   sortOrder: number;
 }
 
-/**
- * 获取字段元数据列表（分页+模糊搜索）
- */
+function normalizeColumn(item: any): ColumnMetaApi.ColumnMeta {
+  return {
+    ...item,
+    field: item.field ?? item.columnCode ?? '',
+    title: item.title ?? item.columnName ?? '',
+    formType: item.formType ?? item.fieldType ?? 'text',
+    required: Number(item.required ?? item.isRequired ?? 0),
+    showInList: Number(item.showInList ?? item.isShowInList ?? 1),
+    showInForm: Number(item.showInForm ?? item.isShowInForm ?? 1),
+    showInExport: Number(item.showInExport ?? item.isShowInExport ?? 0),
+    searchable: Number(item.searchable ?? item.isSearchable ?? 0),
+    sortable: Number(item.sortable ?? item.isSortable ?? 0),
+    width: Number(item.width ?? item.listWidth ?? 120),
+    colSpan: Number(item.colSpan ?? item.formColSpan ?? 24),
+    rulesJson: item.rulesJson ?? item.validRules ?? '',
+    status: Number(item.status ?? item.isEnabled ?? 1),
+  };
+}
+
+function normalizeSchemaColumn(item: any): ColumnMetaApi.ColumnMeta {
+  return {
+    id: item.id,
+    tableCode: item.tableCode ?? '',
+    field: item.field ?? item.code ?? '',
+    title: item.title ?? item.label ?? item.code ?? '',
+    dataType: item.dataType ?? item.type ?? 'string',
+    formType: item.formType ?? 'text',
+    dictType: item.dictType ?? '',
+    linkageJson: '',
+    required: Number(item.required ?? item.isRequired ?? 0),
+    isUnique: 0,
+    showInList: Number(item.showInList ?? item.isShowInList ?? item.isVisible ?? 1),
+    showInForm: Number(item.showInForm ?? item.isShowInForm ?? 1),
+    showInExport: Number(item.showInExport ?? 0),
+    searchable: Number(item.searchable ?? item.isSearchable ?? 0),
+    sortable: Number(item.sortable ?? item.isSortable ?? 0),
+    width: Number(item.width ?? 120),
+    colSpan: Number(item.colSpan ?? 24),
+    defaultValue: item.defaultValue ?? '',
+    placeholder: item.placeholder ?? '',
+    rulesJson: item.rulesJson ?? '',
+    sortOrder: Number(item.sortOrder ?? 0),
+    status: Number(item.status ?? 1),
+    remark: '',
+    componentProps: item.componentProps ?? '',
+    dataSource: item.dataSource ?? '',
+    apiUrl: item.apiUrl ?? '',
+    labelField: item.labelField ?? '',
+    valueField: item.valueField ?? '',
+    sectionKey: item.sectionKey ?? '',
+    i18nKey: item.i18nKey ?? '',
+    visibleCondition: item.visibleCondition ?? '',
+  };
+}
+
 export async function getColumnMetaList(params?: ColumnMetaQuery) {
-  // 修正：后端接口为 /column/list/{tableCode}，不是 /column
   const tableCode = params?.tableCode;
   if (!tableCode) {
     return { total: 0, rows: [] };
   }
-  const res = await requestClient.get<any>(
-    `/api/system/meta/column/list/${tableCode}`,
-    { params: { pageNum: params.pageNum, pageSize: params.pageSize } },
-  );
+
+  try {
+    const res = await requestClient.get<any>(
+      `/api/system/meta/column/list/${tableCode}`,
+      { params: { pageNum: params?.pageNum, pageSize: params?.pageSize } },
+    );
+
+    const rows = Array.isArray(res)
+      ? res
+      : Array.isArray(res?.rows)
+        ? res.rows
+        : Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.data?.rows)
+            ? res.data.rows
+            : [];
+    const normalizedRows = rows.map((item) => normalizeColumn(item));
+    if (normalizedRows.length > 0) {
+      return {
+        total: normalizedRows.length,
+        rows: normalizedRows,
+      };
+    }
+  } catch {
+    // fallback below
+  }
+
+  // fallback: schema endpoint usually has looser permission and stable response
+  const schemaRes = await requestClient.get<any>('/api/system/meta/column/schema', {
+    params: { tableCode },
+  });
+  const schemaRows = Array.isArray(schemaRes)
+    ? schemaRes
+    : Array.isArray(schemaRes?.rows)
+      ? schemaRes.rows
+      : Array.isArray(schemaRes?.data)
+        ? schemaRes.data
+        : Array.isArray(schemaRes?.data?.rows)
+          ? schemaRes.data.rows
+          : [];
+  const normalizedSchemaRows = schemaRows.map((item) => normalizeSchemaColumn(item));
   return {
-    total: res?.length || 0,
-    rows: Array.isArray(res) ? res : [],
+    total: normalizedSchemaRows.length,
+    rows: normalizedSchemaRows,
   };
 }
 
-/**
- * 获取字段元数据详情
- */
 export async function getColumnMetaById(id: string | number) {
-  return requestClient.get<ColumnMetaApi.ColumnMetaResult>(
+  const res = await requestClient.get<ColumnMetaApi.ColumnMetaResult>(
     `/api/system/meta/column/${id}`,
   );
+  return res ? normalizeColumn(res) : null;
 }
 
-/**
- * 新增字段元数据
- */
 export async function addColumnMeta(data: Partial<ColumnMetaApi.ColumnMeta>) {
   return requestClient.post('/api/system/meta/column', data, {
     responseReturn: 'body',
   });
 }
 
-/**
- * 更新字段元数据
- */
 export async function updateColumnMeta(data: Partial<ColumnMetaApi.ColumnMeta>) {
   return requestClient.put(`/api/system/meta/column/${data.id}`, data, {
     responseReturn: 'body',
   });
 }
 
-/**
- * 删除字段元数据
- */
 export async function deleteColumnMeta(id: string | number) {
   return requestClient.delete(`/api/system/meta/column/${id}`, {
     responseReturn: 'body',
   });
 }
 
-/**
- * 批量创建字段元数据
- */
 export async function batchAddColumnMeta(data: Partial<ColumnMetaApi.ColumnMeta>[]) {
   return requestClient.post('/api/system/meta/column/batch', data, {
     responseReturn: 'body',
   });
 }
 
-/**
- * 批量更新排序
- */
 export async function batchUpdateSortOrder(orders: SortOrderItem[]) {
   return requestClient.put('/api/system/meta/column/sort', { orders }, {
     responseReturn: 'body',
   });
 }
 
-/**
- * 获取表元数据列表（用于选择表）
- */
 export async function getTableMetaListForSelect() {
   const res = await requestClient.get<{
     total: number;
@@ -151,13 +230,18 @@ export async function getTableMetaListForSelect() {
   return res?.rows || [];
 }
 
-/**
- * 获取指定表的字段列表（用于复制）
- */
 export async function getColumnMetaByTableId(tableCode: string) {
-  // 修正：后端接口为 /column/list/{tableCode}，不是 /column
   const res = await requestClient.get<any>(
     `/api/system/meta/column/list/${tableCode}`,
   );
-  return Array.isArray(res) ? res : [];
+  const rows = Array.isArray(res)
+    ? res
+    : Array.isArray(res?.rows)
+      ? res.rows
+      : Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.data?.rows)
+          ? res.data.rows
+          : [];
+  return rows.map((item) => normalizeColumn(item));
 }

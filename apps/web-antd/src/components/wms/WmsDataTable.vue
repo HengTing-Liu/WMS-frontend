@@ -11,7 +11,7 @@
 
     <!-- 表格主体 -->
     <Table
-      v-bind="$attrs"
+      v-bind="tableAttrs"
       :row-key="rowKey"
       :loading="loading"
       :columns="columns"
@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, useAttrs, watch } from 'vue';
 import { Button, Card, Popconfirm, Space, Table } from 'ant-design-vue';
 import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
 import { $t } from '@vben/locales';
@@ -64,10 +64,12 @@ const props = withDefaults(defineProps<WmsDataTableProps>(), {
 });
 
 const emit = defineEmits<{
+  (e: 'change', pagination: any, filters: any, sorter: any): void;
   (e: 'table-change', pagination: any, filters: any, sorter: any): void;
   (e: 'update:rowSelection', val: { keys: any[]; rows: any[] }): void;
 }>();
 
+const attrs = useAttrs();
 const slots = defineSlots();
 
 const selectedRowKeys = ref<any[]>([]);
@@ -93,6 +95,13 @@ const computedRowSelection = computed(() => {
   };
 });
 
+const tableAttrs = computed(() => {
+  const next = { ...attrs } as Record<string, any>;
+  // 避免父层 @change 透传到 antd Table，与本组件内部 @change 合并后变成非函数
+  delete next.onChange;
+  return next;
+});
+
 // 内部分页配置（避免直接修改 props.pagination）
 const paginationConfig = computed(() => {
   if (props.pagination === false) return false;
@@ -105,6 +114,7 @@ const paginationConfig = computed(() => {
 });
 
 function handleTableChange(pagination: any, filters: any, sorter: any) {
+  emit('change', pagination, filters, sorter);
   emit('table-change', pagination, filters, sorter);
   props.onTableChange?.(pagination, filters, sorter);
 }

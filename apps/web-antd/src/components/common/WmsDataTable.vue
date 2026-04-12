@@ -4,22 +4,32 @@
       :columns="columns"
       :data-source="dataSource"
       :loading="loading"
-      :pagination="paginationConfig"
+      :pagination="false"
       :row-key="rowKey"
       :row-selection="rowSelection"
-      @change="handleTableChange"
     >
       <template #bodyCell="slotProps">
         <slot name="bodyCell" v-bind="slotProps" />
       </template>
     </a-table>
+
+    <div v-if="pagination" class="mt-4 flex justify-end">
+      <a-pagination
+        :current="pagination.current"
+        :page-size="pagination.pageSize"
+        :total="pagination.total"
+        :show-size-changer="pagination.showSizeChanger ?? true"
+        :show-total="pagination.showTotal as any"
+        @change="handlePageChange"
+        @show-size-change="handlePageChange"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Table as ATable } from 'ant-design-vue';
-import type { TablePaginationConfig } from 'ant-design-vue/es/table';
+import { Pagination as APagination, Table as ATable } from 'ant-design-vue';
 import type { Key } from 'ant-design-vue/es/table/interface';
 
 interface PaginationProps {
@@ -27,7 +37,7 @@ interface PaginationProps {
   pageSize: number;
   total: number;
   showSizeChanger?: boolean;
-  showTotal?: boolean;
+  showTotal?: ((total: number, range: [number, number]) => string) | ((total: number) => string);
 }
 
 interface Props {
@@ -52,18 +62,7 @@ const emit = defineEmits<{
   (e: 'selectionChange', selectedRowKeys: Key[]): void;
 }>();
 
-const paginationConfig = computed<false | TablePaginationConfig>(() => {
-  if (!props.pagination) return false;
-  return {
-    current: props.pagination.current,
-    pageSize: props.pagination.pageSize,
-    total: props.pagination.total,
-    showSizeChanger: props.pagination.showSizeChanger ?? true,
-    showTotal: props.pagination.showTotal
-      ? (total: number) => `共 ${total} 条`
-      : undefined,
-  };
-});
+const pagination = computed(() => props.pagination);
 
 const rowSelection = computed(() => {
   if (!props.enableSelection) return undefined;
@@ -76,14 +75,8 @@ const rowSelection = computed(() => {
   };
 });
 
-function handleTableChange(
-  pag: TablePaginationConfig,
-) {
-  if (!props.pagination || !pag.current || !pag.pageSize) return;
-  emit('pageChange', {
-    page: pag.current,
-    pageSize: pag.pageSize,
-  });
+function handlePageChange(page: number, pageSize: number) {
+  emit('pageChange', { page, pageSize });
 }
 </script>
 

@@ -76,6 +76,12 @@ const routes: RouteRecordRaw[] = [
             path: 'operation',
             component: () => import('#/views/system/operationMeta/index.vue'),
           },
+          {
+            meta: { title: '发布管理' },
+            name: 'MetaPublish',
+            path: 'publish',
+            component: () => import('#/views/system/metaPublish/index.vue'),
+          },
 
         ],
       },

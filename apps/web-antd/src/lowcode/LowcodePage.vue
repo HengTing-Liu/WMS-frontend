@@ -60,7 +60,7 @@
         :pagination="paginationConfig"
         :selected-row-keys="selectedRowKeys"
         row-key="id"
-        :enable-selection="!!selectedRowKeys.length || enableSelection"
+        :enable-selection="tableSelectionEnabled"
         @page-change="onPageChange"
         @selection-change="onSelectionChange"
       >
@@ -306,6 +306,20 @@ const rowActions = computed(() =>
 const visibleToolbarActions = computed(() =>
   toolbarActions.value.filter((op) => canRenderAction(op)),
 );
+
+function actionNeedsSelectedRows(action: LowcodeAction): boolean {
+  const config = parseEventConfig(action.eventConfig);
+  if (config?.payloadType === 'selected') return true;
+
+  // fallback: builtin/export 默认无 payloadType 时不强制勾选，仅明确 selected 时开启
+  if (isExportAction(action.key) && config?.scope === 'selected') return true;
+  return false;
+}
+
+const tableSelectionEnabled = computed(() => {
+  if (props.enableSelection || selectedRowKeys.value.length > 0) return true;
+  return visibleToolbarActions.value.some((action) => actionNeedsSelectedRows(action));
+});
 
 // ==================== 解析表格列 ====================
 const columns = computed<any[]>(() => {
@@ -675,8 +689,13 @@ function handleDrawerClose() {
 async function init() {
   try {
     // 加载 meta 配置（字段 + 操作按钮）
-    const { columns: metaCols, operations } = await fetchPageMeta(props.tableCode);
+    const { columns: metaCols, operations, tableMeta } = await fetchPageMeta(props.tableCode);
     metaColumns.value = metaCols;
+    const configuredPageSize = Number(tableMeta?.pageSize);
+    if (Number.isFinite(configuredPageSize) && configuredPageSize > 0) {
+      pagination.pageSize = configuredPageSize;
+      pagination.current = 1;
+    }
     metaOperations.value = operations.map((op: any) => ({
       key: op.operationCode,
       label: op.operationName,

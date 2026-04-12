@@ -201,7 +201,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue';
+import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import {
   Alert,
   Button,
@@ -320,10 +320,9 @@ async function loadData() {
 }
 
 // ========== 事件处理 ==========
-function handleTableChange(value: number) {
-  selectedTableCode.value = value;
+function handleTableChange(value: string | number) {
+  selectedTableCode.value = value ? String(value) : undefined;
   searchKeyword.value = '';
-  loadData();
 }
 
 function filterTableOption(input: string, option: any) {
@@ -552,6 +551,15 @@ onMounted(() => {
     initSortable();
   });
 });
+
+watch(
+  () => selectedTableCode.value,
+  (val, oldVal) => {
+    if (val !== oldVal) {
+      loadData();
+    }
+  },
+);
 </script>
 
 <style scoped>
