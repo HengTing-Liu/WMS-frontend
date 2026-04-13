@@ -413,7 +413,14 @@ function resolveFieldSpan(
   type: NormalizedField['type'],
   fieldCodeLower: string,
   attrWrapperCss: unknown,
+  colSpanRaw?: unknown,
 ): number {
+  // 字段级 colSpan 优先级最高（允许覆盖默认规则）
+  const explicitSpan = Number(colSpanRaw);
+  if (Number.isFinite(explicitSpan) && explicitSpan > 0 && explicitSpan <= 24) {
+    return explicitSpan;
+  }
+
   // 特殊规则：Background 始终最后且独占一整行
   if (fieldCodeLower === 'background') return 24;
   // 长字段默认整行
@@ -472,6 +479,7 @@ function normalizeSection(key: string, title: string, section?: any): Section {
         type,
         fieldCodeLower,
         f?.attrWrapperCss ?? f?.attr_wrapper_css,
+        f?.colSpan ?? f?.formColSpan ?? f?.form_col_span,
       );
       const nf: NormalizedField = {
         path: `${key}.${fieldCodeSafe}`,

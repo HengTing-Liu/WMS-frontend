@@ -14,7 +14,7 @@ const routes: RouteRecordRaw[] = [
     path: '/sys',
     children: [
       {
-        meta: { title: '仓库档案' },
+        meta: { title: '仓库档案', fullPathKey: false },
         name: 'BaseWarehouseList',
         path: 'warehouse',
         component: () => import('#/views/sys/warehouse/index.vue'),
@@ -33,7 +33,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/sys/dict/index.vue'),
       },
       {
-        meta: { title: '物料管理' },
+        meta: { title: '物料管理', fullPathKey: false },
         name: 'BaseMaterial',
         path: 'material',
         component: () => import('#/views/sys/material/index.vue'),

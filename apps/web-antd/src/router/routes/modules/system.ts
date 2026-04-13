@@ -59,25 +59,25 @@ const routes: RouteRecordRaw[] = [
         path: '/lowcode',
         children: [
           {
-            meta: { title: '表元数据' },
+            meta: { title: '表元数据', fullPathKey: false },
             name: 'TableMeta',
             path: 'table',
             component: () => import('#/views/system/tableMeta/index.vue'),
           },
           {
-            meta: { title: '字段元数据' },
+            meta: { title: '字段元数据', fullPathKey: false },
             name: 'ColumnMeta',
             path: 'column',
             component: () => import('#/views/system/columnMeta/index.vue'),
           },
           {
-            meta: { title: '操作元数据' },
+            meta: { title: '操作元数据', fullPathKey: false },
             name: 'OperationMeta',
             path: 'operation',
             component: () => import('#/views/system/operationMeta/index.vue'),
           },
           {
-            meta: { title: '发布管理' },
+            meta: { title: '发布管理', fullPathKey: false },
             name: 'MetaPublish',
             path: 'publish',
             component: () => import('#/views/system/metaPublish/index.vue'),

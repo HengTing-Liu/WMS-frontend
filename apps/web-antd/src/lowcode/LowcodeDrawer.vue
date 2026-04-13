@@ -172,7 +172,7 @@ function normalizeResponse(res: any): Record<string, any> {
         options: col.options,
         apiUrl: col.apiUrl,
         dictType: col.dictType,
-        colSpan: col.colSpan ?? 6,
+        colSpan: col.colSpan ?? col.formColSpan ?? col.form_col_span ?? 6,
         sortNum: col.sortOrder ?? idx,
       })),
     };
