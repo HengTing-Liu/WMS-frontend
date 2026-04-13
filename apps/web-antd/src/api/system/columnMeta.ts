@@ -215,7 +215,7 @@ export async function batchAddColumnMeta(data: Partial<ColumnMetaApi.ColumnMeta>
 }
 
 export async function batchUpdateSortOrder(orders: SortOrderItem[]) {
-  return requestClient.put('/api/system/meta/column/sort', { orders }, {
+  return requestClient.put('/api/system/meta/column/sort', orders, {
     responseReturn: 'body',
   });
 }
