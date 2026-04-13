@@ -308,6 +308,7 @@
 
             <Typography.Text strong style="display: block; margin: 16px 0 8px">SQL 执行明细</Typography.Text>
             <a-table
+              v-if="currentHistoryRecord.details?.length"
               :columns="detailColumns"
               :data-source="currentHistoryRecord.details"
               :pagination="false"
@@ -327,6 +328,7 @@
                 <Typography.Text v-else>{{ record[column.dataIndex] }}</Typography.Text>
               </template>
             </a-table>
+            <Typography.Text v-else type="secondary">暂无执行明细</Typography.Text>
           </template>
         </a-drawer>
       </a-tab-pane>
@@ -335,7 +337,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import {
   Alert,
   Button,
@@ -398,6 +400,7 @@ const publishResult = ref<MetaPublishApi.PublishResponse | null>(null);
 const historyLoading = ref(false);
 const historyData = ref<MetaPublishApi.PublishResponse[]>([]);
 const historyPage = ref(1);
+const historyPageSize = ref(20);
 const historyTotal = ref(0);
 const historyQuery = ref<{ tableCode?: string; status?: string }>({});
 const detailDrawerVisible = ref(false);
@@ -472,7 +475,7 @@ async function loadTableList() {
 }
 
 function filterOption(input: string, option: any) {
-  return String(option.children?.() || '').toLowerCase().includes(input.toLowerCase());
+  return String(option.label || '').toLowerCase().includes(input.toLowerCase());
 }
 
 // ========== 步骤操作 ==========
@@ -565,9 +568,14 @@ function handleViewHistory() {
 async function loadHistory() {
   historyLoading.value = true;
   try {
-    const res = await getPublishHistory(historyQuery.value);
-    historyData.value = res || [];
-    historyTotal.value = res?.length || 0;
+    const res = await getPublishHistory({
+      ...historyQuery.value,
+      pageNum: historyPage.value,
+      pageSize: historyPageSize.value,
+    });
+    // 后端目前返回 List，total 取数组长度
+    historyData.value = Array.isArray(res) ? res : [];
+    historyTotal.value = Array.isArray(res) ? res.length : 0;
   } catch (e: any) {
     message.error('加载历史失败');
   } finally {
@@ -632,6 +640,12 @@ function getSqlTypeLabel(type?: string) {
 onMounted(() => {
   loadTableList();
   loadHistory();
+});
+
+watch(activeTab, (val) => {
+  if (val === 'history') {
+    loadHistory();
+  }
 });
 </script>
 

@@ -23,7 +23,7 @@
               placeholder="搜索操作编码 / 名称"
               allow-clear
               style="width: 260px"
-              @search="applySearch"
+              @search="handleSearch"
             />
           </div>
 
@@ -135,7 +135,16 @@ const tableLoading = ref(false);
 const searchKeyword = ref('');
 const selectedTableCode = ref<string>('');
 const tableList = ref<Array<{ id: number; tableCode: string; tableName: string }>>([]);
-const tableData = ref<OperationMetaApi.OperationMeta[]>([]);
+const tableDataRaw = ref<OperationMetaApi.OperationMeta[]>([]);
+const tableData = computed(() => {
+  const keyword = searchKeyword.value.trim().toLowerCase();
+  if (!keyword) return tableDataRaw.value;
+  return tableDataRaw.value.filter(
+    (item) =>
+      item.operationCode?.toLowerCase().includes(keyword) ||
+      item.operationName?.toLowerCase().includes(keyword)
+  );
+});
 const selectedRowKeys = ref<Array<number | string>>([]);
 
 const modalVisible = ref(false);
@@ -167,18 +176,8 @@ function filterTableOption(input: string, option: any) {
   return String(text).toLowerCase().includes(input.toLowerCase());
 }
 
-function applySearch() {
-  const keyword = searchKeyword.value.trim().toLowerCase();
-  if (!keyword) {
-    loadData();
-    return;
-  }
-  tableData.value = tableData.value.filter((item) => {
-    return (
-      item.operationCode?.toLowerCase().includes(keyword) ||
-      item.operationName?.toLowerCase().includes(keyword)
-    );
-  });
+function handleSearch() {
+  // 搜索由 computed tableData 自动处理，无需额外操作
 }
 
 async function loadTableList() {
@@ -203,12 +202,8 @@ async function loadData() {
   loading.value = true;
   try {
     const res = await getOperationMetaList(selectedTableCode.value);
-    tableData.value = (res.rows || []).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    tableDataRaw.value = (res.rows || []).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     selectedRowKeys.value = [];
-
-    if (searchKeyword.value.trim()) {
-      applySearch();
-    }
   } catch (error: any) {
     message.error(error?.message || '加载操作元数据失败');
     tableData.value = [];
@@ -263,9 +258,10 @@ async function handleSaveSort() {
   try {
     await batchSortOperationMeta(payload as Array<{ id: number; sortOrder: number }>);
     message.success('排序已保存');
-    await loadData();
   } catch (error: any) {
     message.error(error?.message || '排序保存失败');
+  } finally {
+    await loadData();
   }
 }
 

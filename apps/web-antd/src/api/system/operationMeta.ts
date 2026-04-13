@@ -30,6 +30,15 @@ function unwrapData<T = any>(res: any): T {
   return (res?.data ?? res) as T;
 }
 
+/** 检查后端业务响应码，非成功则抛出错误 */
+function checkResponseCode(res: any, action: string) {
+  const code = res?.code ?? res?.data?.code;
+  const message = res?.msg ?? res?.data?.msg ?? res?.message ?? res?.data?.message;
+  if (code !== 0 && code !== 200) {
+    throw new Error(message || `${action}失败`);
+  }
+}
+
 function normalizeOperation(item: Recordable<any>): OperationMetaApi.OperationMeta {
   return {
     id: item.id,
@@ -67,37 +76,47 @@ export async function getOperationMetaById(id: number | string) {
 }
 
 export async function addOperationMeta(data: Partial<OperationMetaApi.OperationMeta>) {
-  return requestClient.post('/api/system/meta/operation', data, {
+  const res = await requestClient.post('/api/system/meta/operation', data, {
     responseReturn: 'body',
   });
+  checkResponseCode(res, '新增操作');
+  return res;
 }
 
 export async function updateOperationMeta(
   id: number | string,
   data: Partial<OperationMetaApi.OperationMeta>,
 ) {
-  return requestClient.put(`/api/system/meta/operation/${id}`, data, {
+  const res = await requestClient.put(`/api/system/meta/operation/${id}`, data, {
     responseReturn: 'body',
   });
+  checkResponseCode(res, '更新操作');
+  return res;
 }
 
 export async function deleteOperationMeta(id: number | string) {
-  return requestClient.delete(`/api/system/meta/operation/${id}`, {
+  const res = await requestClient.delete(`/api/system/meta/operation/${id}`, {
     responseReturn: 'body',
   });
+  checkResponseCode(res, '删除操作');
+  return res;
 }
 
 export async function batchDeleteOperationMeta(ids: number[]) {
-  return requestClient.delete('/api/system/meta/operation', {
+  const res = await requestClient.delete('/api/system/meta/operation', {
     data: ids,
     responseReturn: 'body',
   });
+  checkResponseCode(res, '批量删除操作');
+  return res;
 }
 
 export async function batchSortOperationMeta(
   list: Array<Pick<OperationMetaApi.OperationMeta, 'id' | 'sortOrder'>>,
 ) {
-  return requestClient.put('/api/system/meta/operation/sort', list, {
+  const res = await requestClient.put('/api/system/meta/operation/sort', list, {
     responseReturn: 'body',
   });
+  checkResponseCode(res, '批量排序操作');
+  return res;
 }

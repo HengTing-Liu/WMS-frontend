@@ -107,7 +107,7 @@
         "hasDataPermission": "Enable Data Permission",
         "selectPermissionField": "Please select permission field",
         "selectPermissionScope": "Please select permission scope",
-        "isDeletedColumn": "Logic Delete Column",
+        "isDeleted": "Logic Delete",
         "warehouse": "Warehouse",
         "locationManagement": "Location Management",
         "material": "Material",

@@ -40,13 +40,17 @@
         <a-button @click="handleReset">
           <IconifyIcon icon="material-symbols:refresh" /> 重置
         </a-button>
-        <a-dropdown>
+        <a-dropdown v-model:open="fieldsDropdownOpen" :trigger="['click']">
           <a-button>
             <IconifyIcon icon="material-symbols:tune" /> 字段
           </a-button>
           <template #overlay>
             <a-menu>
-              <a-menu-item v-for="field in allFields" :key="field.key">
+              <a-menu-item
+                v-for="field in allFields"
+                :key="field.key"
+                @click.stop
+              >
                 <a-checkbox
                   :checked="selectedKeys.includes(field.key)"
                   @change="() => toggleField(field.key)"
@@ -63,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import {
   Button as AButton,
   Checkbox as ACheckbox,
@@ -106,6 +110,7 @@ const emit = defineEmits<{
 
 const allFields = ref<SearchField[]>([]);
 const selectedKeys = ref<string[]>([]);
+const fieldsDropdownOpen = ref(false);
 
 const camelToSnake: Record<string, string> = {
   warehouseCode: 'warehouse_code',
@@ -418,7 +423,21 @@ watch(
 
 onMounted(() => {
   loadRemoteFields();
+  // 点击下拉外部区域时自动关闭
+  document.addEventListener('click', handleOutsideClick);
 });
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutsideClick);
+});
+
+/** 点击下拉外部时关闭字段弹框 */
+function handleOutsideClick(e: MouseEvent) {
+  const bar = document.querySelector('.wms-search-bar');
+  if (bar && !bar.contains(e.target as Node)) {
+    fieldsDropdownOpen.value = false;
+  }
+}
 
 function updateFieldOptions(key: string, options: { label: string; value: string | number }[]) {
   const field = allFields.value.find((f) => f.key === key);

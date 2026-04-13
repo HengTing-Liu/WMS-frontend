@@ -100,6 +100,7 @@ async function generateAccessible(
   const { router } = options;
 
   options.routes = cloneDeep(options.routes);
+
   // 生成路由（内部已完成 sanitize + fixAncestorRouteNames）
   const accessibleRoutes = await generateRoutes(mode, options);
 

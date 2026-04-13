@@ -17,17 +17,45 @@
       <FormItem label="表编码" name="tableCode">
         <Input v-model:value="formData.tableCode" disabled />
       </FormItem>
-      <FormItem label="操作编码" name="operationCode">
-        <Input
-          v-model:value="formData.operationCode"
-          :maxlength="50"
-          :disabled="isEdit"
-          placeholder="如 create / export"
-        />
-      </FormItem>
-      <FormItem label="操作名称" name="operationName">
-        <Input v-model:value="formData.operationName" :maxlength="100" />
-      </FormItem>
+      <Row :gutter="16">
+        <Col :span="12">
+          <FormItem label="操作编码" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" name="operationCode">
+            <Select
+              v-model:value="operationCodeSelect"
+              :disabled="isEdit"
+              @change="handleOperationCodeChange"
+            >
+              <SelectOption value="create">create - 新增</SelectOption>
+              <SelectOption value="add">add - 添加</SelectOption>
+              <SelectOption value="edit">edit - 编辑</SelectOption>
+              <SelectOption value="delete">delete - 删除</SelectOption>
+              <SelectOption value="toggle">toggle - 切换状态</SelectOption>
+              <SelectOption value="export">export - 导出（默认）</SelectOption>
+              <SelectOption value="exportSelected">export - 导出选中</SelectOption>
+              <SelectOption value="exportFiltered">export - 导出筛选</SelectOption>
+              <SelectOption value="exportAll">export - 导出全部</SelectOption>
+              <SelectOption value="custom">custom - 自定义</SelectOption>
+            </Select>
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="操作名称" name="operationName">
+            <Input
+              v-model:value="formData.operationName"
+              :maxlength="100"
+              placeholder="自动填充或手动输入"
+            />
+          </FormItem>
+        </Col>
+      </Row>
+
+      <Row v-if="operationCodeSelect === 'custom'" :gutter="16">
+        <Col :span="12">
+          <FormItem label="自定义编码" name="operationCode" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+            <Input v-model:value="formData.operationCode" :maxlength="50" placeholder="手动输入英文编码" />
+          </FormItem>
+        </Col>
+      </Row>
 
       <Row :gutter="16">
         <Col :span="12">
@@ -50,8 +78,21 @@
 
       <Row :gutter="16">
         <Col :span="12">
-          <FormItem label="图标" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
-            <Input v-model:value="formData.icon" placeholder="material-symbols:add" />
+          <FormItem label="图标" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" name="icon">
+            <Select
+              v-model:value="formData.icon"
+              allow-clear
+              show-search
+              :filter-option="(input, option) => String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())"
+              placeholder="选择图标"
+            >
+              <SelectOption v-for="icon in iconOptions" :key="icon.value" :value="icon.value" :label="icon.label">
+                <div class="icon-option">
+                  <IconifyIcon :icon="icon.value" class="icon-preview" />
+                  <span>{{ icon.label }}</span>
+                </div>
+              </SelectOption>
+            </Select>
           </FormItem>
         </Col>
         <Col :span="12">
@@ -185,9 +226,6 @@
       <FormItem label="确认文案">
         <Input v-model:value="formData.confirmMessage" placeholder="需要二次确认时显示" />
       </FormItem>
-      <FormItem label="关联菜单ID">
-        <InputNumber v-model:value="formData.menuId" :min="1" style="width: 100%" />
-      </FormItem>
     </Form>
   </Modal>
 </template>
@@ -210,6 +248,7 @@ import {
 } from 'ant-design-vue';
 import type { FormInstance } from 'ant-design-vue/es/form';
 
+import { IconifyIcon } from '@vben/icons';
 import {
   addOperationMeta,
   getOperationMetaById,
@@ -233,6 +272,58 @@ const formRef = ref<FormInstance>();
 const loading = ref(false);
 const isEdit = computed(() => props.mode === 'edit');
 const modalTitle = computed(() => (isEdit.value ? '编辑操作元数据' : '新增操作元数据'));
+
+/** 操作编码选择 + 自动填充名称 */
+const operationCodeSelect = ref<string>('');
+
+/** 操作编码 → 操作名称映射（仅低代码内置支持的编码） */
+const OPERATION_CODE_MAP: Record<string, string> = {
+  create: '新增',
+  add: '添加',
+  edit: '编辑',
+  delete: '删除',
+  toggle: '切换状态',
+  export: '导出',
+  exportSelected: '导出选中',
+  exportFiltered: '导出筛选',
+  exportAll: '导出全部',
+  custom: '自定义',
+};
+
+/** 操作编码 → 权限标识映射（权限码规则：{tableCode}:{operation}） */
+function buildPermissionMap(tableCode: string): Record<string, string> {
+  return {
+    create: `${tableCode}:create`,
+    add: `${tableCode}:add`,
+    edit: `${tableCode}:edit`,
+    delete: `${tableCode}:delete`,
+    toggle: `${tableCode}:toggle`,
+    export: `${tableCode}:export`,
+    exportSelected: `${tableCode}:export`,
+    exportFiltered: `${tableCode}:export`,
+    exportAll: `${tableCode}:export`,
+    custom: `${tableCode}:custom`,
+  };
+}
+
+/** 操作编码变更处理：自动填充操作名称和权限标识 */
+function handleOperationCodeChange(value: string) {
+  const permMap = buildPermissionMap(formData.tableCode || props.tableCode || '');
+
+  if (value === 'custom') {
+    formData.operationCode = '';
+    formData.permission = '';
+  } else {
+    formData.operationCode = value;
+    if (!formData.operationName || Object.values(OPERATION_CODE_MAP).includes(formData.operationName)) {
+      formData.operationName = OPERATION_CODE_MAP[value] || '';
+    }
+    if (!formData.permission || formData.permission.includes(':')) {
+      const perm = permMap[value];
+      if (perm) formData.permission = perm;
+    }
+  }
+}
 
 const formData = reactive<OperationMetaApi.OperationMeta>({
   id: undefined,
@@ -284,6 +375,40 @@ const eventConfig = reactive({
   },
 });
 
+/** 常用操作图标列表 */
+const iconOptions = [
+  { label: '➕ 新增', value: 'material-symbols:add' },
+  { label: '✏️ 编辑', value: 'material-symbols:edit' },
+  { label: '🗑️ 删除', value: 'material-symbols:delete' },
+  { label: '🔍 搜索', value: 'material-symbols:search' },
+  { label: '📤 导出', value: 'material-symbols:upload' },
+  { label: '📥 导入', value: 'material-symbols:download' },
+  { label: '✅ 确认', value: 'material-symbols:check-circle' },
+  { label: '❌ 取消', value: 'material-symbols:cancel' },
+  { label: '📋 复制', value: 'material-symbols:content-copy' },
+  { label: '📖 查看', value: 'material-symbols:visibility' },
+  { label: '🔄 刷新', value: 'material-symbols:refresh' },
+  { label: '⚙️ 设置', value: 'material-symbols:settings' },
+  { label: '🔗 链接', value: 'material-symbols:link' },
+  { label: '📌 置顶', value: 'material-symbols:push-pin' },
+  { label: '⬆️ 上移', value: 'material-symbols:arrow-upward' },
+  { label: '⬇️ 下移', value: 'material-symbols:arrow-downward' },
+  { label: '⬅️ 返回', value: 'material-symbols:arrow-back' },
+  { label: '➡️ 前进', value: 'material-symbols:arrow-forward' },
+  { label: '📊 统计', value: 'material-symbols:bar-chart' },
+  { label: '🧭 启用', value: 'material-symbols:toggle-on' },
+  { label: '⏸️ 停用', value: 'material-symbols:toggle-off' },
+  { label: '📋 列表', value: 'material-symbols:list' },
+  { label: '🏷️ 标签', value: 'material-symbols:label' },
+  { label: '💾 保存', value: 'material-symbols:save' },
+  { label: '🔎 详情', value: 'material-symbols:info' },
+  { label: '🗂️ 批量', value: 'material-symbols:library-add' },
+  { label: '📁 选择', value: 'material-symbols:folder-open' },
+  { label: '🔑 授权', value: 'material-symbols:key' },
+  { label: '👁️ 预览', value: 'material-symbols:preview' },
+  { label: '🔢 排序', value: 'material-symbols:sort' },
+];
+
 const formRules = {
   tableCode: [{ required: true, message: '请选择表编码', trigger: 'change' }],
   operationCode: [
@@ -323,6 +448,7 @@ function resetEventConfig() {
 
 function resetForm() {
   formRef.value?.resetFields();
+  operationCodeSelect.value = '';
   Object.assign(formData, {
     id: undefined,
     tableCode: props.tableCode || '',
@@ -334,7 +460,6 @@ function resetForm() {
     position: 'toolbar',
     sortOrder: 1,
     status: 1,
-    menuId: undefined,
     eventType: 'builtin',
     eventConfig: '',
     confirmMessage: '',
@@ -436,14 +561,21 @@ function buildEventConfigString() {
   return JSON.stringify(config);
 }
 
+function parseAndSyncEventConfig(raw: string | undefined, eventType: string | undefined) {
+  resetEventConfig();
+  parseEventConfigByType(raw, eventType);
+  // 同步到 formData.eventConfig，保持字符串与 reactive 对象一致
+  formData.eventConfig = buildEventConfigString();
+}
+
 async function loadDetail(id: number) {
   try {
     loading.value = true;
     const detail = await getOperationMetaById(id);
     if (!detail) return;
     Object.assign(formData, detail);
-    resetEventConfig();
-    parseEventConfigByType(detail.eventConfig, detail.eventType);
+    // 解析 eventConfig JSON 并同步到 formData.eventConfig
+    parseAndSyncEventConfig(detail.eventConfig, detail.eventType);
   } catch (error: any) {
     message.error(error?.message || '加载详情失败');
   } finally {
@@ -528,5 +660,16 @@ watch(
   display: grid;
   grid-template-columns: 1fr 1fr auto;
   gap: 8px;
+}
+
+.icon-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-preview {
+  font-size: 16px;
+  flex-shrink: 0;
 }
 </style>

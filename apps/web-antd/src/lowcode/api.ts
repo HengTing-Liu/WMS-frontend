@@ -138,6 +138,8 @@ export function inferCrudPrefix(tableCode: string): string {
     sys_warehouse: '/api/wms/crud/sys_warehouse',
     sys_warehouse_receiver: '/api/wms/crud/sys_warehouse_receiver',
     sys_user: '/api/wms/crud/sys_user',
+    // 业务表走低代码通用控制器
+    sys_material: '/api/wms/crud/sys_material',
   };
   if (entityMap[tableCode]) return entityMap[tableCode];
   // 兜底规则
@@ -208,5 +210,9 @@ export async function toggleRecord(params: {
 }) {
   const { tableCode, prefix, id, enabled } = params;
   const basePrefix = prefix ?? inferCrudPrefix(tableCode);
-  return requestClient.put<any>(`${basePrefix}/${id}/toggle`, { isEnabled: enabled ? 1 : 0 });
+  return requestClient.put<any>(
+    `${basePrefix}/${id}/status`,
+    {},
+    { params: { enabled: enabled ? 1 : 0 } },
+  );
 }

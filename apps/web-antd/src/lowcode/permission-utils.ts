@@ -26,6 +26,9 @@ export function expandPermissionVariants(code: string): string[] {
     [/^wms:base:warehouse:/, 'wms:system:warehouse:'],
     [/^wms:system:warehouseReceiver:/, 'wms:base:warehouseReceiver:'],
     [/^wms:base:warehouseReceiver:/, 'wms:system:warehouseReceiver:'],
+    // 物料模块兼容：meta 用 sys:material:*，菜单用 wms:base:material:*
+    [/^sys:material:/, 'wms:base:material:'],
+    [/^wms:sys:material:/, 'wms:base:material:'],
   ];
   for (const c of [...out]) {
     for (const [from, to] of prefixPairs) {

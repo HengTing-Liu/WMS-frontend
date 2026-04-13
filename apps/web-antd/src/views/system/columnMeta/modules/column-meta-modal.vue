@@ -21,7 +21,10 @@
       <FormItem label="字段编码" name="field">
         <Input v-model:value="formData.field" :disabled="isEdit" :maxlength="50" placeholder="如 warehouseCode" />
       </FormItem>
-      <FormItem label="字段名称" name="title">
+      <FormItem label="字段名称" name="columnName">
+        <Input v-model:value="formData.columnName" :disabled="isEdit" :maxlength="100" placeholder="数据库列名，如 warehouse_code（必须小写+下划线）" />
+      </FormItem>
+      <FormItem label="显示名称" name="title">
         <Input v-model:value="formData.title" :maxlength="100" />
       </FormItem>
 
@@ -225,6 +228,7 @@ const formData = reactive<Record<string, any>>({
   id: undefined,
   tableCode: '',
   field: '',
+  columnName: '',
   title: '',
   formType: 'text',
   dataType: 'string',
@@ -284,7 +288,11 @@ const formRules = {
     { required: true, message: '请输入字段编码', trigger: 'blur' },
     { pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, message: '字段编码格式不正确', trigger: 'blur' },
   ],
-  title: [{ required: true, message: '请输入字段名称', trigger: 'blur' }],
+  columnName: [
+    { required: true, message: '请输入字段名称', trigger: 'blur' },
+    { pattern: /^[a-z][a-z0-9_]*$/, message: '字段名称必须为小写下划线格式，如 warehouse_code', trigger: 'blur' },
+  ],
+  title: [{ required: true, message: '请输入显示名称', trigger: 'blur' }],
   formType: [{ required: true, message: '请选择表单类型', trigger: 'change' }],
   dataType: [{ required: true, message: '请选择数据类型', trigger: 'change' }],
   sortOrder: [{ required: true, message: '请输入排序号', trigger: 'blur' }],
@@ -415,6 +423,7 @@ function resetForm() {
     id: undefined,
     tableCode: props.tableCode || '',
     field: '',
+    columnName: '',
     title: '',
     formType: 'text',
     dataType: 'string',

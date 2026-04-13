@@ -36,8 +36,17 @@
           <Col :span="6">
             <FormItem label="字段名称" required :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
               <Input
+                v-model:value="item.columnName"
+                placeholder="数据库列名"
+                size="small"
+              />
+            </FormItem>
+          </Col>
+          <Col :span="6">
+            <FormItem label="显示名称" required :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
+              <Input
                 v-model:value="item.title"
-                placeholder="字段名称"
+                placeholder="显示名称"
                 size="small"
               />
             </FormItem>
@@ -58,8 +67,8 @@
             </FormItem>
           </Col>
           <Col :span="6">
-            <FormItem label="数据类型" required :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
-              <Select v-model:value="item.dataType" size="small" placeholder="选择类型">
+            <FormItem label="数据类型" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
+              <Select v-model:value="item.dataType" size="small" placeholder="数据类型">
                 <SelectOption value="string">字符串</SelectOption>
                 <SelectOption value="int">整数</SelectOption>
                 <SelectOption value="decimal">小数</SelectOption>
@@ -136,6 +145,7 @@ const loading = ref(false);
 // 单条字段模板
 const fieldTemplate = {
   field: '',
+  columnName: '',
   title: '',
   formType: 'text',
   dataType: 'string',
@@ -180,13 +190,22 @@ async function handleSubmit() {
       message.error(`第 ${i + 1} 行字段编码不能为空`);
       return;
     }
-    if (!item.title?.trim()) {
+    if (!item.columnName?.trim()) {
       message.error(`第 ${i + 1} 行字段名称不能为空`);
+      return;
+    }
+    if (!item.title?.trim()) {
+      message.error(`第 ${i + 1} 行显示名称不能为空`);
       return;
     }
     // 校验字段编码格式
     if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(item.field)) {
       message.error(`第 ${i + 1} 行字段编码格式不正确，必须以字母开头，只能包含字母、数字和下划线`);
+      return;
+    }
+    // 校验字段名称格式（必须是下划线小写格式）
+    if (!/^[a-z][a-z0-9_]*$/.test(item.columnName)) {
+      message.error(`第 ${i + 1} 行字段名称格式不正确，必须为小写下划线格式，如 warehouse_code`);
       return;
     }
   }
@@ -198,6 +217,7 @@ async function handleSubmit() {
       ...item,
       tableCode: props.tableCode,
       field: item.field.trim(),
+      columnName: item.columnName.trim(),
       title: item.title.trim(),
     }));
 

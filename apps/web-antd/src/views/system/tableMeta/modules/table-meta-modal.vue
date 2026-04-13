@@ -17,32 +17,33 @@
       <FormItem label="表编码" name="tableCode">
         <Input
           v-model:value="formData.tableCode"
-          placeholder="请输入表编码"
+          placeholder="请输入表编码，如 WMS0010"
           :disabled="isEdit"
           :maxlength="100"
+          @blur="handleTableCodeChange"
         />
       </FormItem>
       <FormItem label="表名称" name="tableName">
         <Input v-model:value="formData.tableName" placeholder="请输入表名称" :maxlength="100" />
       </FormItem>
       <FormItem label="所属模块" name="module">
-        <Select v-model:value="formData.module" placeholder="请选择所属模块">
-          <SelectOption value="base">base</SelectOption>
-          <SelectOption value="wms">wms</SelectOption>
-          <SelectOption value="sys">sys</SelectOption>
+        <Select v-model:value="formData.module" placeholder="请选择所属模块" @change="handleModuleChange">
+          <SelectOption value="sys">sys - 系统管理</SelectOption>
+          <SelectOption value="inv">inv - 库存管理</SelectOption>
+          <SelectOption value="inbound">inbound - 入库管理</SelectOption>
+          <SelectOption value="outbound">outbound - 出库管理</SelectOption>
+          <SelectOption value="location">location - 库位管理</SelectOption>
+          <SelectOption value="base">base - 基础数据</SelectOption>
         </Select>
       </FormItem>
       <FormItem label="实体类名">
-        <Input v-model:value="formData.entityClass" placeholder="com.xxx.Entity" />
+        <Input v-model:value="formData.entityClass" placeholder="自动生成，可手动修改" />
       </FormItem>
       <FormItem label="服务类名">
-        <Input v-model:value="formData.serviceClass" placeholder="com.xxx.Service" />
+        <Input v-model:value="formData.serviceClass" placeholder="自动生成，可手动修改" />
       </FormItem>
       <FormItem label="权限标识">
-        <Input v-model:value="formData.permissionCode" placeholder="system:meta:xxx" />
-      </FormItem>
-      <FormItem label="逻辑删除字段">
-        <Input v-model:value="formData.isDeletedColumn" placeholder="is_deleted / del_flag" :maxlength="64" />
+        <Input v-model:value="formData.permissionCode" placeholder="自动生成，可手动修改" />
       </FormItem>
       <FormItem label="默认分页大小">
         <InputNumber v-model:value="formData.pageSize" :min="1" :max="500" style="width: 100%" />
@@ -113,7 +114,6 @@ const formData = reactive<Record<string, any>>({
   entityClass: '',
   serviceClass: '',
   permissionCode: '',
-  isDeletedColumn: '',
   pageSize: 20,
   isTree: 0,
   status: 1,
@@ -126,6 +126,37 @@ const statusChecked = computed({
     formData.status = val ? 1 : 0;
   },
 });
+
+/** tableCode → PascalCase 类名（首字母大写） */
+function toPascalCase(str: string): string {
+  return str
+    .replace(/[-_](.)/g, (_, c) => c.toUpperCase())
+    .replace(/^(.)/, (_, c) => c.toUpperCase());
+}
+
+/** 根据 tableCode 自动推导三个自动字段 */
+function deriveAutoFields() {
+  const code = formData.tableCode?.trim();
+  if (!code) return;
+  const className = toPascalCase(code);
+  formData.entityClass = `com.abtk.product.dao.entity.${className}`;
+  formData.serviceClass = `com.abtk.product.service.${formData.module}.service.${className}Service`;
+  formData.permissionCode = `${formData.module}:${className.toLowerCase()}`;
+}
+
+/** tableCode 失焦时自动填充 */
+function handleTableCodeChange() {
+  deriveAutoFields();
+}
+
+/** 切换模块时重推服务类名和权限标识（保留已有的用户修改） */
+function handleModuleChange() {
+  const code = formData.tableCode?.trim();
+  if (!code) return;
+  const className = toPascalCase(code);
+  formData.serviceClass = `com.abtk.product.service.${formData.module}.service.${className}Service`;
+  formData.permissionCode = `${formData.module}:${className.toLowerCase()}`;
+}
 
 const formRules = {
   tableCode: [
@@ -149,7 +180,6 @@ function resetForm() {
     entityClass: '',
     serviceClass: '',
     permissionCode: '',
-    isDeletedColumn: '',
     pageSize: 20,
     isTree: 0,
     status: 1,
@@ -162,6 +192,10 @@ async function loadDetail(id: number) {
     loading.value = true;
     const detail = await getTableMetaById(id);
     Object.assign(formData, detail);
+    // 归一化数值字段，确保 RadioGroup 匹配正确
+    formData.isTree = Number(detail.isTree ?? 0) === 1 ? 1 : 0;
+    // 旧数据若这三个字段为空则自动推导填充
+    if (!formData.entityClass) deriveAutoFields();
   } catch (error: any) {
     message.error(error?.message || '加载详情失败');
   } finally {
@@ -182,7 +216,6 @@ async function handleSubmit() {
       entityClass: formData.entityClass?.trim() || '',
       serviceClass: formData.serviceClass?.trim() || '',
       permissionCode: formData.permissionCode?.trim() || '',
-      isDeletedColumn: formData.isDeletedColumn?.trim() || '',
       remark: formData.remark?.trim() || '',
     };
 

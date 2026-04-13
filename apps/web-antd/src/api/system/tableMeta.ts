@@ -19,10 +19,6 @@ export namespace TableMetaApi {
     createTime?: string;
     updateBy?: string;
     updateTime?: string;
-    isDeletedColumn?: string;
-    hasDataPermission?: number;
-    permissionField?: string;
-    permissionScope?: string;
   }
 
   // 列表查询响应

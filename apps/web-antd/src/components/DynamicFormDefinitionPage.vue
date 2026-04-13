@@ -439,7 +439,11 @@ function mapType(t?: string): NormalizedField['type'] {
     table: 'table',
     treeselect: 'treeSelect',
   };
-  return typeMap[lower] || 'unknown';
+  const result = typeMap[lower] || 'unknown';
+  if (import.meta.env.DEV && lower === 'treeselect') {
+    console.log('[DynamicFormDefinitionPage] mapType treeselect →', result);
+  }
+  return result;
 }
 function sanitizeFieldCode(code: unknown, fallback: string) {
   const raw = typeof code === 'string' ? code : '';
@@ -636,15 +640,113 @@ function catalogDropDownRawToTreeData(raw: any): any[] {
   return [];
 }
 
+async function loadTreeSelectFromApi(field: NormalizedField, optKey: string) {
+  if (import.meta.env.DEV) {
+    console.log('[DynamicFormDefinitionPage] loadTreeSelectFromApi:', field.apiUrl, 'field:', field.fieldCode);
+  }
+  const inflightKey = `${optKey}::api`;
+  if (!treeSelectInflight.has(inflightKey)) {
+    const load = (async () => {
+      treeSelectLoadingByPath[optKey] = true;
+      try {
+        const res = await requestClient.get<any>(field.apiUrl!);
+        if (import.meta.env.DEV) {
+          console.log('[DynamicFormDefinitionPage] loadTreeSelectFromApi response:', JSON.stringify(res, null, 2));
+        }
+        let list: any[] = [];
+        // 兼容多层包装
+        if (Array.isArray(res)) {
+          list = res;
+        } else if (Array.isArray(res?.data)) {
+          list = res.data;
+        } else if (Array.isArray(res?.options)) {
+          list = res.options;
+        } else if (Array.isArray(res?.data?.options)) {
+          list = res.data.options;
+        }
+        // 判断是否已经是树形结构
+        const hasChildren = list.some(
+          (item: any) => item && Array.isArray(item.children) && item.children.length > 0,
+        );
+        let treeData: any[];
+        if (hasChildren) {
+          treeData = toAntdTreeSelectNodes(list);
+        } else {
+          treeData = list.map((item: any) => {
+            const value = item?.value ?? item?.id ?? item?.code ?? item?.key ?? item?.name;
+            const title = item?.label ?? item?.name ?? item?.title ?? String(value ?? '');
+            return {
+              title: String(title),
+              value: String(value ?? title),
+              key: String(value ?? title),
+            };
+          });
+        }
+        if (import.meta.env.DEV) {
+          console.log('[DynamicFormDefinitionPage] loadTreeSelectFromApi treeData:', treeData);
+        }
+        treeSelectDataByFieldPath[optKey] = treeData;
+      } catch (e) {
+        if (import.meta.env.DEV) {
+          console.error('[DynamicFormDefinitionPage] loadTreeSelectFromApi error:', e);
+        }
+        treeSelectDataByFieldPath[optKey] = [];
+      } finally {
+        treeSelectLoadingByPath[optKey] = false;
+        treeSelectInflight.delete(inflightKey);
+      }
+    })();
+    treeSelectInflight.set(inflightKey, load);
+  }
+  await treeSelectInflight.get(inflightKey)!;
+}
+
 async function ensureTreeSelectOptions(field: NormalizedField) {
   if (field.type !== 'treeSelect') return;
   const optKey = field.path;
+
+  if (import.meta.env.DEV) {
+    console.log('[DynamicFormDefinitionPage] ensureTreeSelectOptions called:', {
+      fieldCode: field.fieldCode,
+      apiUrl: field.apiUrl,
+      options: field.options,
+      path: field.path,
+    });
+  }
+
+  // 优先使用 field.apiUrl（低代码场景下后端配置的接口）
+  if (field.apiUrl) {
+    if (import.meta.env.DEV) {
+      console.log('[DynamicFormDefinitionPage] treeSelect using apiUrl:', field.apiUrl);
+    }
+    await loadTreeSelectFromApi(field, optKey);
+    return;
+  }
+
+  // 优先使用 field.options（直接配置的选项数据）
+  if (field.options && field.options.length > 0) {
+    if (import.meta.env.DEV) {
+      console.log('[DynamicFormDefinitionPage] treeSelect using field.options:', field.options);
+    }
+    treeSelectDataByFieldPath[optKey] = field.options.map((o) => ({
+      title: String(o.label ?? o.value ?? ''),
+      value: String(o.value ?? o.label ?? ''),
+      key: String(o.value ?? o.label ?? ''),
+    }));
+    return;
+  }
+
   if (Object.prototype.hasOwnProperty.call(treeSelectDataByFieldPath, optKey)) {
     const ex = treeSelectDataByFieldPath[optKey];
     if (Array.isArray(ex) && ex.length > 0) return;
   }
 
+  // 兜底：走 /api/product/catalog/dropDown（仅适用于 BU/SBU 等特定字段）
   const fieldType = String(field.fieldCode).toLowerCase();
+  if (import.meta.env.DEV) {
+    console.log('[DynamicFormDefinitionPage] treeSelect falling back to dropDown API, fieldType:', fieldType);
+  }
+
   let categoryCodeOverride: any = undefined;
   if (fieldType === 'bu') {
     categoryCodeOverride = props.params?.categoryCode;
@@ -674,6 +776,9 @@ async function ensureTreeSelectOptions(field: NormalizedField) {
             value: String(o.value),
             key: String(o.value),
           }));
+        }
+        if (import.meta.env.DEV) {
+          console.log('[DynamicFormDefinitionPage] treeSelect loaded, treeData:', treeData);
         }
         treeSelectDataByFieldPath[optKey] = treeData;
       } catch {

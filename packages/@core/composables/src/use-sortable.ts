@@ -6,14 +6,16 @@ function useSortable<T extends HTMLElement>(
   options: SortableOptions = {},
 ) {
   const initializeSortable = async () => {
-    const Sortable = await import(
-      // @ts-expect-error - This is a dynamic import
-      'sortablejs/modular/sortable.complete.esm.js'
-    );
-    const sortable = Sortable?.default?.create?.(sortableContainer, {
+    // sortablejs 1.x: 默认导出即 Sortable 类
+    const { default: SortableModule } = await import('sortablejs');
+    if (!SortableModule) {
+      console.warn('[useSortable] sortablejs 未安装，请执行: pnpm add sortablejs -w');
+      return null;
+    }
+    const sortable = SortableModule.create(sortableContainer, {
       animation: 300,
-      delay: 400,
-      delayOnTouchOnly: true,
+      delay: 0,
+      delayOnTouchOnly: false,
       ...options,
     });
     return sortable as Sortable;

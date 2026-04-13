@@ -279,7 +279,7 @@
         "hasDataPermission": "启用数据权限",
         "selectPermissionField": "请选择权限字段",
         "selectPermissionScope": "请选择权限范围",
-        "isDeletedColumn": "逻辑删除字段",
+        "isDeleted": "逻辑删除",
         "warehouse": "仓库",
         "locationManagement": "库位管理",
         "material": "物料",

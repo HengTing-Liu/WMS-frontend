@@ -744,6 +744,8 @@ defineExpose({
   reload: loadData,
   handleEdit,
   drawerRef,
+  dataList,
+  pagination,
 });
 </script>
 

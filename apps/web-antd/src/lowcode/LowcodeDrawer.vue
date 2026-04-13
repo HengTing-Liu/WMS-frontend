@@ -104,9 +104,26 @@ async function buildFetchDefinition(params: Record<string, any>): Promise<Record
 
   const res = await requestClient.get<any>(url, { params: queryParams });
 
+  // 调试：打印原始 API 响应
+  if (import.meta.env.DEV) {
+    console.log('[LowcodeDrawer] API raw response:', JSON.stringify(res, null, 2));
+  }
+
   // 标准化返回数据格式
   // 后端返回可能是数组 [ColumnMetaVO] 或已包装的对象 { basicInfo: { fields: [...] } }
   let normalized = normalizeResponse(res);
+
+  // 调试：打印标准化后的字段类型
+  if (import.meta.env.DEV) {
+    const sections = normalized;
+    for (const [secKey, sec] of Object.entries(sections)) {
+      if (sec && typeof sec === 'object' && Array.isArray((sec as any).fields)) {
+        for (const f of (sec as any).fields) {
+          console.log(`[LowcodeDrawer] field: ${f.fieldCode}, fieldType: ${f.fieldType}, options: ${JSON.stringify(f.options)}, apiUrl: ${f.apiUrl}`);
+        }
+      }
+    }
+  }
 
   // 如果有 record（编辑模式），需要额外获取详情数据
   if (props.record?.id) {
@@ -183,6 +200,7 @@ function mapFieldType(type?: string): string {
     datetime: 'datetime',
     number: 'number',
     switch: 'select',
+    treeselect: 'treeSelect',
   };
   return map[lower] ?? 'text';
 }

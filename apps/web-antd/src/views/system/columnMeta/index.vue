@@ -40,12 +40,6 @@
             <Button type="primary" :disabled="!selectedTableCode" @click="handleAdd">
               <Plus class="btn-icon" /> 新增字段
             </Button>
-            <Button :disabled="!selectedTableCode" @click="handleBatchAdd">
-              <Copy class="btn-icon" /> 批量新增
-            </Button>
-            <Button :disabled="!selectedTableCode" @click="handleCopyFrom">
-              <Copy class="btn-icon" /> 从其他表复制
-            </Button>
             <Popconfirm
               v-if="selectedRowKeys.length > 0"
               title="确定删除选中的字段吗？"
@@ -182,21 +176,6 @@
       :table-code="selectedTableCode"
       @success="handleModalSuccess"
     />
-
-    <!-- 批量新增弹窗 -->
-    <BatchAddModal
-      v-model:visible="batchModalVisible"
-      :table-code="selectedTableCode"
-      @success="handleModalSuccess"
-    />
-
-    <!-- 从其他表复制弹窗 -->
-    <CopyFromModal
-      v-model:visible="copyModalVisible"
-      :table-code="selectedTableCode"
-      :table-list="tableList"
-      @success="handleModalSuccess"
-    />
   </WmsPageLayout>
 </template>
 
@@ -216,13 +195,11 @@ import {
   Tooltip,
   message,
 } from 'ant-design-vue';
-import { Plus, Copy, Trash2 } from 'lucide-vue-next';
+import { Plus, Trash2 } from 'lucide-vue-next';
 import type { TableColumnsType } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 import { WmsDataTable, WmsPageLayout } from '#/components/wms';
 import ColumnMetaModal from './modules/column-meta-modal.vue';
-import BatchAddModal from './modules/batch-add-modal.vue';
-import CopyFromModal from './modules/copy-from-modal.vue';
 import {
   getColumnMetaList,
   deleteColumnMeta,
@@ -244,8 +221,6 @@ const searchKeyword = ref('');
 
 // 弹窗状态
 const modalVisible = ref(false);
-const batchModalVisible = ref(false);
-const copyModalVisible = ref(false);
 const modalMode = ref<'add' | 'edit'>('add');
 const currentRecord = ref<ColumnMetaApi.ColumnMeta | null>(null);
 
@@ -368,31 +343,20 @@ async function handleBatchDelete() {
     return;
   }
   try {
-    for (const id of selectedRowKeys.value) {
-      await deleteColumnMeta(Number(id));
+    const results = await Promise.allSettled(
+      selectedRowKeys.value.map((id) => deleteColumnMeta(Number(id)))
+    );
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length === 0) {
+      message.success('批量删除成功');
+    } else {
+      message.warning(`批量删除完成，${failures.length} 条失败`);
     }
-    message.success('批量删除成功');
     selectedRowKeys.value = [];
     loadData();
   } catch (error: any) {
     message.error(error?.message || '批量删除失败');
   }
-}
-
-function handleBatchAdd() {
-  if (!selectedTableCode.value) {
-    message.warning('请先选择表');
-    return;
-  }
-  batchModalVisible.value = true;
-}
-
-function handleCopyFrom() {
-  if (!selectedTableCode.value) {
-    message.warning('请先选择表');
-    return;
-  }
-  copyModalVisible.value = true;
 }
 
 function handleModalSuccess() {
@@ -462,6 +426,8 @@ let sortableInstance: any = null;
 async function initSortable() {
   const tbody = document.querySelector('.drag-table .ant-table-tbody') as HTMLElement;
   if (!tbody) return;
+
+  destroySortable();
 
   const { initializeSortable } = useSortable(tbody, {
     handle: '.drag-icon',
@@ -547,9 +513,6 @@ function getDataTypeColor(type: string): string {
 // ========== 生命周期 ==========
 onMounted(() => {
   loadTableList();
-  nextTick(() => {
-    initSortable();
-  });
 });
 
 watch(
@@ -560,6 +523,13 @@ watch(
     }
   },
 );
+
+watch(tableData, async (newVal) => {
+  if (newVal?.length > 0) {
+    await nextTick();
+    initSortable();
+  }
+}, { immediate: false });
 </script>
 
 <style scoped>
