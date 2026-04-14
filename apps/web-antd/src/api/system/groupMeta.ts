@@ -1,4 +1,4 @@
-﻿import { requestClient } from '#/api/request';
+import { requestClient } from '#/api/request';
 
 export namespace GroupMetaApi {
   export interface GroupMeta {
@@ -48,17 +48,24 @@ function normalizeGroup(item: any): GroupMetaApi.GroupMeta {
 export async function getGroupMetaList(tableCode: string): Promise<GroupMetaListResult> {
   if (!tableCode) return { total: 0, rows: [] };
   const res = await requestClient.get<any>(`/api/system/meta/group/list/${tableCode}`);
-  const data = unwrapData<any>(res);
-  const rows = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : [];
+  // 后端分组接口直接返回数组（而非 { rows: [] } 结构），需兼容两种格式
+  const rows = Array.isArray(res)
+    ? res
+    : Array.isArray(res?.rows)
+      ? res.rows
+      : Array.isArray(res?.data)
+        ? res.data
+        : [];
   return {
-    total: Number(data?.total ?? rows.length),
+    total: rows.length,
     rows: rows.map((item: any) => normalizeGroup(item)),
   };
 }
 
 export async function getGroupMetaById(id: number | string) {
   const res = await requestClient.get<any>(`/api/system/meta/group/${id}`);
-  const data = unwrapData<any>(res);
+  // 后端分组接口直接返回对象（而非嵌套在 data 中），需兼容两种格式
+  const data = res && typeof res === 'object' && !Array.isArray(res) ? res : null;
   return data ? normalizeGroup(data) : null;
 }
 
