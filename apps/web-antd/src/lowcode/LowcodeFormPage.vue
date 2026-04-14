@@ -475,6 +475,7 @@ async function syncRuntimeState(values: Record<string, any>) {
 
   currentValues.value = { ...resolvedValues };
 
+  // 只更新 schema（隐藏/禁用状态），不调用 setValues 避免覆盖用户输入
   for (const group of formGroups.value) {
     const groupKey = group.key;
     const sectionRef = sectionRefs.value[groupKey];
@@ -487,18 +488,6 @@ async function syncRuntimeState(values: Record<string, any>) {
     }));
 
     await sectionRef.updateSchema(schemaPatches as Partial<VbenFormSchema>[]);
-
-    const groupValuePayload = group.fields.reduce<Record<string, any>>((result, field) => {
-      const fieldKey = getFieldKey(field);
-      if (Object.prototype.hasOwnProperty.call(resolvedValues, fieldKey)) {
-        result[fieldKey] = resolvedValues[fieldKey];
-      }
-      return result;
-    }, {});
-
-    if (Object.keys(groupValuePayload).length > 0) {
-      await sectionRef.setValues(groupValuePayload);
-    }
   }
 }
 
@@ -562,8 +551,8 @@ function buildFieldSchema(field: ColumnMeta, values: Record<string, any>): VbenF
       : undefined,
   } as VbenFormSchema & { hidden?: boolean };
 
-  // 只有非 undefined 的默认值才设置
-  if (defaultVal !== undefined) {
+  // 只有有意义的默认值才设置（排除 undefined、null 和布尔值）
+  if (defaultVal !== undefined && defaultVal !== null && typeof defaultVal !== 'boolean') {
     schema.defaultValue = defaultVal;
   }
 
@@ -684,7 +673,7 @@ function buildInitialValues(fields: ColumnMeta[], record: Record<string, any>) {
       values[key] = normalizeRecordValue(field, raw);
     } else {
       const defaultValue = parseDefaultValue(field);
-      if (defaultValue !== undefined) {
+      if (defaultValue !== undefined && defaultValue !== null && typeof defaultValue !== 'boolean') {
         values[key] = defaultValue;
       }
     }
@@ -825,8 +814,9 @@ async function handleSubmit() {
     for (const group of formGroups.value) {
       const formRef = sectionRefs.value[group.key];
       if (!formRef) continue;
-      const result = await formRef.validate();
-      Object.assign(mergedValues, result?.values ?? result ?? {});
+      // 用 getValues 获取所有字段值，不用 validate（validate 只返回脏字段）
+      const values = await formRef.getValues();
+      Object.assign(mergedValues, values ?? {});
     }
 
     const resolvedValues = applyLinkageValues({
