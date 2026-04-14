@@ -89,11 +89,15 @@ import LowcodeFormSection from './LowcodeFormSection.vue';
 import type { ColumnMeta, FormGroupMeta, LowcodeFormGroup } from './types';
 
 type LowcodeFormSectionInstance = InstanceType<typeof LowcodeFormSection>;
-type VisibleOperator = '!=' | '<' | '<=' | '==' | '>' | '>=';
+type VisibleOperator = '!=' | '<' | '<=' | '==' | '>' | '>=' | 'hasValue' | 'isEmpty';
 type VisibleConditionRule = {
   field?: string;
   operator?: VisibleOperator;
   value?: any;
+};
+type VisibleConditionGroup = {
+  logic?: 'and' | 'or';
+  conditions?: VisibleConditionRule[];
 };
 type LegacyLinkageRule = {
   action?: 'clear' | 'disable' | 'enable' | 'set';
@@ -283,7 +287,7 @@ function parseJsonObject<T = Record<string, any>>(raw?: string | null): T | null
 }
 
 function parseVisibleCondition(field: ColumnMeta) {
-  return parseJsonObject<VisibleConditionRule>(field.visibleCondition);
+  return parseJsonObject<VisibleConditionRule | VisibleConditionGroup>(field.visibleCondition);
 }
 
 function parseLinkageRules(field: ColumnMeta): RuntimeLinkageRule[] {
@@ -354,6 +358,10 @@ function compareValues(left: any, operator: VisibleOperator, right: any) {
   const normalizedLeft = normalizeCompareValue(left);
   const normalizedRight = normalizeCompareValue(right);
   switch (operator) {
+    case 'hasValue':
+      return hasMeaningfulValue(normalizedLeft);
+    case 'isEmpty':
+      return !hasMeaningfulValue(normalizedLeft);
     case '!=':
       return normalizedLeft !== normalizedRight;
     case '<':
@@ -385,7 +393,19 @@ function isLinkageRuleActive(rule: RuntimeLinkageRule, values: Record<string, an
 
 function evaluateFieldVisibility(field: ColumnMeta, values: Record<string, any>) {
   const rule = parseVisibleCondition(field);
-  if (!rule?.field) return true;
+  if (!rule) return true;
+
+  if ('conditions' in rule && Array.isArray(rule.conditions)) {
+    const validRules = rule.conditions.filter((condition) => !!condition?.field);
+    if (validRules.length === 0) return true;
+    const logic = rule.logic === 'or' ? 'or' : 'and';
+    const results = validRules.map((condition) =>
+      compareValues(values[condition.field!], condition.operator ?? '==', condition.value),
+    );
+    return logic === 'or' ? results.some(Boolean) : results.every(Boolean);
+  }
+
+  if (!rule.field) return true;
   return compareValues(values[rule.field], rule.operator ?? '==', rule.value);
 }
 
@@ -687,21 +707,52 @@ function scrollToGroup(key: string) {
   element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function appendRefreshFlag(path: string) {
-  const [pathname, search = ''] = path.split('?');
-  const params = new URLSearchParams(search);
-  params.set('_lcRefresh', String(Date.now()));
-  const queryString = params.toString();
-  const resolvedPath = pathname || '/';
-  return queryString ? `${resolvedPath}?${queryString}` : resolvedPath;
-}
-
 async function goBack() {
-  const from = route.query.from;
-  if (typeof from === 'string' && from) {
-    await router.push(appendRefreshFlag(from));
+  const isResolvablePath = (path: string) => {
+    if (!path) return false;
+    const resolved = router.resolve(path);
+    return !!resolved.matched?.length
+      && resolved.matched.every((item) => item.name !== 'FallbackNotFound');
+  };
+
+  const rawFrom = route.query.from;
+  const from = typeof rawFrom === 'string' ? rawFrom.trim() : '';
+  const decodedFrom = from ? decodeURIComponent(from) : '';
+
+  const candidates = [
+    from,
+    decodedFrom,
+    from.replace(/^\/sys\//, '/'),
+    decodedFrom.replace(/^\/sys\//, '/'),
+    from.replace(/^\//, '/sys/'),
+    decodedFrom.replace(/^\//, '/sys/'),
+  ].filter((item, index, arr) => !!item && arr.indexOf(item) === index);
+
+  for (const path of candidates) {
+    if (isResolvablePath(path)) {
+      await router.push(path);
+      return;
+    }
+  }
+
+  const fallbackByTable: Record<string, string[]> = {
+    sys_warehouse: ['/sys/warehouse', '/warehouse'],
+    sys_material: ['/sys/material', '/material'],
+    sys_location: ['/sys/location', '/location'],
+  };
+
+  for (const path of fallbackByTable[tableCode.value] ?? []) {
+    if (isResolvablePath(path)) {
+      await router.push(path);
+      return;
+    }
+  }
+
+  if (isResolvablePath('/')) {
+    await router.push('/');
     return;
   }
+
   router.back();
 }
 

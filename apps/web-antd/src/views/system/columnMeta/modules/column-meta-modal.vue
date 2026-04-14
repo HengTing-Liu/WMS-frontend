@@ -14,23 +14,28 @@
       :label-col="{ span: 6 }"
       :wrapper-col="{ span: 16 }"
     >
-      <div class="section-title">閸╄櫣顢呮穱鈩冧紖</div>
-      <FormItem label="鐞涖劎绱惍? name="tableCode">
+      <div class="section-title">基础信息</div>
+      <FormItem label="表编码" name="tableCode">
         <Input v-model:value="formData.tableCode" disabled />
       </FormItem>
-      <FormItem label="鐎涙顔岀紓鏍垳" name="field">
-        <Input v-model:value="formData.field" :disabled="isEdit" :maxlength="50" placeholder="婵?warehouseCode" />
+      <FormItem label="字段编码" name="field">
+        <Input v-model:value="formData.field" :disabled="isEdit" :maxlength="50" placeholder="如 warehouseCode" />
       </FormItem>
-      <FormItem label="鐎涙顔岄崥宥囆? name="columnName">
-        <Input v-model:value="formData.columnName" :disabled="isEdit" :maxlength="100" placeholder="閺佺増宓佹惔鎾冲灙閸氬稄绱濇俊?warehouse_code閿涘牆绻€妞よ鐨崘?娑撳鍨濈痪鍖＄礆" />
+      <FormItem label="数据库字段名" name="columnName">
+        <Input
+          v-model:value="formData.columnName"
+          :disabled="isEdit"
+          :maxlength="100"
+          placeholder="如 warehouse_code"
+        />
       </FormItem>
-      <FormItem label="閺勫墽銇氶崥宥囆? name="title">
+      <FormItem label="显示标题" name="title">
         <Input v-model:value="formData.title" :maxlength="100" />
       </FormItem>
 
       <Row :gutter="16">
         <Col :span="12">
-          <FormItem label="鐞涖劌宕熺猾璇茬€? :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" name="formType">
+          <FormItem label="表单类型" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" name="formType">
             <Select v-model:value="formData.formType">
               <SelectOption value="text">text</SelectOption>
               <SelectOption value="textarea">textarea</SelectOption>
@@ -45,7 +50,7 @@
           </FormItem>
         </Col>
         <Col :span="12">
-          <FormItem label="閺佺増宓佺猾璇茬€? :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }" name="dataType">
+          <FormItem label="数据类型" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }" name="dataType">
             <Select v-model:value="formData.dataType">
               <SelectOption value="string">string</SelectOption>
               <SelectOption value="int">int</SelectOption>
@@ -60,35 +65,35 @@
 
       <FormItem
         v-if="['select', 'radio', 'checkbox'].includes(formData.formType)"
-        label="鐎涙鍚€缁鐎?
+        label="字典类型"
       >
-        <Input v-model:value="formData.dictType" :maxlength="100" placeholder="婵?sys_yes_no" />
+        <Input v-model:value="formData.dictType" :maxlength="100" placeholder="如 sys_yes_no" />
       </FormItem>
 
-      <div class="section-title">閺勫墽銇氭稉搴＄鐏炩偓</div>
+      <div class="section-title">展示与校验</div>
       <Row :gutter="16">
-        <Col :span="8"><FormItem label="韫囧懎锝? :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.required" /></FormItem></Col>
-        <Col :span="8"><FormItem label="閸烆垯绔? :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.isUnique" /></FormItem></Col>
-        <Col :span="8"><FormItem label="閸欘垱鎮崇槐? :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.searchable" /></FormItem></Col>
+        <Col :span="8"><FormItem label="必填" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.required" /></FormItem></Col>
+        <Col :span="8"><FormItem label="唯一" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.isUnique" /></FormItem></Col>
+        <Col :span="8"><FormItem label="可搜索" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.searchable" /></FormItem></Col>
       </Row>
       <Row :gutter="16">
-        <Col :span="8"><FormItem label="閸掓銆冮弰鍓с仛" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInList" /></FormItem></Col>
-        <Col :span="8"><FormItem label="鐞涖劌宕熼弰鍓с仛" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInForm" /></FormItem></Col>
-        <Col :span="8"><FormItem label="鐎电厧鍤弰鍓с仛" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInExport" /></FormItem></Col>
+        <Col :span="8"><FormItem label="列表显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInList" /></FormItem></Col>
+        <Col :span="8"><FormItem label="表单显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInForm" /></FormItem></Col>
+        <Col :span="8"><FormItem label="导出显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInExport" /></FormItem></Col>
       </Row>
       <Row :gutter="16">
-        <Col :span="8"><FormItem label="閸欘垱甯撴惔? :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.sortable" /></FormItem></Col>
-        <Col :span="8"><FormItem label="閻樿埖鈧? :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.status" /></FormItem></Col>
+        <Col :span="8"><FormItem label="可排序" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.sortable" /></FormItem></Col>
+        <Col :span="8"><FormItem label="状态" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.status" /></FormItem></Col>
       </Row>
 
       <Row :gutter="16">
         <Col :span="12">
-          <FormItem label="閸掓銆冮崚妤€顔? :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+          <FormItem label="列表宽度" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
             <InputNumber v-model:value="formData.width" :min="50" :max="600" style="width: 100%" />
           </FormItem>
         </Col>
         <Col :span="12">
-          <FormItem label="鐞涖劌宕熼弽鍛壐" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+          <FormItem label="栅格列宽" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
             <Select v-model:value="formData.colSpan">
               <SelectOption :value="24">24</SelectOption>
               <SelectOption :value="12">12</SelectOption>
@@ -99,16 +104,37 @@
         </Col>
       </Row>
       <Row :gutter="16">
-        <Col :span="12"><FormItem label="閹烘帒绨崣? :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" name="sortOrder"><InputNumber v-model:value="formData.sortOrder" :min="1" :max="9999" style="width: 100%" /></FormItem></Col>
-        <Col :span="12"><FormItem label="閸掑棛绮?Key" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><Input v-model:value="formData.sectionKey" /></FormItem></Col>
+        <Col :span="12"><FormItem label="排序号" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" name="sortOrder"><InputNumber v-model:value="formData.sortOrder" :min="1" :max="9999" style="width: 100%" /></FormItem></Col>
+        <Col :span="12">
+          <FormItem label="分组 Key" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+            <Select
+              v-model:value="formData.sectionKey"
+              allow-clear
+              show-search
+              :loading="groupLoading"
+              placeholder="请选择分组编码"
+              option-filter-prop="label"
+              @change="handleSectionKeyChange"
+            >
+              <SelectOption
+                v-for="group in groupMetaOptions"
+                :key="group.groupCode"
+                :value="group.groupCode"
+                :label="`${group.groupCode} - ${group.groupTitle}`"
+              >
+                {{ group.groupCode }} - {{ group.groupTitle }}
+              </SelectOption>
+            </Select>
+          </FormItem>
+        </Col>
       </Row>
       <Row :gutter="16">
-        <Col :span="12"><FormItem label="閸掑棛绮嶉弽鍥暯" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Input v-model:value="formData.sectionTitle" placeholder="婵″偊绱伴崺鐑樻拱娣団剝浼? /></FormItem></Col>
-        <Col :span="12"><FormItem label="閸掑棛绮嶉幒鎺戠碍" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><InputNumber v-model:value="formData.sectionOrder" :min="0" :max="9999" style="width: 100%" /></FormItem></Col>
+        <Col :span="12"><FormItem label="分组标题" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Input v-model:value="formData.sectionTitle" placeholder="未选择分组时可手动输入" /></FormItem></Col>
+        <Col :span="12"><FormItem label="分组排序" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><InputNumber v-model:value="formData.sectionOrder" :min="0" :max="9999" style="width: 100%" /></FormItem></Col>
       </Row>
       <Row :gutter="16">
         <Col :span="12">
-          <FormItem label="閸掑棛绮嶇€圭懓娅? :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+          <FormItem label="分组容器" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
             <Select v-model:value="formData.sectionType">
               <SelectOption value="card">Card</SelectOption>
               <SelectOption value="collapse">Collapse</SelectOption>
@@ -116,20 +142,20 @@
           </FormItem>
         </Col>
         <Col :span="12">
-          <FormItem label="姒涙顓荤仦鏇炵磻" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+          <FormItem label="默认展开" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
             <Switch v-model:checked="switches.sectionOpen" />
           </FormItem>
         </Col>
       </Row>
       <FormItem label="i18n Key"><Input v-model:value="formData.i18nKey" /></FormItem>
 
-      <div class="section-title">姒涙顓婚崐闂寸瑢閺夈儲绨?/div>
-      <FormItem label="姒涙顓婚崐?><Input v-model:value="formData.defaultValue" /></FormItem>
-      <FormItem label="閸楃姳缍呴幓鎰仛"><Input v-model:value="formData.placeholder" /></FormItem>
+      <div class="section-title">默认值与数据源</div>
+      <FormItem label="默认值"><Input v-model:value="formData.defaultValue" /></FormItem>
+      <FormItem label="占位提示"><Input v-model:value="formData.placeholder" /></FormItem>
 
       <Row :gutter="16">
         <Col :span="12">
-          <FormItem label="閺佺増宓侀弶銉︾爱" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+          <FormItem label="数据来源" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
             <Select v-model:value="formData.dataSource">
               <SelectOption value="">(empty)</SelectOption>
               <SelectOption value="dict">dict</SelectOption>
@@ -139,46 +165,128 @@
           </FormItem>
         </Col>
         <Col :span="12">
-          <FormItem label="API 閸︽澘娼? :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+          <FormItem label="API 地址" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
             <Input v-model:value="formData.apiUrl" placeholder="/api/xxx" />
           </FormItem>
         </Col>
       </Row>
       <Row :gutter="16">
-        <Col :span="12"><FormItem label="label 鐎涙顔? :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Input v-model:value="formData.labelField" /></FormItem></Col>
-        <Col :span="12"><FormItem label="value 鐎涙顔? :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><Input v-model:value="formData.valueField" /></FormItem></Col>
+        <Col :span="12"><FormItem label="label 字段" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Input v-model:value="formData.labelField" /></FormItem></Col>
+        <Col :span="12"><FormItem label="value 字段" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><Input v-model:value="formData.valueField" /></FormItem></Col>
       </Row>
 
-      <div class="section-title">閸欘垵顫嬮崠鏍潐閸掓瑩鍘ょ純?/div>
+      <div class="section-title">校验规则</div>
       <Row :gutter="16">
-        <Col :span="12"><FormItem label="鐟欏嫬鍨?閺堚偓鐏? :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><InputNumber v-model:value="ruleBuilder.min" :min="0" style="width: 100%" /></FormItem></Col>
-        <Col :span="12"><FormItem label="鐟欏嫬鍨?閺堚偓婢? :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><InputNumber v-model:value="ruleBuilder.max" :min="0" style="width: 100%" /></FormItem></Col>
+        <Col :span="12"><FormItem label="最小值" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><InputNumber v-model:value="ruleBuilder.min" :min="0" style="width: 100%" /></FormItem></Col>
+        <Col :span="12"><FormItem label="最大值" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><InputNumber v-model:value="ruleBuilder.max" :min="0" style="width: 100%" /></FormItem></Col>
       </Row>
-      <FormItem label="鐟欏嫬鍨?濮濓絽鍨?><Input v-model:value="ruleBuilder.pattern" placeholder="娓氬顩?^[A-Za-z0-9_]+$" /></FormItem>
-      <FormItem label="鐟欏嫬鍨?閹绘劗銇?><Input v-model:value="ruleBuilder.message" /></FormItem>
+      <FormItem label="正则表达式"><Input v-model:value="ruleBuilder.pattern" placeholder="如 ^[A-Za-z0-9_]+$" /></FormItem>
+      <FormItem label="错误提示"><Input v-model:value="ruleBuilder.message" /></FormItem>
 
-      <FormItem label="閺勫墽銇氶弶鈥叉鐎涙顔?><Input v-model:value="visibleBuilder.field" placeholder="婵?status" /></FormItem>
-      <Row :gutter="16">
-        <Col :span="8">
-          <FormItem label="閺勫墽銇氶弶鈥叉閹垮秳缍旂粭? :label-col="{ span: 14 }" :wrapper-col="{ span: 10 }">
-            <Select v-model:value="visibleBuilder.operator">
-              <SelectOption value="==">==</SelectOption>
-              <SelectOption value="!=">!=</SelectOption>
-              <SelectOption value=">">&gt;</SelectOption>
-              <SelectOption value=">=">&gt;=</SelectOption>
-              <SelectOption value="<">&lt;</SelectOption>
-              <SelectOption value="<=">&lt;=</SelectOption>
-            </Select>
-          </FormItem>
-        </Col>
-        <Col :span="16">
-          <FormItem label="閺勫墽銇氶弶鈥叉閸? :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
-            <Input v-model:value="visibleBuilder.value" />
-          </FormItem>
-        </Col>
-      </Row>
+      <div class="linkage-action-header">
+        <span>可见条件</span>
+        <div style="display: flex; gap: 8px">
+          <Select v-model:value="visibleLogic" style="width: 120px">
+            <SelectOption value="and">AND</SelectOption>
+            <SelectOption value="or">OR</SelectOption>
+          </Select>
+          <Button size="small" type="dashed" @click="addVisibleCondition">新增条件</Button>
+        </div>
+      </div>
+      <div
+        v-for="(condition, conditionIndex) in visibleConditions"
+        :key="`visible-condition-${conditionIndex}`"
+        class="linkage-action-card"
+      >
+        <div class="linkage-action-card__title">
+          <span>条件 {{ conditionIndex + 1 }}</span>
+          <Button
+            v-if="visibleConditions.length > 1"
+            danger
+            size="small"
+            type="link"
+            @click="removeVisibleCondition(conditionIndex)"
+          >
+            删除
+          </Button>
+        </div>
+        <FormItem label="条件字段">
+          <Select
+            v-model:value="condition.field"
+            allow-clear
+            show-search
+            :loading="fieldLoading"
+            placeholder="请选择可见条件字段"
+            option-filter-prop="label"
+            @change="handleVisibleFieldChange(conditionIndex)"
+          >
+            <SelectOption
+              v-for="item in fieldOptions"
+              :key="`visible-${conditionIndex}-${item.value}`"
+              :value="item.value"
+              :label="item.label"
+            >
+              {{ item.label }}
+            </SelectOption>
+          </Select>
+        </FormItem>
+        <Row :gutter="16">
+          <Col :span="8">
+            <FormItem label="条件操作符" :label-col="{ span: 14 }" :wrapper-col="{ span: 10 }">
+              <Select v-model:value="condition.operator" @change="handleVisibleOperatorChange(conditionIndex)">
+                <SelectOption value="hasValue">hasValue</SelectOption>
+                <SelectOption value="isEmpty">isEmpty</SelectOption>
+                <SelectOption value="==">==</SelectOption>
+                <SelectOption value="!=">!=</SelectOption>
+                <SelectOption value=">">&gt;</SelectOption>
+                <SelectOption value=">=">&gt;=</SelectOption>
+                <SelectOption value="<">&lt;</SelectOption>
+                <SelectOption value="<=">&lt;=</SelectOption>
+              </Select>
+            </FormItem>
+          </Col>
+          <Col :span="16">
+            <FormItem label="条件值" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
+              <Switch
+                v-if="resolveVisibleValueControlType(conditionIndex) === 'boolean'"
+                v-model:checked="condition.value"
+                :disabled="isValuelessVisibleOperator(condition.operator)"
+              />
+              <InputNumber
+                v-else-if="resolveVisibleValueControlType(conditionIndex) === 'number'"
+                v-model:value="condition.value"
+                :disabled="isValuelessVisibleOperator(condition.operator)"
+                style="width: 100%"
+              />
+              <Input
+                v-else
+                v-model:value="condition.value"
+                :disabled="isValuelessVisibleOperator(condition.operator)"
+              />
+            </FormItem>
+          </Col>
+        </Row>
+      </div>
 
-      <FormItem label="联动源字段"><Input v-model:value="linkageBuilder.sourceField" placeholder="如：province" /></FormItem>
+      <FormItem label="联动源字段">
+        <Select
+          v-model:value="linkageBuilder.sourceField"
+          allow-clear
+          show-search
+          :loading="fieldLoading"
+          placeholder="请选择源字段"
+          option-filter-prop="label"
+        >
+          <SelectOption
+            v-for="item in fieldOptions"
+            :key="`source-${item.value}`"
+            :value="item.value"
+            :label="item.label"
+          >
+            {{ item.label }}
+          </SelectOption>
+        </Select>
+      </FormItem>
       <Row :gutter="16">
         <Col :span="8">
           <FormItem label="联动条件" :label-col="{ span: 14 }" :wrapper-col="{ span: 10 }">
@@ -215,7 +323,23 @@
         <Row :gutter="16">
           <Col :span="12">
             <FormItem label="目标字段" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
-              <Input v-model:value="action.targetField" />
+              <Select
+                v-model:value="action.targetField"
+                allow-clear
+                show-search
+                :loading="fieldLoading"
+                placeholder="请选择目标字段"
+                option-filter-prop="label"
+              >
+                <SelectOption
+                  v-for="item in fieldOptions"
+                  :key="`target-${index}-${item.value}`"
+                  :value="item.value"
+                  :label="item.label"
+                >
+                  {{ item.label }}
+                </SelectOption>
+              </Select>
             </FormItem>
           </Col>
           <Col :span="12">
@@ -234,7 +358,7 @@
         </FormItem>
       </div>
 
-      <FormItem label="缂佸嫪娆㈤幍鈺佺潔">
+      <FormItem label="组件属性">
         <Row :gutter="16">
           <Col :span="8"><Switch v-model:checked="componentBuilder.allowClear" /> <span class="switch-label">allowClear</span></Col>
           <Col :span="8"><Switch v-model:checked="componentBuilder.multiple" /> <span class="switch-label">multiple</span></Col>
@@ -246,7 +370,7 @@
         <Col :span="12"><FormItem label="rows" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><InputNumber v-model:value="componentBuilder.rows" :min="1" style="width: 100%" /></FormItem></Col>
       </Row>
 
-      <FormItem label="婢跺洦鏁?><Input.TextArea v-model:value="formData.remarks" :rows="2" /></FormItem>
+      <FormItem label="备注"><Input.TextArea v-model:value="formData.remarks" :rows="2" /></FormItem>
     </Form>
   </Modal>
 </template>
@@ -270,10 +394,12 @@ import type { FormInstance } from 'ant-design-vue/es/form';
 
 import {
   addColumnMeta,
+  getColumnMetaByTableId,
   getColumnMetaById,
   updateColumnMeta,
   type ColumnMetaApi,
 } from '#/api/system/columnMeta';
+import { getGroupMetaList, type GroupMetaApi } from '#/api/system/groupMeta';
 import type { Rule } from 'ant-design-vue/es/form';
 
 const props = defineProps<{
@@ -345,16 +471,32 @@ const switches = reactive({
 });
 
 const ruleBuilder = reactive<{ min?: number; max?: number; pattern?: string; message?: string }>({});
-const visibleBuilder = reactive<{ field?: string; operator?: string; value?: string }>({
-  operator: '==',
-});
 type LinkageActionBuilder = { targetField?: string; action?: string; value?: string };
+type FieldOption = {
+  value: string;
+  label: string;
+  formType?: string;
+  dataType?: string;
+};
+type VisibleConditionBuilder = {
+  field?: string;
+  operator?: string;
+  value?: any;
+};
 
 const linkageBuilder = reactive<{ sourceField?: string; operator?: string; conditionValue?: string }>({
   operator: 'hasValue',
 });
 const linkageActions = ref<LinkageActionBuilder[]>([
   { targetField: '', action: 'set', value: '' },
+]);
+const fieldLoading = ref(false);
+const fieldOptions = ref<FieldOption[]>([]);
+const groupLoading = ref(false);
+const groupMetaOptions = ref<GroupMetaApi.GroupMeta[]>([]);
+const visibleLogic = ref<'and' | 'or'>('and');
+const visibleConditions = ref<VisibleConditionBuilder[]>([
+  { field: '', operator: '==', value: '' },
 ]);
 const componentBuilder = reactive<{ allowClear?: boolean; multiple?: boolean; showCount?: boolean; maxLength?: number; rows?: number }>({
   allowClear: true,
@@ -379,7 +521,8 @@ const formRules: Record<string, Rule[]> = {
 
 function resetBuilders() {
   Object.assign(ruleBuilder, { min: undefined, max: undefined, pattern: '', message: '' });
-  Object.assign(visibleBuilder, { field: '', operator: '==', value: '' });
+  visibleLogic.value = 'and';
+  visibleConditions.value = [{ field: '', operator: '==', value: '' }];
   Object.assign(linkageBuilder, { sourceField: '', operator: 'hasValue', conditionValue: '' });
   linkageActions.value = [{ targetField: '', action: 'set', value: '' }];
   Object.assign(componentBuilder, {
@@ -437,9 +580,25 @@ function hydrateBuildersFromForm() {
 
   const visible = parseJsonObject(formData.visibleCondition);
   if (visible && typeof visible === 'object') {
-    visibleBuilder.field = visible.field;
-    visibleBuilder.operator = visible.operator || '==';
-    visibleBuilder.value = visible.value != null ? String(visible.value) : '';
+    if (Array.isArray((visible as any).conditions)) {
+      visibleLogic.value = ((visible as any).logic || 'and') === 'or' ? 'or' : 'and';
+      visibleConditions.value = (visible as any).conditions
+        .map((condition: any) => ({
+          field: condition?.field ?? '',
+          operator: condition?.operator || '==',
+          value: condition?.value,
+        }))
+        .filter((condition: VisibleConditionBuilder) => !!condition.field);
+      if (visibleConditions.value.length === 0) {
+        visibleConditions.value = [{ field: '', operator: '==', value: '' }];
+      }
+    } else {
+      visibleConditions.value = [{
+        field: (visible as any).field ?? '',
+        operator: (visible as any).operator || '==',
+        value: (visible as any).value,
+      }];
+    }
   }
 
   const linkage = parseJsonObject(formData.linkageJson);
@@ -487,12 +646,86 @@ function buildRulesJson() {
 }
 
 function buildVisibleConditionJson() {
-  if (!visibleBuilder.field) return '';
+  const conditions = visibleConditions.value
+    .filter((condition) => !!condition.field)
+    .map((condition) => {
+      const operator = condition.operator || '==';
+      if (operator === 'hasValue' || operator === 'isEmpty') {
+        return {
+          field: condition.field,
+          operator,
+        };
+      }
+      return {
+        field: condition.field,
+        operator,
+        value: condition.value ?? '',
+      };
+    });
+
+  if (conditions.length === 0) return '';
+  if (conditions.length === 1) {
+    return JSON.stringify(conditions[0]);
+  }
   return JSON.stringify({
-    field: visibleBuilder.field,
-    operator: visibleBuilder.operator || '==',
-    value: visibleBuilder.value ?? '',
+    logic: visibleLogic.value || 'and',
+    conditions,
   });
+}
+
+function isValuelessVisibleOperator(operator?: string) {
+  return operator === 'hasValue' || operator === 'isEmpty';
+}
+
+function resolveVisibleValueControlType(index: number): 'boolean' | 'number' | 'text' {
+  const fieldCode = visibleConditions.value[index]?.field;
+  const fieldOption = fieldOptions.value.find((item) => item.value === fieldCode);
+  const formType = String(fieldOption?.formType || '').toLowerCase();
+  const dataType = String(fieldOption?.dataType || '').toLowerCase();
+  if (formType === 'switch' || formType === 'boolean' || dataType === 'boolean') return 'boolean';
+  if (['number', 'inputnumber'].includes(formType) || ['int', 'integer', 'long', 'float', 'double', 'decimal', 'bigdecimal'].includes(dataType)) {
+    return 'number';
+  }
+  return 'text';
+}
+
+function normalizeVisibleConditionValue(index: number) {
+  const condition = visibleConditions.value[index];
+  if (!condition) return;
+  if (isValuelessVisibleOperator(condition.operator)) {
+    condition.value = undefined;
+    return;
+  }
+  const valueControlType = resolveVisibleValueControlType(index);
+  if (valueControlType === 'boolean') {
+    condition.value = condition.value === true || condition.value === 'true' || condition.value === 1 || condition.value === '1';
+    return;
+  }
+  if (valueControlType === 'number') {
+    if (condition.value === '' || condition.value == null) return;
+    const value = Number(condition.value);
+    condition.value = Number.isNaN(value) ? undefined : value;
+  }
+}
+
+function handleVisibleFieldChange(index: number) {
+  normalizeVisibleConditionValue(index);
+}
+
+function handleVisibleOperatorChange(index: number) {
+  normalizeVisibleConditionValue(index);
+}
+
+function addVisibleCondition() {
+  visibleConditions.value.push({ field: '', operator: '==', value: '' });
+}
+
+function removeVisibleCondition(index: number) {
+  if (visibleConditions.value.length <= 1) {
+    visibleConditions.value = [{ field: '', operator: '==', value: '' }];
+    return;
+  }
+  visibleConditions.value.splice(index, 1);
 }
 
 function buildLinkageJson() {
@@ -539,6 +772,66 @@ function buildComponentPropsJson() {
   if (componentBuilder.maxLength != null) payload.maxLength = componentBuilder.maxLength;
   if (componentBuilder.rows != null) payload.rows = componentBuilder.rows;
   return JSON.stringify(payload);
+}
+
+function getActiveTableCode() {
+  return (props.tableCode || formData.tableCode || '').trim();
+}
+
+async function loadFieldOptions() {
+  const tableCode = getActiveTableCode();
+  if (!tableCode) {
+    fieldOptions.value = [];
+    return;
+  }
+  fieldLoading.value = true;
+  try {
+    const list = await getColumnMetaByTableId(tableCode);
+    fieldOptions.value = (list || []).map((item: any) => {
+      const field = String(item?.field || '').trim();
+      const title = String(item?.title || item?.columnName || field || '').trim();
+      return {
+        value: field,
+        label: title ? `${field} - ${title}` : field,
+        formType: item?.formType,
+        dataType: item?.dataType,
+      };
+    }).filter((item) => !!item.value);
+  } catch {
+    fieldOptions.value = [];
+  } finally {
+    fieldLoading.value = false;
+  }
+}
+
+async function loadGroupMetaOptions() {
+  const tableCode = getActiveTableCode();
+  if (!tableCode) {
+    groupMetaOptions.value = [];
+    return;
+  }
+  groupLoading.value = true;
+  try {
+    const res = await getGroupMetaList(tableCode);
+    groupMetaOptions.value = (res.rows || [])
+      .filter((item) => Number(item.status ?? 1) === 1)
+      .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
+  } catch {
+    groupMetaOptions.value = [];
+  } finally {
+    groupLoading.value = false;
+  }
+}
+
+function handleSectionKeyChange(sectionKey?: string) {
+  if (!sectionKey) return;
+  const selected = groupMetaOptions.value.find((item) => item.groupCode === sectionKey);
+  if (!selected) return;
+  formData.sectionTitle = selected.groupTitle ?? '';
+  formData.sectionOrder = Number(selected.sortOrder ?? 0);
+  formData.sectionType = selected.groupType ?? 'card';
+  formData.sectionOpen = Number(selected.defaultOpen ?? 1);
+  syncSwitchFromForm();
 }
 
 function resetForm() {
@@ -658,6 +951,8 @@ function handleCancel() {
 
 watch(visible, (val) => {
   if (!val) return;
+  loadFieldOptions();
+  loadGroupMetaOptions();
   if (isEdit.value && props.data?.id) {
     loadDetail(props.data.id);
   } else {
@@ -670,7 +965,11 @@ watch(
   (code) => {
     if (!visible.value) {
       formData.tableCode = code || '';
+      return;
     }
+    formData.tableCode = code || '';
+    loadFieldOptions();
+    loadGroupMetaOptions();
   },
 );
 </script>
@@ -717,3 +1016,4 @@ watch(
   font-weight: 600;
 }
 </style>
+

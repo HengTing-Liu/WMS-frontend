@@ -1,4 +1,4 @@
-﻿import type { RouteRecordRaw } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -83,10 +83,14 @@ const routes: RouteRecordRaw[] = [
             component: () => import('#/views/system/operationMeta/index.vue'),
           },
           {
-            meta: { title: '鍙戝竷绠＄悊' },
-            name: 'MetaPublish',
-            path: 'publish',
-            component: () => import('#/views/system/metaPublish/index.vue'),
+            meta: {
+              hideInMenu: true,
+              keepAlive: false,
+              title: '低代码表单',
+            },
+            name: 'SystemLowcodeFormPage',
+            path: 'form/:tableCode/:mode/:id?',
+            component: () => import('#/lowcode/LowcodeFormPage.vue'),
           },
 
         ],
@@ -176,5 +180,4 @@ const routes: RouteRecordRaw[] = [
 ];
 
 export default routes;
-
 

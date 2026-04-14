@@ -605,20 +605,47 @@ function onSelectionChange(keys: any[]) {
   selectedRowKeys.value = keys;
 }
 
-function handleCreate() {
-  void router.push({
-    name: 'LowcodeFormPage',
-    params: {
-      mode: 'create',
+function resolveLowcodeFormRouteName(): string | undefined {
+  if (router.hasRoute('LowcodeFormGlobal')) return 'LowcodeFormGlobal';
+  if (router.hasRoute('LowcodeFormPage')) return 'LowcodeFormPage';
+  if (router.hasRoute('SystemLowcodeFormPage')) return 'SystemLowcodeFormPage';
+  return undefined;
+}
+
+function navigateToLowcodeForm(mode: 'create' | 'edit', id?: string) {
+  const routeName = resolveLowcodeFormRouteName();
+  const query = {
+    crudPrefix: props.crudPrefix,
+    desc: props.pageDesc,
+    from: route.fullPath,
+    title: props.pageTitle,
+  };
+
+  if (routeName) {
+    const params: Record<string, string> = {
+      mode,
       tableCode: props.tableCode,
-    },
-    query: {
-      crudPrefix: props.crudPrefix,
-      desc: props.pageDesc,
-      from: route.fullPath,
-      title: props.pageTitle,
-    },
+    };
+    if (id != null && id !== '') {
+      params.id = id;
+    }
+    void router.push({
+      name: routeName,
+      params,
+      query,
+    });
+    return;
+  }
+
+  const suffix = id != null && id !== '' ? `/${encodeURIComponent(id)}` : '';
+  void router.push({
+    path: `/sys/lowcode-form/${encodeURIComponent(props.tableCode)}/${mode}${suffix}`,
+    query,
   });
+}
+
+function handleCreate() {
+  navigateToLowcodeForm('create');
   emit('create');
 }
 
@@ -628,20 +655,7 @@ function handleEdit(record: any) {
     message.error('当前记录缺少 ID，无法编辑');
     return;
   }
-  void router.push({
-    name: 'LowcodeFormPage',
-    params: {
-      id: String(id),
-      mode: 'edit',
-      tableCode: props.tableCode,
-    },
-    query: {
-      crudPrefix: props.crudPrefix,
-      desc: props.pageDesc,
-      from: route.fullPath,
-      title: props.pageTitle,
-    },
-  });
+  navigateToLowcodeForm('edit', String(id));
   emit('edit', record);
 }
 

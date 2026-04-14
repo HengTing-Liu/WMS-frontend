@@ -1,7 +1,7 @@
 <template>
   <div class="route-view-full">
     <router-view v-slot="{ Component }">
-      <component :is="Component" />
+      <component v-if="Component" :is="Component" />
     </router-view>
   </div>
 </template>

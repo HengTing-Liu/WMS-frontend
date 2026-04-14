@@ -47,6 +47,18 @@ const coreRoutes: RouteRecordRaw[] = [
           hideInMenu: true,
         },
       },
+      {
+        name: 'LowcodeFormGlobal',
+        path: '/sys/lowcode-form/:tableCode/:mode/:id?',
+        alias: ['/lowcode/form/:tableCode/:mode/:id?'],
+        component: () => import('#/lowcode/LowcodeFormPage.vue'),
+        meta: {
+          title: '低代码表单',
+          hideInMenu: true,
+          hideInTab: true,
+          keepAlive: false,
+        },
+      },
     ],
   },
   {

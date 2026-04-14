@@ -34,7 +34,7 @@
               v-if="field.fieldType === 'string'"
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseInput')}${field.fieldName}`"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               :max-length="field.maxLength"
               allow-clear
             />
@@ -44,7 +44,7 @@
               v-else-if="field.fieldType === 'textarea'"
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseInput')}${field.fieldName}`"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               :max-length="field.maxLength"
               :rows="4"
               show-count
@@ -56,7 +56,7 @@
               v-else-if="field.fieldType === 'number'"
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseInput')}${field.fieldName}`"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               style="width: 100%"
             />
 
@@ -65,7 +65,7 @@
               v-else-if="field.fieldType === 'date'"
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseSelect')}${field.fieldName}`"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               style="width: 100%"
               value-format="YYYY-MM-DD"
             />
@@ -75,7 +75,7 @@
               v-else-if="field.fieldType === 'datetime'"
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseSelect')}${field.fieldName}`"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               style="width: 100%"
               show-time
               value-format="YYYY-MM-DD HH:mm:ss"
@@ -87,7 +87,7 @@
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseSelect')}${field.fieldName}`"
               :options="field.options || []"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               allow-clear
               style="width: 100%"
             />
@@ -96,7 +96,7 @@
             <Switch
               v-else-if="field.fieldType === 'boolean'"
               v-model:checked="formData[field.fieldCode]"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               :checked-value="1"
               :un-checked-value="0"
               :checked-children="$t('page.common.yes')"
@@ -141,7 +141,7 @@
               v-if="field.fieldType === 'string'"
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseInput')}${field.fieldName}`"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               :max-length="field.maxLength"
               allow-clear
             />
@@ -151,7 +151,7 @@
               v-else-if="field.fieldType === 'textarea'"
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseInput')}${field.fieldName}`"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               :max-length="field.maxLength"
               :rows="4"
               show-count
@@ -163,7 +163,7 @@
               v-else-if="field.fieldType === 'number'"
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseInput')}${field.fieldName}`"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               style="width: 100%"
             />
 
@@ -172,7 +172,7 @@
               v-else-if="field.fieldType === 'date'"
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseSelect')}${field.fieldName}`"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               style="width: 100%"
               value-format="YYYY-MM-DD"
             />
@@ -182,7 +182,7 @@
               v-else-if="field.fieldType === 'datetime'"
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseSelect')}${field.fieldName}`"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               style="width: 100%"
               show-time
               value-format="YYYY-MM-DD HH:mm:ss"
@@ -194,7 +194,7 @@
               v-model:value="formData[field.fieldCode]"
               :placeholder="field.placeholder || `${$t('page.common.pleaseSelect')}${field.fieldName}`"
               :options="field.options || []"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               allow-clear
               style="width: 100%"
             />
@@ -203,7 +203,7 @@
             <Switch
               v-else-if="field.fieldType === 'boolean'"
               v-model:checked="formData[field.fieldCode]"
-              :disabled="isView"
+              :disabled="isFieldReadonly(field)"
               :checked-value="1"
               :un-checked-value="0"
               :checked-children="$t('page.common.yes')"
@@ -249,6 +249,7 @@ import {
   message,
 } from 'ant-design-vue';
 import { $t } from '@vben/locales';
+import { useUserStore } from '@vben/stores';
 import type { LcFormProps, LcFormField, LcCrudApi } from './types';
 
 type FormMode = 'add' | 'edit' | 'view';
@@ -268,6 +269,7 @@ const emit = defineEmits<{
   cancel: [];
   'update:open': [open: boolean];
 }>();
+const userStore = useUserStore();
 
 // 可见性
 const visible = ref(false);
@@ -316,6 +318,81 @@ const formTitle = computed(() => {
 
 // 是否查看模式
 const isView = computed(() => formMode.value === 'view');
+
+function normalizeFieldCode(code?: string) {
+  return String(code || '')
+    .toLowerCase()
+    .replace(/[_-]/g, '');
+}
+
+function isCreatorField(code?: string) {
+  return normalizeFieldCode(code) === 'createby';
+}
+
+function isCreateTimeField(code?: string) {
+  return normalizeFieldCode(code) === 'createtime';
+}
+
+function isUpdaterField(code?: string) {
+  return normalizeFieldCode(code) === 'updateby';
+}
+
+function isUpdateTimeField(code?: string) {
+  return normalizeFieldCode(code) === 'updatetime';
+}
+
+function isAuditFieldCode(code?: string) {
+  return (
+    isCreatorField(code)
+    || isCreateTimeField(code)
+    || isUpdaterField(code)
+    || isUpdateTimeField(code)
+  );
+}
+
+function isFieldReadonly(field: LcFormField) {
+  return isView.value || isAuditFieldCode(field.fieldCode);
+}
+
+function isBlank(value: any) {
+  return value == null || String(value).trim() === '';
+}
+
+function formatNow() {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+
+function getCurrentOperator() {
+  const info: any = userStore.userInfo || {};
+  return (
+    info?.realName
+    || info?.nickName
+    || info?.username
+    || info?.userName
+    || 'system'
+  );
+}
+
+function applyAuditDefaults(mode: Exclude<FormMode, 'view'>) {
+  const operator = getCurrentOperator();
+  const now = formatNow();
+  for (const key of Object.keys(formData.value)) {
+    if (isCreatorField(key) && isBlank(formData.value[key])) {
+      formData.value[key] = operator;
+    }
+    if (isCreateTimeField(key) && isBlank(formData.value[key])) {
+      formData.value[key] = now;
+    }
+    if (isUpdaterField(key) && (mode === 'edit' || isBlank(formData.value[key]))) {
+      formData.value[key] = operator;
+    }
+    if (isUpdateTimeField(key) && (mode === 'edit' || isBlank(formData.value[key]))) {
+      formData.value[key] = now;
+    }
+  }
+}
 
 // 表单验证规则
 const formRules = computed(() => {
@@ -380,6 +457,7 @@ function openAdd(defaultValues?: Record<string, any>) {
   if (defaultValues) {
     Object.assign(formData.value, defaultValues);
   }
+  applyAuditDefaults('add');
 
   visible.value = true;
 }
@@ -394,6 +472,7 @@ async function openEdit(row: any) {
     try {
       const detail = await props.api.get(currentId.value);
       formData.value = { ...detail };
+      applyAuditDefaults('edit');
       visible.value = true;
       return;
     } catch (error) {
@@ -403,6 +482,7 @@ async function openEdit(row: any) {
 
   // 回退使用 row 数据
   formData.value = { ...row };
+  applyAuditDefaults('edit');
   visible.value = true;
 }
 
@@ -435,6 +515,7 @@ async function handleSubmit() {
 
   try {
     // 表单验证
+    applyAuditDefaults(formMode.value === 'add' ? 'add' : 'edit');
     await formRef.value?.validate();
 
     submitting.value = true;
@@ -517,6 +598,3 @@ defineExpose({
   gap: 8px;
 }
 </style>
->
-
-

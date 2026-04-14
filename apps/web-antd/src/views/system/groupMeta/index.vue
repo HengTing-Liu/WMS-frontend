@@ -56,6 +56,11 @@
             {{ record.defaultOpen === 1 ? '默认展开' : '默认折叠' }}
           </Tag>
         </template>
+        <template v-else-if="column.key === 'refCount'">
+          <Tag :color="Number(record.refCount || 0) > 0 ? 'success' : 'default'">
+            {{ Number(record.refCount || 0) }}
+          </Tag>
+        </template>
         <template v-else-if="column.key === 'status'">
           <Tag :color="record.status === 1 ? 'success' : 'default'">
             {{ record.status === 1 ? '启用' : '停用' }}
@@ -119,7 +124,7 @@ import {
 import type { TableColumnsType } from 'ant-design-vue';
 
 import { WmsDataTable, WmsPageLayout } from '#/components/wms';
-import { getTableMetaListForSelect } from '#/api/system/columnMeta';
+import { getColumnMetaByTableId, getTableMetaListForSelect } from '#/api/system/columnMeta';
 import {
   batchSortGroupMeta,
   deleteGroupMeta,
@@ -134,7 +139,8 @@ const tableLoading = ref(false);
 const searchKeyword = ref('');
 const selectedTableCode = ref<string>('');
 const tableList = ref<Array<{ id: number; tableCode: string; tableName: string }>>([]);
-const tableDataRaw = ref<GroupMetaApi.GroupMeta[]>([]);
+type GroupMetaRow = GroupMetaApi.GroupMeta & { refCount: number };
+const tableDataRaw = ref<GroupMetaRow[]>([]);
 const tableData = computed(() => {
   const keyword = searchKeyword.value.trim().toLowerCase();
   if (!keyword) return tableDataRaw.value;
@@ -149,12 +155,13 @@ const modalVisible = ref(false);
 const modalMode = ref<'add' | 'edit'>('add');
 const currentRecord = ref<GroupMetaApi.GroupMeta | null>(null);
 
-const columns = computed<TableColumnsType<GroupMetaApi.GroupMeta>>(() => [
+const columns = computed<TableColumnsType<GroupMetaRow>>(() => [
   { title: '序号', key: 'seq', width: 70, align: 'center' },
   { title: '分组编码', dataIndex: 'groupCode', key: 'groupCode', width: 180 },
   { title: '分组标题', dataIndex: 'groupTitle', key: 'groupTitle', width: 180 },
   { title: '容器类型', key: 'groupType', width: 110, align: 'center' },
   { title: '默认展开', key: 'defaultOpen', width: 110, align: 'center' },
+  { title: '引用字段', key: 'refCount', width: 100, align: 'center' },
   { title: '排序', key: 'sortOrder', width: 100, align: 'center' },
   { title: '状态', key: 'status', width: 90, align: 'center' },
   { title: '备注', key: 'remarks', width: 240 },
@@ -191,8 +198,22 @@ async function loadData() {
   }
   loading.value = true;
   try {
-    const res = await getGroupMetaList(selectedTableCode.value);
-    tableDataRaw.value = (res.rows || []).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    const [res, columnList] = await Promise.all([
+      getGroupMetaList(selectedTableCode.value),
+      getColumnMetaByTableId(selectedTableCode.value),
+    ]);
+    const refCountMap = (columnList || []).reduce<Record<string, number>>((result, item: any) => {
+      const key = String(item?.sectionKey || '').trim();
+      if (!key) return result;
+      result[key] = (result[key] || 0) + 1;
+      return result;
+    }, {});
+    tableDataRaw.value = (res.rows || [])
+      .map((item) => ({
+        ...item,
+        refCount: Number(refCountMap[item.groupCode] || 0),
+      }))
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   } catch (error: any) {
     tableDataRaw.value = [];
     message.error(error?.message || '加载分组元数据失败');
@@ -211,13 +232,13 @@ function handleAdd() {
   modalVisible.value = true;
 }
 
-function handleEdit(record: GroupMetaApi.GroupMeta) {
+function handleEdit(record: GroupMetaRow) {
   modalMode.value = 'edit';
-  currentRecord.value = record;
+  currentRecord.value = { ...record };
   modalVisible.value = true;
 }
 
-async function handleDelete(record: GroupMetaApi.GroupMeta) {
+async function handleDelete(record: GroupMetaRow) {
   if (!record.id) return;
   try {
     await deleteGroupMeta(record.id);

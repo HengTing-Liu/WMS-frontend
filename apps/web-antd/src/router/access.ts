@@ -4,7 +4,6 @@ import type {
 } from '@vben/types';
 
 import { generateAccessible } from '@vben/access';
-import { preferences } from '@vben/preferences';
 import { useAccessStore } from '@vben/stores';
 
 import { message } from 'ant-design-vue';
@@ -22,11 +21,6 @@ function slugPath(path: unknown): string {
     .replace(/^_+|_+$/g, '') || 'route';
 }
 
-/**
- * Vue Router：嵌套路由不能与任意祖先同名。
- * 后端常出现父子同名（如 WmsBase），或父级无 name 导致无法在树上去重。
- * 先为缺 name 的节点补名，再在与祖先冲突时重命名当前节点。
- */
 function fixRouteNameConflictsForVueRouter(
   nodes: any[],
   ancestorNames = new Set<string>(),
@@ -62,7 +56,6 @@ function fixRouteNameConflictsForVueRouter(
   });
 }
 
-/** 持久化后的菜单 JSON 可能把 children 变成非数组，需在走 generateRoutes 前规范化 */
 function normalizeMenuTreeForRouter(nodes: unknown): any[] {
   if (!Array.isArray(nodes)) return [];
   return nodes
@@ -83,15 +76,13 @@ function normalizePath(path: string): string {
   if (!path) return '/';
   const withSlash = path.startsWith('/') ? path : `/${path}`;
   const compact = withSlash.replace(/\/{2,}/g, '/');
-  return compact !== '/' && compact.endsWith('/')
-    ? compact.slice(0, -1)
-    : compact;
+  return compact !== '/' && compact.endsWith('/') ? compact.slice(0, -1) : compact;
 }
 
 function resolveRoutePath(parentPath: string, childPath: string): string {
   if (!childPath) return normalizePath(parentPath || '/');
   if (childPath.startsWith('/')) return normalizePath(childPath);
-  return normalizePath(`${parentPath || '/'}/${childPath}`);
+  return normalizePath(`${parentPath || '/'}${parentPath.endsWith('/') ? '' : '/'}${childPath}`);
 }
 
 function shouldForceKeepAlive(
@@ -120,7 +111,6 @@ function shouldForceKeepAlive(
       '/lowcode/table',
       '/lowcode/column',
       '/lowcode/operation',
-      '/lowcode/publish',
       '/lowcode/lowcode/column',
     ].includes(path)
   ) {
@@ -132,7 +122,6 @@ function shouldForceKeepAlive(
       'tablemeta',
       'columnmeta',
       'operationmeta',
-      'metapublish',
       'lowcodemanager',
       'basewarehouselist',
       'basematerial',
@@ -177,7 +166,6 @@ function applyRouteMetaPolicies(routeList: any[], parentPath = '/'): any[] {
 }
 
 type GenerateAccessOptions = GenerateMenuAndRoutesOptions & {
-  /** 为 true 时不读本地缓存菜单，强制走接口（用于刷新后重建路由，避免坏缓存） */
   bypassMenuCache?: boolean;
 };
 
@@ -192,28 +180,16 @@ async function generateAccess(options: GenerateAccessOptions) {
   };
 
   try {
-    return await generateAccessible(preferences.app.accessMode, {
+    return await generateAccessible('backend', {
       ...routerOptions,
       fetchMenuListAsync: async () => {
         const accessStore = useAccessStore();
 
-        // 优先从缓存读取菜单，避免重复请求
         const cached = accessStore.getCachedMenuRoutes?.();
         if (!bypassMenuCache && cached?.length > 0) {
-          console.log('[Router] Using cached menu routes:', cached.length);
-          message.loading({
-            content: '加载缓存菜单...',
-            duration: 1,
-          });
-          const normalizedCached = applyRouteMetaPolicies(
-            normalizeMenuTreeForRouter(cached),
-          );
-          return fixRouteNameConflictsForVueRouter(
-            normalizedCached,
-          );
+          console.log('[Router] Cached menu routes detected, validating against backend...');
         }
 
-        // 缓存不存在，请求后端
         message.loading({
           content: `${$t('common.loadingMenu')}...`,
           duration: 1.5,
@@ -221,45 +197,32 @@ async function generateAccess(options: GenerateAccessOptions) {
 
         let routes = normalizeMenuTreeForRouter(await getAllMenusApi());
         console.log('[Router] Raw routes from API:', routes?.length || 0);
-        
-        // 后端返回的菜单组件格式需要映射到前端
-        // 新逻辑：只映射已存在的页面，其他跳过
+
         const mapComponent = (component: any) => {
-          // 只处理字符串类型的组件路径
           if (typeof component !== 'string') return component;
           if (!component) return undefined;
-          
-          // 布局组件映射
+
           if (component === 'Layout') return 'BasicLayout';
           if (component === 'ParentView') return 'RouteView';
           if (component === 'InnerLink') return 'IFrameView';
-          
-          // 规范化路径：去除前导斜杠和 .vue 后缀
+
           const normalized = component.replace(/^\/+/, '').replace(/\.vue$/i, '');
-          
-          // 布局组件直接返回名称
           if (['BasicLayout', 'RouteView', 'IFrameView'].includes(normalized)) {
             return normalized;
           }
-          
-          // 其他所有路径都映射到 views 目录
-          // 例如: sys/warehouse/index -> ../views/sys/warehouse/index.vue
           return `../views/${normalized}.vue`;
         };
-        
-        // 过滤掉无效的路由（没有 path 且没有有效 children 的路由）
+
         const filterValidRoutes = (routeList: any[]): any[] => {
           if (!Array.isArray(routeList)) return [];
           return routeList
-            .filter(route => route?.path || (Array.isArray(route?.children) && route.children.length > 0))
-            .map(route => {
+            .filter((route) => route?.path || (Array.isArray(route?.children) && route.children.length > 0))
+            .map((route) => {
               const newRoute = { ...route };
-              // 确保 children 是有效数组
               if (newRoute.children && Array.isArray(newRoute.children)) {
-                // 过滤掉 children 中的空对象
                 newRoute.children = newRoute.children
-                  .filter(child => child && typeof child === 'object' && Object.keys(child).length > 0)
-                  .map(child => ({ ...child }));
+                  .filter((child) => child && typeof child === 'object' && Object.keys(child).length > 0)
+                  .map((child) => ({ ...child }));
                 newRoute.children = filterValidRoutes(newRoute.children);
               } else {
                 newRoute.children = [];
@@ -267,15 +230,13 @@ async function generateAccess(options: GenerateAccessOptions) {
               return newRoute;
             });
         };
-        
-        // 映射路由组件格式
+
         const mapRoutes = (routeList: any[], parentPath = '/'): any[] => {
           if (!Array.isArray(routeList)) return [];
-          return routeList.map(route => {
+          return routeList.map((route) => {
             const newRoute = { ...route };
             const routePath = String(newRoute.path ?? '');
             const fullPath = resolveRoutePath(parentPath, routePath);
-            // 只有 component 是字符串时才映射，函数或其他类型直接保留
             if (newRoute.component && typeof newRoute.component === 'string') {
               newRoute.component = mapComponent(newRoute.component);
             }
@@ -285,14 +246,51 @@ async function generateAccess(options: GenerateAccessOptions) {
             return newRoute;
           });
         };
-        
+
+        const pruneInvalidComponentRoutes = (routeList: any[]): any[] => {
+          if (!Array.isArray(routeList)) return [];
+          return routeList
+            .map((route) => {
+              const next = { ...route };
+              next.children = pruneInvalidComponentRoutes(next.children ?? []);
+
+              const comp = next.component;
+              const hasChildren = Array.isArray(next.children) && next.children.length > 0;
+              const hasRedirect = typeof next.redirect === 'string' && next.redirect.length > 0;
+
+              const isKnownLayout =
+                comp === 'BasicLayout' || comp === 'RouteView' || comp === 'IFrameView';
+              const isViewComponent =
+                typeof comp === 'string' && comp.startsWith('../views/') && !!pageMap[comp];
+
+              if (isKnownLayout || isViewComponent) {
+                return next;
+              }
+
+              if (hasChildren || hasRedirect) {
+                if (!comp) {
+                  next.component = 'RouteView';
+                }
+                return next;
+              }
+
+              console.warn('[Router] Dropping invalid route (component unresolved):', {
+                name: next.name,
+                path: next.path,
+                component: comp,
+              });
+              return null;
+            })
+            .filter(Boolean);
+        };
+
         routes = applyRouteMetaPolicies(routes);
         routes = mapRoutes(routes);
         routes = filterValidRoutes(routes);
+        routes = pruneInvalidComponentRoutes(routes);
         routes = fixRouteNameConflictsForVueRouter(routes);
         console.log('[Router] Mapped routes:', routes?.length || 0);
 
-        // 缓存原始菜单路由（未映射组件），用于刷新时恢复（与接口一致，含去重后的 name）
         const rawRoutes = accessStore.getCachedMenuRoutes?.() || [];
         if (!rawRoutes.length && routes.length) {
           const rawFromApi = fixRouteNameConflictsForVueRouter(
@@ -303,9 +301,7 @@ async function generateAccess(options: GenerateAccessOptions) {
 
         return routes;
       },
-      // 可以指定没有权限跳转403页面
       forbiddenComponent,
-      // 如果 route.meta.menuVisibleWithForbidden = true
       layoutMap,
       pageMap,
     });
@@ -314,7 +310,7 @@ async function generateAccess(options: GenerateAccessOptions) {
     try {
       useAccessStore().setCachedMenuRoutes([]);
     } catch {
-      /* ignore */
+      // ignore
     }
     return { accessibleMenus: [], accessibleRoutes: [] };
   }
