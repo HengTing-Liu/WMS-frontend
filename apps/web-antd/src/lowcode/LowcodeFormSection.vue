@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div :id="sectionDomId" class="lowcode-form-section">
     <Collapse
       v-if="type === 'collapse'"
@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import type { Key } from 'ant-design-vue/es/_util/type';
 import { Card, Collapse, CollapsePanel, Tag } from 'ant-design-vue';
 
@@ -74,6 +74,11 @@ const props = withDefaults(
 );
 
 const activeKeys = ref<string[]>(props.defaultOpen ? [props.title] : []);
+const isMounted = ref(true);
+
+onBeforeUnmount(() => {
+  isMounted.value = false;
+});
 
 const formOptions = reactive({
   commonConfig: {
@@ -132,9 +137,12 @@ watch(
   () => props.initialValues,
   async (values) => {
     await nextTick();
+    if (!isMounted.value) return;
     formApi.resetForm?.();
     if (values && Object.keys(values).length > 0) {
-      formApi.setValues(values);
+      if (isMounted.value) {
+        formApi.setValues(values);
+      }
     }
   },
   { deep: true, immediate: true },
@@ -159,15 +167,19 @@ async function getValues() {
 }
 
 async function setValues(values: Record<string, any>) {
+  if (!isMounted.value) return;
   await nextTick();
+  if (!isMounted.value) return;
   formApi.setValues(values);
 }
 
 async function updateSchema(schema: Partial<VbenFormSchema>[]) {
+  if (!isMounted.value) return;
   await formApi.updateSchema?.(schema as VbenFormSchema[]);
 }
 
 function reset() {
+  if (!isMounted.value) return;
   formApi.resetForm?.();
 }
 

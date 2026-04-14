@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <Page auto-content-height>
     <div class="lowcode-form-page">
       <Card :bordered="false" class="lowcode-page-hero">
@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import dayjs from 'dayjs';
@@ -140,6 +140,8 @@ const router = useRouter();
 
 const loading = ref(false);
 const saving = ref(false);
+const isMounted = ref(false);
+let loadAbortController: AbortController | null = null;
 const formGroups = ref<LowcodeFormGroup[]>([]);
 const groupSchemas = ref<Record<string, VbenFormSchema[]>>({});
 const formValues = ref<Record<string, any>>({});
@@ -162,6 +164,16 @@ const pageDescription = computed(() => {
   const fromQuery = route.query.desc;
   return typeof fromQuery === 'string' ? fromQuery : '';
 });
+onMounted(() => {
+  isMounted.value = true;
+});
+
+onBeforeUnmount(() => {
+  isMounted.value = false;
+  loadAbortController?.abort();
+  loadAbortController = null;
+});
+
 const isEdit = computed(() => mode.value === 'edit' && !!recordId.value);
 const pageHeading = computed(() => `${isEdit.value ? '编辑' : '新建'}${pageTitle.value}`);
 const groupCount = computed(() => formGroups.value.length);
@@ -447,6 +459,9 @@ function applyLinkageValues(values: Record<string, any>) {
 }
 
 async function syncRuntimeState(values: Record<string, any>) {
+  // 防止组件卸载后仍设置值
+  if (!isMounted.value) return;
+
   let resolvedValues = applyLinkageValues(values);
 
   for (const field of allFields.value) {
@@ -524,6 +539,7 @@ function buildFieldSchema(field: ColumnMeta, values: Record<string, any>): VbenF
   const component = resolveComponent(field);
   const options = normalizeOptions(field);
   const fieldKey = getFieldKey(field);
+  const defaultVal = parseDefaultValue(field);
   const schema: VbenFormSchema = {
     component,
     componentProps: {
@@ -534,7 +550,6 @@ function buildFieldSchema(field: ColumnMeta, values: Record<string, any>): VbenF
       },
       placeholder: resolvePlaceholder(field, String(component)),
     },
-    defaultValue: parseDefaultValue(field),
     disabled: computeFieldDisabled(fieldKey, values),
     fieldName: fieldKey,
     formItemClass: resolveSpanClass(field),
@@ -546,6 +561,11 @@ function buildFieldSchema(field: ColumnMeta, values: Record<string, any>): VbenF
         : 'required'
       : undefined,
   } as VbenFormSchema & { hidden?: boolean };
+
+  // 只有非 undefined 的默认值才设置
+  if (defaultVal !== undefined) {
+    schema.defaultValue = defaultVal;
+  }
 
   if (component === 'Select') {
     schema.componentProps = {
@@ -788,6 +808,7 @@ async function loadPage() {
     groupSchemas.value = buildSchemas(groups, currentValues.value);
 
     await nextTick();
+    if (!isMounted.value) return;
     await syncRuntimeState(currentValues.value);
   } catch (error: any) {
     message.error(error?.message ?? '加载低代码表单失败');

@@ -67,12 +67,12 @@
       >
         <template #bodyCell="{ column, record, index }">
           <!-- 序号 -->
-          <template v-if="column.key === 'seq'">
+          <template v-if="column?.key === 'seq'">
             {{ (pagination.current - 1) * pagination.pageSize + index + 1 }}
           </template>
 
           <!-- 操作列 -->
-          <template v-else-if="column.key === 'action'">
+          <template v-else-if="column?.key === 'action'">
             <div class="flex items-center gap-2">
               <template v-for="action in rowActions" :key="action.key">
                 <!-- 编辑按钮（含 row_edit，与 init_meta_data 脚本一致） -->
@@ -136,7 +136,7 @@
           </template>
 
           <!-- 状态标签（兼容 1/0 和 true/false，以及 isEnabled/is_enabled 字段名） -->
-          <template v-else-if="column.key === 'isEnabled'">
+          <template v-else-if="column?.key === 'isEnabled'">
             <Tag :color="isEnabled(record.isEnabled ?? record.is_enabled) ? 'success' : 'default'">
               {{ isEnabled(record.isEnabled ?? record.is_enabled) ? '启用' : '停用' }}
             </Tag>

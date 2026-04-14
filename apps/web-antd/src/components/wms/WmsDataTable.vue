@@ -23,7 +23,7 @@
     >
       <!-- 透传所有具名插槽到 Table -->
       <template v-for="(_, name) in slots" #[name]="slotData: any" :key="name">
-        <slot :name="name" v-bind="slotData || {}" />
+        <slot :name="name" v-bind="slotData" />
       </template>
     </Table>
   </Card>
