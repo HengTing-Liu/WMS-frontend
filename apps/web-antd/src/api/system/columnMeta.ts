@@ -1,5 +1,10 @@
 import { requestClient } from '#/api/request';
 
+let tableMetaSelectCache: { id: number; tableCode: string; tableName: string }[] | null = null;
+let tableMetaSelectLoading: Promise<
+  { id: number; tableCode: string; tableName: string }[]
+> | null = null;
+
 export namespace ColumnMetaApi {
   export interface ColumnMeta {
     id?: number;
@@ -220,14 +225,32 @@ export async function batchUpdateSortOrder(orders: SortOrderItem[]) {
   });
 }
 
-export async function getTableMetaListForSelect() {
-  const res = await requestClient.get<{
-    total: number;
-    rows: { id: number; tableCode: string; tableName: string }[];
-  }>('/api/system/meta/table', {
-    params: { pageNum: 1, pageSize: 1000 },
-  });
-  return res?.rows || [];
+export async function getTableMetaListForSelect(forceRefresh = false) {
+  if (!forceRefresh && tableMetaSelectCache) {
+    return tableMetaSelectCache;
+  }
+
+  if (!forceRefresh && tableMetaSelectLoading) {
+    return tableMetaSelectLoading;
+  }
+
+  tableMetaSelectLoading = requestClient
+    .get<{
+      total: number;
+      rows: { id: number; tableCode: string; tableName: string }[];
+    }>('/api/system/meta/table', {
+      params: { pageNum: 1, pageSize: 1000 },
+    })
+    .then((res) => {
+      const rows = res?.rows || [];
+      tableMetaSelectCache = rows;
+      return rows;
+    })
+    .finally(() => {
+      tableMetaSelectLoading = null;
+    });
+
+  return tableMetaSelectLoading;
 }
 
 export async function getColumnMetaByTableId(tableCode: string) {

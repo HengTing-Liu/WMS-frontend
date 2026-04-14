@@ -14,26 +14,26 @@ const routes: RouteRecordRaw[] = [
     path: '/sys',
     children: [
       {
-        meta: { title: '仓库档案', fullPathKey: false },
+        meta: { title: '仓库档案', keepAlive: true, fullPathKey: false },
         name: 'BaseWarehouseList',
         path: 'warehouse',
         component: () => import('#/views/sys/warehouse/index.vue'),
       },
 
       {
-        meta: { title: '库位管理' },
+        meta: { title: '库位管理' , keepAlive: true,},
         name: 'BaseLocation',
         path: 'location',
         component: () => import('#/views/sys/location/index.vue'),
       },
       {
-        meta: { title: '字典管理' },
+        meta: { title: '字典管理' , keepAlive: true,},
         name: 'SysDict',
         path: 'dict',
         component: () => import('#/views/sys/dict/index.vue'),
       },
       {
-        meta: { title: '物料管理', fullPathKey: false },
+        meta: { title: '物料管理', keepAlive: true, fullPathKey: false },
         name: 'BaseMaterial',
         path: 'material',
         component: () => import('#/views/sys/material/index.vue'),

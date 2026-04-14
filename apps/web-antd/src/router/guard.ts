@@ -58,6 +58,10 @@ function setupAccessGuard(router: Router) {
     const accessStore = useAccessStore();
     const userStore = useUserStore();
     const authStore = useAuthStore();
+    const canResolveToTarget = () => {
+      const resolved = router.resolve(to.fullPath);
+      return resolved.matched?.some((m) => m.name !== 'FallbackNotFound');
+    };
 
     // ---- 已登录，访问登录页 -> 跳首页 ----
     if (coreRouteNames.includes(to.name as string) && to.path === LOGIN_PATH) {
@@ -110,6 +114,16 @@ function setupAccessGuard(router: Router) {
         if (routes.length > 0) {
           accessStore.setAccessMenus(menus);
           accessStore.setAccessRoutes(routes);
+
+          // Dynamic routes were regenerated: if current target now exists, stay on it.
+          if (canResolveToTarget()) {
+            return {
+              path: to.path,
+              query: to.query,
+              hash: to.hash,
+              replace: true,
+            };
+          }
 
           const fp = getFirstMenuPath(menus);
           if (fp) {
@@ -172,6 +186,16 @@ function setupAccessGuard(router: Router) {
     accessStore.setAccessMenus(accessibleMenus);
     accessStore.setAccessRoutes(accessibleRoutes);
     accessStore.setIsAccessChecked(true);
+
+    // After first-time dynamic route generation, keep the original refresh target when possible.
+    if (canResolveToTarget()) {
+      return {
+        path: to.path,
+        query: to.query,
+        hash: to.hash,
+        replace: true,
+      };
+    }
 
     const firstPath = getFirstMenuPath(accessibleMenus);
 

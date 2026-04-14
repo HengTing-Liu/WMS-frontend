@@ -79,6 +79,103 @@ function normalizeMenuTreeForRouter(nodes: unknown): any[] {
     });
 }
 
+function normalizePath(path: string): string {
+  if (!path) return '/';
+  const withSlash = path.startsWith('/') ? path : `/${path}`;
+  const compact = withSlash.replace(/\/{2,}/g, '/');
+  return compact !== '/' && compact.endsWith('/')
+    ? compact.slice(0, -1)
+    : compact;
+}
+
+function resolveRoutePath(parentPath: string, childPath: string): string {
+  if (!childPath) return normalizePath(parentPath || '/');
+  if (childPath.startsWith('/')) return normalizePath(childPath);
+  return normalizePath(`${parentPath || '/'}/${childPath}`);
+}
+
+function shouldForceKeepAlive(
+  fullPath: string,
+  routeName?: unknown,
+  component?: unknown,
+): boolean {
+  const path = normalizePath(fullPath);
+  const name = String(routeName ?? '').toLowerCase();
+  const comp = String(component ?? '').toLowerCase();
+
+  if (path === '/sys' || path.startsWith('/sys/')) return true;
+  if (path === '/system' || path.startsWith('/system/')) return true;
+
+  if (
+    [
+      '/user',
+      '/role',
+      '/dept',
+      '/menu',
+      '/permission',
+      '/log',
+      '/log/oper',
+      '/log/login',
+      '/lowcode',
+      '/lowcode/table',
+      '/lowcode/column',
+      '/lowcode/operation',
+      '/lowcode/publish',
+      '/lowcode/lowcode/column',
+    ].includes(path)
+  ) {
+    return true;
+  }
+
+  if (
+    [
+      'tablemeta',
+      'columnmeta',
+      'operationmeta',
+      'metapublish',
+      'lowcodemanager',
+      'basewarehouselist',
+      'basematerial',
+      'sysbase',
+      'system',
+    ].some((key) => name.includes(key))
+  ) {
+    return true;
+  }
+
+  if (
+    comp.includes('/views/system/')
+    || comp.includes('/views/sys/')
+    || comp.startsWith('system/')
+    || comp.startsWith('/system/')
+    || comp.startsWith('sys/')
+    || comp.startsWith('/sys/')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function applyRouteMetaPolicies(routeList: any[], parentPath = '/'): any[] {
+  if (!Array.isArray(routeList)) return [];
+  return routeList.map((route) => {
+    const nextRoute = { ...route };
+    const fullPath = resolveRoutePath(parentPath, String(nextRoute.path ?? ''));
+    if (shouldForceKeepAlive(fullPath, nextRoute.name, nextRoute.component)) {
+      nextRoute.meta = {
+        ...(nextRoute.meta ?? {}),
+        keepAlive: true,
+        fullPathKey: false,
+      };
+    }
+    if (Array.isArray(nextRoute.children) && nextRoute.children.length > 0) {
+      nextRoute.children = applyRouteMetaPolicies(nextRoute.children, fullPath);
+    }
+    return nextRoute;
+  });
+}
+
 type GenerateAccessOptions = GenerateMenuAndRoutesOptions & {
   /** 为 true 时不读本地缓存菜单，强制走接口（用于刷新后重建路由，避免坏缓存） */
   bypassMenuCache?: boolean;
@@ -108,8 +205,11 @@ async function generateAccess(options: GenerateAccessOptions) {
             content: '加载缓存菜单...',
             duration: 1,
           });
-          return fixRouteNameConflictsForVueRouter(
+          const normalizedCached = applyRouteMetaPolicies(
             normalizeMenuTreeForRouter(cached),
+          );
+          return fixRouteNameConflictsForVueRouter(
+            normalizedCached,
           );
         }
 
@@ -169,21 +269,24 @@ async function generateAccess(options: GenerateAccessOptions) {
         };
         
         // 映射路由组件格式
-        const mapRoutes = (routeList: any[]): any[] => {
+        const mapRoutes = (routeList: any[], parentPath = '/'): any[] => {
           if (!Array.isArray(routeList)) return [];
           return routeList.map(route => {
             const newRoute = { ...route };
+            const routePath = String(newRoute.path ?? '');
+            const fullPath = resolveRoutePath(parentPath, routePath);
             // 只有 component 是字符串时才映射，函数或其他类型直接保留
             if (newRoute.component && typeof newRoute.component === 'string') {
               newRoute.component = mapComponent(newRoute.component);
             }
             if (newRoute.children) {
-              newRoute.children = mapRoutes(newRoute.children);
+              newRoute.children = mapRoutes(newRoute.children, fullPath);
             }
             return newRoute;
           });
         };
         
+        routes = applyRouteMetaPolicies(routes);
         routes = mapRoutes(routes);
         routes = filterValidRoutes(routes);
         routes = fixRouteNameConflictsForVueRouter(routes);

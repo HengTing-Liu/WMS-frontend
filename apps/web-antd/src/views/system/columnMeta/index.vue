@@ -180,7 +180,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch } from 'vue';
+import { ref, computed, onMounted, nextTick, watch, onActivated, onDeactivated, onBeforeUnmount } from 'vue';
 import {
   Alert,
   Button,
@@ -210,6 +210,19 @@ import {
 } from '#/api/system/columnMeta';
 import { useSortable } from '@vben/hooks';
 
+type ColumnMetaPageState = {
+  selectedRowKeys: Array<number | string>;
+  selectedTableCode?: string;
+  tableData: ColumnMetaApi.ColumnMeta[];
+  tableList: { id: number; tableCode: string; tableName: string }[];
+  searchKeyword: string;
+};
+
+const PAGE_STATE_CACHE_KEY = 'system-column-meta-page-state';
+const PAGE_STATE_STORAGE_KEY = `${PAGE_STATE_CACHE_KEY}:session-v1`;
+const pageStateCache = new Map<string, ColumnMetaPageState>();
+let restoringPageState = false;
+
 // ========== 状态 ==========
 const loading = ref(false);
 const tableLoading = ref(false);
@@ -223,6 +236,46 @@ const searchKeyword = ref('');
 const modalVisible = ref(false);
 const modalMode = ref<'add' | 'edit'>('add');
 const currentRecord = ref<ColumnMetaApi.ColumnMeta | null>(null);
+
+function savePageState() {
+  const state: ColumnMetaPageState = {
+    selectedRowKeys: [...selectedRowKeys.value],
+    selectedTableCode: selectedTableCode.value,
+    tableData: [...tableData.value],
+    tableList: [...tableList.value],
+    searchKeyword: searchKeyword.value,
+  };
+  pageStateCache.set(PAGE_STATE_CACHE_KEY, state);
+  try {
+    sessionStorage.setItem(PAGE_STATE_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function restorePageState() {
+  let cached = pageStateCache.get(PAGE_STATE_CACHE_KEY);
+  if (!cached) {
+    try {
+      const raw = sessionStorage.getItem(PAGE_STATE_STORAGE_KEY);
+      if (raw) {
+        cached = JSON.parse(raw) as ColumnMetaPageState;
+        pageStateCache.set(PAGE_STATE_CACHE_KEY, cached);
+      }
+    } catch {
+      // ignore parse/storage failures
+    }
+  }
+  if (!cached) return false;
+  restoringPageState = true;
+  selectedRowKeys.value = [...cached.selectedRowKeys];
+  selectedTableCode.value = cached.selectedTableCode;
+  tableData.value = [...cached.tableData];
+  tableList.value = [...cached.tableList];
+  searchKeyword.value = cached.searchKeyword;
+  restoringPageState = false;
+  return true;
+}
 
 // ========== 表格列定义 ==========
 const columns = computed<TableColumnsType>(() => [
@@ -296,6 +349,8 @@ async function loadData() {
 
 // ========== 事件处理 ==========
 function handleTableChange(value: string | number) {
+  // Ignore transient clear events while options are still loading.
+  if (!value && tableLoading.value) return;
   selectedTableCode.value = value ? String(value) : undefined;
   searchKeyword.value = '';
 }
@@ -511,13 +566,30 @@ function getDataTypeColor(type: string): string {
 }
 
 // ========== 生命周期 ==========
-onMounted(() => {
-  loadTableList();
+onMounted(async () => {
+  const restored = restorePageState();
+  if (!tableList.value.length) {
+    await loadTableList();
+  }
+  if (
+    selectedTableCode.value
+    && !tableList.value.some((item) => item.tableCode === selectedTableCode.value)
+  ) {
+    selectedTableCode.value = undefined;
+    tableData.value = [];
+  }
+  if (!restored && selectedTableCode.value) {
+    await loadData();
+  }
+  if (restored && selectedTableCode.value && tableData.value.length === 0) {
+    await loadData();
+  }
 });
 
 watch(
   () => selectedTableCode.value,
   (val, oldVal) => {
+    if (restoringPageState) return;
     if (val !== oldVal) {
       loadData();
     }
@@ -530,6 +602,29 @@ watch(tableData, async (newVal) => {
     initSortable();
   }
 }, { immediate: false });
+
+watch(
+  [selectedRowKeys, selectedTableCode, tableData, tableList, searchKeyword],
+  () => {
+    if (!restoringPageState) {
+      savePageState();
+    }
+  },
+  { deep: true },
+);
+
+onActivated(() => {
+  restorePageState();
+});
+
+onDeactivated(() => {
+  savePageState();
+});
+
+onBeforeUnmount(() => {
+  savePageState();
+  destroySortable();
+});
 </script>
 
 <style scoped>
