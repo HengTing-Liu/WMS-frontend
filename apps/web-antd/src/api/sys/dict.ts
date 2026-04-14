@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 瀛楀吀绠＄悊 API
  * WMS0070 瀛楀吀绠＄悊 - 绯荤粺瀛楀吀绫诲瀷鍜屽瓧鍏告暟鎹? */
 import { requestClient } from '#/api/request';
@@ -18,7 +18,7 @@ export interface DictTypeResult {
   dictCode: string;
   dictName: string;
   dictType?: string; // system=绯荤粺瀛楀吀, custom=鑷畾涔?  isEnabled: number;
-  remark?: string;
+  remarks?: string;
   createBy?: string;
   createTime?: string;
   updateBy?: string;
@@ -40,7 +40,7 @@ export interface DictDataResult {
   dictType?: string;   // 鎵€灞炵被鍨嬬紪鐮?  dictTypeName?: string; // 鎵€灞炵被鍨嬪悕绉?  dictCode?: string;  // 瀛楀吀缂栫爜锛堝悓 dictType锛?  dictLabel: string;  // 瀛楀吀鏍囩
   dictValue: string;  // 瀛楀吀鍊?  sortOrder?: number; // 鎺掑簭
   isEnabled: number;
-  remark?: string;
+  remarks?: string;
   createBy?: string;
   createTime?: string;
   updateBy?: string;
@@ -55,7 +55,7 @@ function normalizeDictTypeRow(row: any): DictTypeResult {
     dictName: row?.dict_name ?? row?.dictName,
     dictType: row?.dict_type ?? row?.dictType,
     isEnabled: Number(row?.is_enabled ?? row?.isEnabled ?? row?.status ?? 0),
-    remark: row?.remark,
+    remarks: row?.remarks,
     createBy: row?.create_by ?? row?.createBy,
     createTime: row?.create_time ?? row?.createTime,
     updateBy: row?.update_by ?? row?.updateBy,
@@ -74,7 +74,7 @@ function normalizeDictDataRow(row: any): DictDataResult {
     dictValue: row?.dict_value ?? row?.dictValue,
     sortOrder: row?.sort_order ?? row?.sortOrder ?? 0,
     isEnabled: Number(row?.is_enabled ?? row?.isEnabled ?? row?.status ?? 0),
-    remark: row?.remark,
+    remarks: row?.remarks,
     createBy: row?.create_by ?? row?.createBy,
     createTime: row?.create_time ?? row?.createTime,
     updateBy: row?.update_by ?? row?.updateBy,
@@ -85,14 +85,14 @@ function normalizeDictDataRow(row: any): DictDataResult {
 // ========== Mock Data ==========
 
 const MOCK_DICT_TYPE_LIST: DictTypeResult[] = [
-  { id: 1, dictCode: 'sys_user_sex', dictName: '用户性别', dictType: 'system', isEnabled: 1, remark: '系统内置', createTime: '2026-01-01 10:00:00' },
-  { id: 2, dictCode: 'sys_yes_no', dictName: '是否', dictType: 'system', isEnabled: 1, remark: '通用是否标识', createTime: '2026-01-01 10:05:00' },
-  { id: 3, dictCode: 'sys_normal_disable', dictName: '状态', dictType: 'system', isEnabled: 1, remark: '正常/停用状态', createTime: '2026-01-01 10:10:00' },
-  { id: 4, dictCode: 'wms_order_type', dictName: '订单类型', dictType: 'custom', isEnabled: 1, remark: 'WMS订单类型', createTime: '2026-02-01 09:00:00' },
-  { id: 5, dictCode: 'wms_goods_type', dictName: '货物类型', dictType: 'custom', isEnabled: 1, remark: '货物类型分类', createTime: '2026-02-01 09:30:00' },
-  { id: 6, dictCode: 'wms_priority', dictName: '优先级', dictType: 'custom', isEnabled: 0, remark: '订单优先级', createTime: '2026-02-15 14:00:00' },
-  { id: 7, dictCode: 'wms_zone_type', dictName: '库区类型', dictType: 'custom', isEnabled: 1, remark: '库区功能分类', createTime: '2026-03-01 08:00:00' },
-  { id: 8, dictCode: 'wms_storage_type', dictName: '货位类型', dictType: 'custom', isEnabled: 1, remark: '货位存储类型', createTime: '2026-03-01 08:30:00' },
+  { id: 1, dictCode: 'sys_user_sex', dictName: '用户性别', dictType: 'system', isEnabled: 1, remarks: '系统内置', createTime: '2026-01-01 10:00:00' },
+  { id: 2, dictCode: 'sys_yes_no', dictName: '是否', dictType: 'system', isEnabled: 1, remarks: '通用是否标识', createTime: '2026-01-01 10:05:00' },
+  { id: 3, dictCode: 'sys_normal_disable', dictName: '状态', dictType: 'system', isEnabled: 1, remarks: '正常/停用状态', createTime: '2026-01-01 10:10:00' },
+  { id: 4, dictCode: 'wms_order_type', dictName: '订单类型', dictType: 'custom', isEnabled: 1, remarks: 'WMS订单类型', createTime: '2026-02-01 09:00:00' },
+  { id: 5, dictCode: 'wms_goods_type', dictName: '货物类型', dictType: 'custom', isEnabled: 1, remarks: '货物类型分类', createTime: '2026-02-01 09:30:00' },
+  { id: 6, dictCode: 'wms_priority', dictName: '优先级', dictType: 'custom', isEnabled: 0, remarks: '订单优先级', createTime: '2026-02-15 14:00:00' },
+  { id: 7, dictCode: 'wms_zone_type', dictName: '库区类型', dictType: 'custom', isEnabled: 1, remarks: '库区功能分类', createTime: '2026-03-01 08:00:00' },
+  { id: 8, dictCode: 'wms_storage_type', dictName: '货位类型', dictType: 'custom', isEnabled: 1, remarks: '货位存储类型', createTime: '2026-03-01 08:30:00' },
 ];
 
 const MOCK_DICT_DATA_LIST: DictDataResult[] = [

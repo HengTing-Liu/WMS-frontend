@@ -16,7 +16,7 @@ export interface WarehouseItem {
   temperatureZone?: string;
   qualityZone?: string;
   isEnabled: number;
-  remark?: string;
+  remarks?: string;
   createBy?: string;
   createTime?: string;
   updateBy?: string;

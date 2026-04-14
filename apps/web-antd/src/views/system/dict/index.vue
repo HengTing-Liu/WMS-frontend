@@ -72,8 +72,8 @@
             <Radio value="1">停用</Radio>
           </RadioGroup>
         </FormItem>
-        <FormItem name="remark" label="备注">
-          <Textarea v-model:value="formState.remark" placeholder="请输入备注" :rows="3" />
+        <FormItem name="remarks" label="备注">
+          <Textarea v-model:value="formState.remarks" placeholder="请输入备注" :rows="3" />
         </FormItem>
       </Form>
     </Modal>
@@ -180,7 +180,7 @@ const gridOptions: VxeTableGridOptions<DictTypeItem> = {
     { field: 'dictName', title: '字典名称', width: 160 },
     { field: 'dictType', title: '字典类型', width: 180 },
     { field: 'status', title: '状态', width: 90, slots: { default: 'status' } },
-    { field: 'remark', title: '备注', minWidth: 160 },
+    { field: 'remarks', title: '备注', minWidth: 160 },
     { field: 'createTime', title: '创建时间', width: 180 },
     {
       field: 'action',
@@ -232,12 +232,12 @@ const formState = reactive<{
   dictName: string;
   dictType: string;
   status: string;
-  remark?: string;
+  remarks?: string;
 }>({
   dictName: '',
   dictType: '',
   status: '0',
-  remark: '',
+  remarks: '',
 });
 
 async function checkDictTypeUnique(dictType: string, currentId?: number) {
@@ -266,7 +266,7 @@ function resetForm() {
   formState.dictName = '';
   formState.dictType = '';
   formState.status = '0';
-  formState.remark = '';
+  formState.remarks = '';
 }
 
 function handleAdd() {
@@ -284,7 +284,7 @@ async function handleEdit(record: DictTypeItem) {
     formState.dictName = detail.dictName ?? '';
     formState.dictType = detail.dictType ?? '';
     formState.status = detail.status ?? '0';
-    formState.remark = detail.remark ?? '';
+    formState.remarks = detail.remarks ?? '';
     modalVisible.value = true;
   } catch (e: any) {
     message.error(e?.message ?? '获取字典详情失败');
@@ -330,7 +330,7 @@ function handleModalOk() {
             dictName: formState.dictName,
             dictType: formState.dictType,
             status: formState.status,
-            remark: formState.remark || undefined,
+            remarks: formState.remarks || undefined,
           });
           message.success('新增成功');
         } else {
@@ -343,7 +343,7 @@ function handleModalOk() {
             dictName: formState.dictName,
             dictType: formState.dictType,
             status: formState.status,
-            remark: formState.remark || undefined,
+            remarks: formState.remarks || undefined,
           });
           message.success('修改成功');
         }

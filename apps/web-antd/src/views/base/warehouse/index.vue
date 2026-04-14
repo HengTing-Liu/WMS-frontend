@@ -174,8 +174,8 @@
         <FormItem label="状态" name="isEnabled">
           <Switch v-model:checked="formData.isEnabled" checked-children="启用" un-checked-children="停用" />
         </FormItem>
-        <FormItem label="备注" name="remark">
-          <Textarea v-model:value="formData.remark" placeholder="请输入备注" :rows="3" />
+        <FormItem label="备注" name="remarks">
+          <Textarea v-model:value="formData.remarks" placeholder="请输入备注" :rows="3" />
         </FormItem>
       </Form>
     </Modal>
@@ -261,7 +261,7 @@ const formData = reactive({
   temperatureZone: '',
   qualityZone: '',
   isEnabled: true,
-  remark: '',
+  remarks: '',
 });
 
 // 加载列表
@@ -354,7 +354,7 @@ function handleEdit(row?: any) {
       temperatureZone: '',
       qualityZone: '',
       isEnabled: true,
-      remark: '',
+      remarks: '',
     });
   }
   modalVisible.value = true;

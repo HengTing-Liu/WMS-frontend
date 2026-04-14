@@ -134,8 +134,8 @@
       </Row>
 
       <!-- 备注 -->
-      <FormItem :label="$t('page.common.remark')" name="remark">
-        <Textarea v-model:value="formData.remark" :rows="3" :max-length="500" show-count />
+      <FormItem :label="$t('page.common.remark')" name="remarks">
+        <Textarea v-model:value="formData.remarks" :rows="3" :max-length="500" show-count />
       </FormItem>
     </Form>
   </Modal>
@@ -185,7 +185,7 @@ const formData = reactive({
   status: '0',
   perms: '',
   icon: '',
-  remark: '',
+  remarks: '',
 });
 
 // 转换树数据，添加根节点选项
@@ -232,7 +232,7 @@ const open = async (row?: any) => {
     status: '0',
     perms: '',
     icon: '',
-    remark: '',
+    remarks: '',
   });
 
   if (isEdit.value && row?.menuId) {

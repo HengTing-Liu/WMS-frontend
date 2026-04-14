@@ -1,7 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router';
 
-import { $t } from '#/locales';
-
 const routes: RouteRecordRaw[] = [
   {
     meta: {
@@ -39,10 +37,14 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/sys/material/index.vue'),
       },
       {
-        meta: { title: '枚举管理' },
-        name: 'BaseEnum',
-        path: 'enum',
-        component: () => import('#/views/sys/enum/index.vue'),
+        meta: {
+          hideInMenu: true,
+          keepAlive: false,
+          title: '低代码表单',
+        },
+        name: 'LowcodeFormPage',
+        path: 'lowcode-form/:tableCode/:mode/:id?',
+        component: () => import('#/lowcode/LowcodeFormPage.vue'),
       },
       {
         meta: { title: '序列号规则' },

@@ -61,7 +61,7 @@
       </FormItem>
       <FormItem :label="$t('page.material.remark')">
         <Textarea
-          v-model:value="formData.remark"
+          v-model:value="formData.remarks"
           :placeholder="$t('page.material.remarkPlaceholder')"
           :rows="3"
         />
@@ -134,7 +134,7 @@ const formData = reactive<Record<string, any>>({
   unit: '',
   category: '',
   isEnabled: 1,
-  remark: '',
+  remarks: '',
 });
 
 // Load detail
@@ -195,7 +195,7 @@ const resetForm = () => {
   formData.unit = '';
   formData.category = '';
   formData.isEnabled = 1;
-  formData.remark = '';
+  formData.remarks = '';
   formRef.value?.resetFields();
 };
 

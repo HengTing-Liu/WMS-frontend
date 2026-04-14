@@ -18,7 +18,7 @@ export interface CustomerResult {
   phone?: string;
   address?: string;
   status: number;
-  remark?: string;
+  remarks?: string;
   createBy?: string;
   createTime?: string;
   updateBy?: string;
@@ -35,7 +35,7 @@ function normalizeCustomerRow(row: any): CustomerResult {
     phone: row?.phone,
     address: row?.address,
     status: Number(row?.status ?? 1),
-    remark: row?.remark,
+    remarks: row?.remarks,
     createBy: row?.createBy ?? row?.create_by,
     createTime: row?.createTime ?? row?.create_time,
     updateBy: row?.updateBy ?? row?.update_by,

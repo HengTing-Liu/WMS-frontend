@@ -65,8 +65,8 @@
         </RadioGroup>
       </FormItem>
 
-      <FormItem :label="$t('page.common.remark')" name="remark">
-        <Textarea v-model:value="formData.remark" :rows="3" :max-length="500" show-count />
+      <FormItem :label="$t('page.common.remark')" name="remarks">
+        <Textarea v-model:value="formData.remarks" :rows="3" :max-length="500" show-count />
       </FormItem>
     </Form>
   </Modal>
@@ -111,7 +111,7 @@ const formData = reactive({
   perms: '',
   icon: '',
   isEnabled: 1,
-  remark: '',
+  remarks: '',
 });
 
 const permissionTreeSelectData = computed(() => [

@@ -5,7 +5,7 @@ export interface DictTypeItem {
   createTime?: string | null;
   updateBy?: string | null;
   updateTime?: string | null;
-  remark?: string | null;
+  remarks?: string | null;
   dictId: number;
   dictName: string;
   dictType: string;
@@ -46,7 +46,7 @@ async function addDictType(data: {
   dictName: string;
   dictType: string;
   status: string;
-  remark?: string;
+  remarks?: string;
 }) {
   return requestClient.post('/api/dict/type', data, { responseReturn: 'body' });
 }
@@ -70,7 +70,7 @@ async function editDictType(data: {
   dictName: string;
   dictType: string;
   status: string;
-  remark?: string;
+  remarks?: string;
 }) {
   return requestClient.put('/api/dict/type', data, { responseReturn: 'body' });
 }
@@ -119,7 +119,7 @@ export interface DictDataItem {
   createTime?: string;
   updateBy?: string | null;
   updateTime?: string | null;
-  remark?: string | null;
+  remarks?: string | null;
   [key: string]: any;
 }
 
@@ -163,7 +163,7 @@ async function addDictData(data: {
   listClass?: string;
   isDefault?: string;
   status: string;
-  remark?: string;
+  remarks?: string;
 }) {
   return requestClient.post('/api/dict/data', data, { responseReturn: 'body' });
 }
@@ -182,7 +182,7 @@ async function editDictData(data: {
   listClass?: string;
   isDefault?: string;
   status: string;
-  remark?: string;
+  remarks?: string;
 }) {
   return requestClient.put('/api/dict/data', data, { responseReturn: 'body' });
 }

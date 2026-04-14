@@ -17,7 +17,7 @@ export namespace DeptApi {
     createTime: string;
     updateBy?: string | null;
     updateTime?: string | null;
-    remark?: string | null;
+    remarks?: string | null;
     parentName?: string | null;
     children?: DeptTreeNode[];
   }
@@ -54,7 +54,7 @@ export interface DeptSaveBody {
   phone?: string;
   email?: string;
   status?: string;
-  remark?: string;
+  remarks?: string;
   /** 后端可能用，可选 */
   ancestors?: string;
   parentName?: string;

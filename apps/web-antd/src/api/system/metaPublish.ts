@@ -18,7 +18,7 @@ export namespace MetaPublishApi {
     publishBy?: string;
     publishByName?: string;
     publishTime?: string;
-    remark?: string;
+    remarks?: string;
     createdAt?: string;
     updatedAt?: string;
   }
@@ -99,7 +99,7 @@ export namespace MetaPublishApi {
 }
 
 // 生成发布计划（预览）
-export async function generatePublishPlan(params: { tableCodes: string[]; forced?: boolean; remark?: string }) {
+export async function generatePublishPlan(params: { tableCodes: string[]; forced?: boolean; remarks?: string }) {
   return requestClient.post<MetaPublishApi.PublishPlanResponse[]>(
     '/api/system/meta/publish/plan',
     params,
@@ -107,7 +107,7 @@ export async function generatePublishPlan(params: { tableCodes: string[]; forced
 }
 
 // 保存发布计划
-export async function savePublishPlan(params: { tableCodes: string[]; forced?: boolean; remark?: string }) {
+export async function savePublishPlan(params: { tableCodes: string[]; forced?: boolean; remarks?: string }) {
   return requestClient.post<MetaPublishApi.MetaPublish>(
     '/api/system/meta/publish/save',
     params,

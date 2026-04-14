@@ -41,6 +41,7 @@
         <div v-if="visibleToolbarActions.length" class="flex gap-2">
           <template v-for="action in visibleToolbarActions" :key="action.key">
             <Button
+              :danger="isDangerButton(action)"
               :type="getButtonType(action)"
               :loading="actionLoading[action.key]"
               @click="handleToolbarAction(action)"
@@ -148,23 +149,12 @@
         </template>
       </WmsDataTable>
     </div>
-
-    <!-- 新增/编辑抽屉 -->
-    <LowcodeDrawer
-      ref="drawerRef"
-      v-model:open="drawerVisible"
-      :table-code="tableCode"
-      :record="currentRecord"
-      :fullscreen="drawerFullscreen"
-      @update:fullscreen="drawerFullscreen = $event"
-      @success="handleFormSuccess"
-      @close="handleDrawerClose"
-    />
   </Page>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onActivated, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
 import {
   Button,
@@ -177,27 +167,15 @@ import { Page } from '@vben/common-ui';
 import { useAccess } from '@vben/access';
 import WmsSearchBar from '#/components/common/WmsSearchBar.vue';
 import WmsDataTable from '#/components/common/WmsDataTable.vue';
-import LowcodeDrawer from './LowcodeDrawer.vue';
-import { fetchColumnSchema, fetchPageMeta, fetchList, createRecord, updateRecord, deleteRecord, toggleRecord } from './api';
+import { fetchPageMeta, fetchList, deleteRecord, toggleRecord } from './api';
 import type { ColumnMeta, LowcodeAction, LowcodeSearchField, StatsCardConfig } from './types';
 import {
   handleAction,
-  executeBuiltinHandler,
   isExportAction,
   parseEventConfig,
   type ActionContext,
 } from './events';
 import { expandAllPermissionCodes } from './permission-utils';
-
-/**
- * 统一布尔值判断：兼容 1/0（整数）和 true/false（JSON反序列化后的boolean）
- * 约定：1 / true → 启用态，0 / false → 停用态
- */
-function isEnabledValue(raw: any): boolean {
-  if (raw === 1 || raw === true || raw === '1' || raw === 'true') return true;
-  if (raw === 0 || raw === false || raw === '0' || raw === 'false') return false;
-  return false;
-}
 
 /**
  * 判断记录是否启用（兼容多种值类型）
@@ -253,12 +231,8 @@ const dataList = ref<any[]>([]);
 const selectedRowKeys = ref<any[]>([]);
 const searchForm = reactive<Record<string, any>>({});
 const actionLoading = ref<Record<string, boolean>>({});
-
-const drawerRef = ref();
-// 抽屉
-const drawerVisible = ref(false);
-const drawerFullscreen = ref(false);
-const currentRecord = ref<Record<string, any> | null>(null);
+const router = useRouter();
+const route = useRoute();
 
 // 分页
 const pagination = reactive({
@@ -308,7 +282,7 @@ const visibleToolbarActions = computed(() =>
 );
 
 function actionNeedsSelectedRows(action: LowcodeAction): boolean {
-  const config = parseEventConfig(action.eventConfig);
+  const config = parseEventConfig(action.eventConfig ?? {});
   if (config?.payloadType === 'selected') return true;
 
   // fallback: builtin/export 默认无 payloadType 时不强制勾选，仅明确 selected 时开启
@@ -369,13 +343,6 @@ const columns = computed<any[]>(() => {
 
   return cols;
 });
-
-// ==================== 统计数据 ====================
-function formatStatValue(value: any, config: StatsCardConfig): string {
-  if (config.format) return config.format(value);
-  if (value === null || value === undefined) return '0';
-  return String(value);
-}
 
 /** 表格单元格取值：兼容列 dataIndex 与接口字段驼峰/蛇形不一致 */
 function pickRecordField(record: Record<string, any>, key: string): unknown {
@@ -466,7 +433,7 @@ function canRenderAction(action: LowcodeAction): boolean {
 }
 
 /** 获取按钮类型 */
-function getButtonType(action: LowcodeAction): 'primary' | 'default' | 'danger' | 'text' {
+function getButtonType(action: LowcodeAction): 'default' | 'primary' | 'text' {
   // 新建按钮默认 primary
   if (action.key === 'create' || action.key === 'add') {
     return 'primary';
@@ -479,7 +446,12 @@ function getButtonType(action: LowcodeAction): 'primary' | 'default' | 'danger' 
   if (action.type === 'link') {
     return 'text';
   }
-  return action.type || 'default';
+  if (action.type === 'primary') return 'primary';
+  return 'default';
+}
+
+function isDangerButton(action: LowcodeAction): boolean {
+  return action.key === 'delete' || action.type === 'danger';
 }
 
 /** 统一事件处理入口 */
@@ -531,7 +503,7 @@ function buildExportParams(): Record<string, any> {
 
 /** 导出动作处理（通过配置决定导出范围） */
 async function handleExportAction(action: LowcodeAction) {
-  const config = parseEventConfig(action.eventConfig);
+  const config = parseEventConfig(action.eventConfig ?? {});
 
   // 调试信息（开发环境可见）
   if (import.meta.env.DEV) {
@@ -634,14 +606,42 @@ function onSelectionChange(keys: any[]) {
 }
 
 function handleCreate() {
-  currentRecord.value = null;
-  drawerVisible.value = true;
+  void router.push({
+    name: 'LowcodeFormPage',
+    params: {
+      mode: 'create',
+      tableCode: props.tableCode,
+    },
+    query: {
+      crudPrefix: props.crudPrefix,
+      desc: props.pageDesc,
+      from: route.fullPath,
+      title: props.pageTitle,
+    },
+  });
   emit('create');
 }
 
 function handleEdit(record: any) {
-  currentRecord.value = record;
-  drawerVisible.value = true;
+  const id = record?.id;
+  if (id === undefined || id === null || id === '') {
+    message.error('当前记录缺少 ID，无法编辑');
+    return;
+  }
+  void router.push({
+    name: 'LowcodeFormPage',
+    params: {
+      id: String(id),
+      mode: 'edit',
+      tableCode: props.tableCode,
+    },
+    query: {
+      crudPrefix: props.crudPrefix,
+      desc: props.pageDesc,
+      from: route.fullPath,
+      title: props.pageTitle,
+    },
+  });
   emit('edit', record);
 }
 
@@ -676,15 +676,6 @@ async function handleDelete(id: number | string) {
   }
 }
 
-function handleFormSuccess(record: Record<string, any>) {
-  loadData();
-  emit('formSuccess', record);
-}
-
-function handleDrawerClose() {
-  currentRecord.value = null;
-}
-
 // ==================== 初始化 ====================
 async function init() {
   try {
@@ -700,10 +691,16 @@ async function init() {
       key: op.operationCode,
       label: op.operationName,
       // operationType: button→primary, link→text
-      type: op.operationType === 'link' ? 'text' : 'primary',
+      type: (op.operationType === 'link'
+        ? 'text'
+        : op.operationType === 'danger'
+          ? 'danger'
+          : 'primary') as LowcodeAction['type'],
       icon: op.icon,
       permission: op.permission,
-      position: (op.position as any) ?? 'row',
+      position: (op.position === 'toolbar' || op.position === 'row'
+        ? op.position
+        : 'row') as LowcodeAction['position'],
       // 事件类型和配置
       eventType: op.eventType || 'builtin',
       eventConfig: op.eventConfig,
@@ -730,6 +727,10 @@ onMounted(() => {
   init();
 });
 
+onActivated(() => {
+  loadData();
+});
+
 // 若外部传入静态操作按钮，覆盖 meta 配置
 watch(
   () => props.staticOperations,
@@ -743,7 +744,6 @@ watch(
 defineExpose({
   reload: loadData,
   handleEdit,
-  drawerRef,
   dataList,
   pagination,
 });

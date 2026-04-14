@@ -21,7 +21,7 @@ export interface UserDataPermission {
   createByName?: string;
   createTime?: string;
   updateTime?: string;
-  remark?: string;
+  remarks?: string;
 }
 
 /**

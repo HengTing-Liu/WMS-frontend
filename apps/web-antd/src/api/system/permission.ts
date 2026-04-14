@@ -99,7 +99,7 @@ export interface SysPermissionResult {
   component?: string;
   query?: string;
   status?: string;
-  remark?: string;
+  remarks?: string;
   createBy?: string;
   createTime?: string;
   updateBy?: string;
@@ -134,7 +134,7 @@ export interface SysPermissionRequest {
   component?: string;
   query?: string;
   status?: string;
-  remark?: string;
+  remarks?: string;
 }
 
 /**

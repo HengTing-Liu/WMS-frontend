@@ -29,7 +29,7 @@ export namespace ColumnMetaApi {
     rulesJson?: string;
     sortOrder: number;
     status: number;
-    remark?: string;
+    remarks?: string;
     componentProps?: string;
     dataSource?: string;
     apiUrl?: string;
@@ -124,7 +124,7 @@ function normalizeSchemaColumn(item: any): ColumnMetaApi.ColumnMeta {
     rulesJson: item.rulesJson ?? '',
     sortOrder: Number(item.sortOrder ?? 0),
     status: Number(item.status ?? 1),
-    remark: '',
+    remarks: '',
     componentProps: item.componentProps ?? '',
     dataSource: item.dataSource ?? '',
     apiUrl: item.apiUrl ?? '',

@@ -20,7 +20,7 @@ const formState = ref({
   dictName: '',
   dictType: 'custom',
   isEnabled: 1,
-  remark: '',
+  remarks: '',
 });
 
 const isEdit = computed(() => !!props.dictTypeId);
@@ -32,7 +32,7 @@ const rules = {
 };
 
 function resetForm() {
-  formState.value = { dictCode: '', dictName: '', dictType: 'custom', isEnabled: 1, remark: '' };
+  formState.value = { dictCode: '', dictName: '', dictType: 'custom', isEnabled: 1, remarks: '' };
   formRef.value?.resetFields();
 }
 
@@ -55,7 +55,7 @@ async function loadDetail(id: number) {
       dictName: data.dictName || '',
       dictType: data.dictType || 'custom',
       isEnabled: data.isEnabled ?? 1,
-      remark: data.remark || '',
+      remarks: data.remarks || '',
     };
   } catch (e: any) {
     message.error('加载详情失败');
@@ -136,8 +136,8 @@ defineExpose({ open: (id: number) => loadDetail(id) });
           :unchecked-value="0"
         />
       </FormItem>
-      <FormItem label="备注" name="remark">
-        <Input v-model:value="formState.remark" placeholder="请输入备注" :rows="3" type="textarea" />
+      <FormItem label="备注" name="remarks">
+        <Input v-model:value="formState.remarks" placeholder="请输入备注" :rows="3" type="textarea" />
       </FormItem>
     </Form>
   </Modal>

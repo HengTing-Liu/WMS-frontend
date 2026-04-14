@@ -15,11 +15,18 @@
     v-model:open="internalOpen"
     :title="drawerTitle"
     :width="width"
-    :fullscreen="fullscreen"
+    :fullscreen="internalFullscreen"
     :destroy-on-close="true"
     :mask-closable="false"
     @close="handleClose"
   >
+    <template #extra>
+      <Tooltip :title="internalFullscreen ? '退出全屏' : '全屏'">
+        <Button type="text" @click="toggleFullscreen">
+          <IconifyIcon :icon="internalFullscreen ? 'material-symbols:fullscreen-exit' : 'material-symbols:fullscreen'" />
+        </Button>
+      </Tooltip>
+    </template>
     <Spin :spinning="loading">
       <!-- 表单定义页面（复用现有组件） -->
       <DynamicFormDefinitionPage
@@ -36,7 +43,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { Drawer, Spin } from 'ant-design-vue';
+import { Button, Drawer, Spin, Tooltip } from 'ant-design-vue';
+import { IconifyIcon } from '@vben/icons';
 import { requestClient } from '#/api/request';
 import DynamicFormDefinitionPage from '#/components/DynamicFormDefinitionPage.vue';
 
@@ -80,6 +88,8 @@ const internalOpen = computed({
   get: () => props.open,
   set: (val) => emit('update:open', val),
 });
+
+const internalFullscreen = ref(false);
 
 const loading = ref(false);
 const formPageRef = ref();
@@ -295,6 +305,7 @@ async function handleSave(model: Record<string, any>) {
 
 function handleClose() {
   internalOpen.value = false;
+  internalFullscreen.value = false;
   emit('close');
 }
 
@@ -310,8 +321,7 @@ function reset() {
 
 /** 切换全屏 */
 function toggleFullscreen() {
-  // 通过 emit 让父组件知道需要切换全屏
-  emit('update:fullscreen', !props.fullscreen);
+  internalFullscreen.value = !internalFullscreen.value;
 }
 
 defineExpose({ submit, reset, toggleFullscreen });

@@ -58,8 +58,8 @@
         </RadioGroup>
       </FormItem>
 
-      <FormItem :label="$t('page.common.remark')" name="remark">
-        <Textarea v-model:value="formData.remark" :rows="3" />
+      <FormItem :label="$t('page.common.remark')" name="remarks">
+        <Textarea v-model:value="formData.remarks" :rows="3" />
       </FormItem>
     </Form>
   </Modal>
@@ -98,7 +98,7 @@ const formData = reactive({
   dataScope: '1',
   deptIds: [] as number[],
   status: '0',
-  remark: '',
+  remarks: '',
 });
 
 const rules = computed(() => ({
@@ -143,7 +143,7 @@ const open = async (row?: any) => {
     dataScope: '1',
     deptIds: [],
     status: '0',
-    remark: '',
+    remarks: '',
   });
 
   // 加载部门树
@@ -162,7 +162,7 @@ const open = async (row?: any) => {
           dataScope: res.dataScope || '1',
           deptIds: res.deptIds || [],
           status: res.status || '0',
-          remark: res.remark || '',
+          remarks: res.remarks || '',
         });
       }
     } catch (error) {

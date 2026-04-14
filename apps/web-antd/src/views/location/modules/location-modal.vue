@@ -122,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import {
   Modal,
   Form,
@@ -140,7 +140,6 @@ import {
 import { IconifyIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
 import { createLocation, updateLocation, getLocationDetail, type LocationApi } from '#/api';
-import { getEnumItemList } from '#/api/system/enum';
 
 interface Props {
   locationTree: LocationApi.Container[];
@@ -170,9 +169,6 @@ const formData = reactive<Partial<LocationApi.Container>>({
   description: '',
 });
 
-// 类型层级顺序 - 从枚举动态获取
-const typeOrder = ref<string[]>([]);
-
 // 图标映射
 const iconMap: Record<string, string> = {
   warehouse: 'material-symbols:warehouse',
@@ -182,43 +178,17 @@ const iconMap: Record<string, string> = {
   box: 'material-symbols:box',
 };
 
-// 从枚举获取的容器类型数据
-const containerTypeEnum = ref<Array<{ value: string; label: string; icon: string; sortOrder: number }>>([]);
+// 容器类型数据（静态配置）
+const containerTypeEnum = ref<Array<{ value: string; label: string; icon: string; sortOrder: number }>>([
+  { value: 'warehouse', label: $t('page.location.locationType.warehouse'), icon: iconMap.warehouse, sortOrder: 1 },
+  { value: 'area', label: $t('page.location.locationType.area'), icon: iconMap.area, sortOrder: 2 },
+  { value: 'shelf', label: $t('page.location.locationType.shelf'), icon: iconMap.shelf, sortOrder: 3 },
+  { value: 'slot', label: $t('page.location.locationType.slot'), icon: iconMap.slot, sortOrder: 4 },
+  { value: 'box', label: $t('page.location.locationType.box'), icon: iconMap.box, sortOrder: 5 },
+]);
 
-// 加载枚举数据
-const loadContainerTypeEnum = async () => {
-  try {
-    const res = await getEnumItemList({ enumCode: 'container_type' });
-    const items = res.rows || [];
-    
-    // 过滤启用的项并排序
-    const sortedItems = items
-      .filter((item: any) => item.isEnabled === '1')
-      .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    
-    // 设置类型顺序
-    typeOrder.value = sortedItems.map((item: any) => item.itemKey);
-    
-    // 设置类型选项
-    containerTypeEnum.value = sortedItems.map((item: any) => ({
-      value: item.itemKey,
-      label: item.itemValue,
-      icon: iconMap[item.itemKey] || 'material-symbols:folder',
-      sortOrder: item.sortOrder || 0,
-    }));
-  } catch (error) {
-    console.error('加载容器类型枚举失败:', error);
-    // 回退到默认数据
-    typeOrder.value = ['warehouse', 'area', 'shelf', 'slot', 'box'];
-    containerTypeEnum.value = [
-      { value: 'warehouse', label: $t('page.location.locationType.warehouse'), icon: iconMap.warehouse, sortOrder: 1 },
-      { value: 'area', label: $t('page.location.locationType.area'), icon: iconMap.area, sortOrder: 2 },
-      { value: 'shelf', label: $t('page.location.locationType.shelf'), icon: iconMap.shelf, sortOrder: 3 },
-      { value: 'slot', label: $t('page.location.locationType.slot'), icon: iconMap.slot, sortOrder: 4 },
-      { value: 'box', label: $t('page.location.locationType.box'), icon: iconMap.box, sortOrder: 5 },
-    ];
-  }
-};
+// 类型层级顺序
+const typeOrder = ref<string[]>(['warehouse', 'area', 'shelf', 'slot', 'box']);
 
 // 类型选项
 const typeOptions = computed(() => containerTypeEnum.value);
@@ -429,10 +399,6 @@ watch(availableTypes, (types) => {
   }
 }, { immediate: true });
 
-// 组件挂载时加载枚举数据
-onMounted(() => {
-  loadContainerTypeEnum();
-});
 
 defineExpose({ open });
 </script>

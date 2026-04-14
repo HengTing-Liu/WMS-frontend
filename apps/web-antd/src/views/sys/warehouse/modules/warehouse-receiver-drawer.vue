@@ -123,9 +123,9 @@
         >
       </FormItem>
 
-      <FormItem :label="$t('page.warehouse.remark')" name="remark">
+      <FormItem :label="$t('page.warehouse.remark')" name="remarks">
         <Textarea
-          v-model:value="formData.remark"
+          v-model:value="formData.remarks"
           :placeholder="$t('page.common.inputPlaceholder')"
           :rows="2"
           allow-clear
@@ -208,7 +208,7 @@ const formData = ref({
   detailedAddress: '',
   postalCode: '',
   isDefault: 0,
-  remark: '',
+  remarks: '',
 });
 
 const isDefaultChecked = computed({
@@ -321,7 +321,7 @@ const resetForm = () => {
     detailedAddress: '',
     postalCode: '',
     isDefault: 0,
-    remark: '',
+    remarks: '',
   };
 };
 
@@ -342,7 +342,7 @@ const fetchDetail = async () => {
       detailedAddress: data.detailedAddress,
       postalCode: data.postalCode || '',
       isDefault: Number(data.isDefault || 0),
-      remark: data.remark || '',
+      remarks: data.remarks || '',
     };
   } catch {
     message.error($t('page.common.fetchFailed'));

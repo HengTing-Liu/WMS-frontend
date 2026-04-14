@@ -19,7 +19,7 @@ export interface MaterialResult {
   unit?: string;
   category?: string;
   isEnabled: number;
-  remark?: string;
+  remarks?: string;
   createBy?: string;
   createTime?: string;
   updateBy?: string;
@@ -36,7 +36,7 @@ function normalizeMaterialRow(row: any): MaterialResult {
     unit: row?.unit,
     category: row?.category,
     isEnabled: Number(row?.is_enabled ?? row?.isEnabled ?? row?.status ?? 1),
-    remark: row?.remark,
+    remarks: row?.remarks,
     createBy: row?.create_by ?? row?.createBy,
     createTime: row?.create_time ?? row?.createTime,
     updateBy: row?.update_by ?? row?.updateBy,

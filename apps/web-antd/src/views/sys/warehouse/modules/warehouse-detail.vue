@@ -39,7 +39,7 @@
         </Tag>
       </DescriptionsItem>
       <DescriptionsItem :label="$t('page.warehouse.remark')">
-        {{ detail.remark || '-' }}
+        {{ detail.remarks || '-' }}
       </DescriptionsItem>
       <DescriptionsItem :label="$t('page.common.createTime')">
         {{ detail.createTime }}

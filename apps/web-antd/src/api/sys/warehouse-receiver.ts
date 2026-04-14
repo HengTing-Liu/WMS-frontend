@@ -24,7 +24,7 @@ export interface WarehouseReceiverResult {
   detailedAddress: string;
   postalCode?: string;
   isDefault: number;
-  remark?: string;
+  remarks?: string;
   createTime: string;
   createBy?: string;
   updateTime: string;
@@ -48,7 +48,7 @@ function normalizeReceiver(item: Recordable<any>): WarehouseReceiverResult {
     detailedAddress: String(item.detailedAddress ?? item.detailed_address ?? ''),
     postalCode: (item.postalCode ?? item.postal_code ?? '') || undefined,
     isDefault: Number(item.isDefault ?? item.is_default ?? 0),
-    remark: (item.remark ?? '') || undefined,
+    remarks: (item.remarks ?? '') || undefined,
     createTime: String(item.createTime ?? item.create_time ?? ''),
     createBy: (item.createBy ?? item.create_by ?? '') || undefined,
     updateTime: String(item.updateTime ?? item.update_time ?? ''),
@@ -68,7 +68,7 @@ function normalizePayload(data: Partial<WarehouseReceiverResult>) {
     detailedAddress: data.detailedAddress ?? '',
     postalCode: data.postalCode ?? '',
     isDefault: Number(data.isDefault ?? 0),
-    remark: data.remark ?? '',
+    remarks: data.remarks ?? '',
   };
 }
 

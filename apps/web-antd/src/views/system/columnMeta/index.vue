@@ -16,7 +16,7 @@
               style="width: 280px"
               show-search
               :filter-option="filterTableOption"
-              @change="handleTableChange"
+              @change="(value) => handleTableChange(value as string | number | undefined)"
             >
               <Select.Option v-for="table in tableList" :key="table.tableCode" :value="table.tableCode">
                 {{ table.tableCode }} - {{ table.tableName }}
@@ -101,12 +101,24 @@
           </Tag>
         </template>
 
+        <template v-else-if="column.key === 'sectionType'">
+          <Tag :color="record.sectionType === 'collapse' ? 'geekblue' : 'default'">
+            {{ record.sectionType === 'collapse' ? 'Collapse' : 'Card' }}
+          </Tag>
+        </template>
+
+        <template v-else-if="column.key === 'sectionOpen'">
+          <Tag :color="Number(record.sectionOpen ?? 1) === 1 ? 'green' : 'default'">
+            {{ Number(record.sectionOpen ?? 1) === 1 ? '是' : '否' }}
+          </Tag>
+        </template>
+
         <!-- 是否必填 -->
         <template v-else-if="column.key === 'required'">
           <Switch
             :checked="record.required === 1"
             size="small"
-            @change="(checked: boolean) => handleToggleRequired(record, checked)"
+            @change="(checked) => void handleToggleRequired(record, checked as boolean)"
           />
         </template>
 
@@ -115,7 +127,7 @@
           <Switch
             :checked="record.showInList === 1"
             size="small"
-            @change="(checked: boolean) => handleToggleShowInList(record, checked)"
+            @change="(checked) => void handleToggleShowInList(record, checked as boolean)"
           />
         </template>
 
@@ -124,7 +136,7 @@
           <Switch
             :checked="record.showInForm === 1"
             size="small"
-            @change="(checked: boolean) => handleToggleShowInForm(record, checked)"
+            @change="(checked) => void handleToggleShowInForm(record, checked as boolean)"
           />
         </template>
 
@@ -133,7 +145,7 @@
           <Switch
             :checked="record.status === 1"
             size="small"
-            @change="(checked: boolean) => handleToggleStatus(record, checked)"
+            @change="(checked) => void handleToggleStatus(record, checked as boolean)"
           />
         </template>
 
@@ -188,7 +200,6 @@ import {
   Input,
   Popconfirm,
   Select,
-  SelectOption,
   Space,
   Switch,
   Tag,
@@ -282,12 +293,17 @@ const columns = computed<TableColumnsType>(() => [
   { title: '排序', key: 'seq', width: 70, align: 'center' },
   { title: '字段编码', dataIndex: 'field', key: 'field', width: 150 },
   { title: '字段名称', dataIndex: 'title', key: 'title', width: 150 },
+  { title: '分组', dataIndex: 'sectionTitle', key: 'sectionTitle', width: 140 },
+  { title: '分组Key', dataIndex: 'sectionKey', key: 'sectionKey', width: 120 },
+  { title: '容器', dataIndex: 'sectionType', key: 'sectionType', width: 90, align: 'center' },
   { title: '字段类型', key: 'formType', width: 120, align: 'center' },
   { title: '数据类型', key: 'dataType', width: 100, align: 'center' },
   { title: '必填', key: 'required', width: 70, align: 'center' },
   { title: '列表显示', key: 'showInList', width: 90, align: 'center' },
   { title: '表单显示', key: 'showInForm', width: 90, align: 'center' },
   { title: '排序号', dataIndex: 'sortOrder', key: 'sortOrder', width: 80, align: 'center' },
+  { title: '分组排序', dataIndex: 'sectionOrder', key: 'sectionOrder', width: 90, align: 'center' },
+  { title: '默认展开', dataIndex: 'sectionOpen', key: 'sectionOpen', width: 90, align: 'center' },
   { title: '状态', key: 'status', width: 70, align: 'center' },
   { title: '操作', key: 'action', width: 120, align: 'center', fixed: 'right' },
 ]);
@@ -328,16 +344,18 @@ async function loadData() {
     });
 
     // 按 sortOrder 排序
-    let rows = res.rows || [];
+    let rows: ColumnMetaApi.ColumnMeta[] = res.rows || [];
     if (searchKeyword.value) {
       const keyword = searchKeyword.value.toLowerCase();
       rows = rows.filter(
-        (item) =>
+        (item: ColumnMetaApi.ColumnMeta) =>
           (item.field || item.columnCode || '').toLowerCase().includes(keyword) ||
           (item.title || item.columnName || '').toLowerCase().includes(keyword)
       );
     }
-    tableData.value = rows.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    tableData.value = rows.sort(
+      (a: ColumnMetaApi.ColumnMeta, b: ColumnMetaApi.ColumnMeta) => (a.sortOrder || 0) - (b.sortOrder || 0),
+    );
     selectedRowKeys.value = [];
   } catch (error: any) {
     message.error(error?.message || '加载字段列表失败');
@@ -348,7 +366,7 @@ async function loadData() {
 }
 
 // ========== 事件处理 ==========
-function handleTableChange(value: string | number) {
+function handleTableChange(value?: string | number) {
   // Ignore transient clear events while options are still loading.
   if (!value && tableLoading.value) return;
   selectedTableCode.value = value ? String(value) : undefined;
@@ -503,6 +521,10 @@ async function initSortable() {
 
       // 本地调整顺序
       const movedItem = tableData.value.splice(oldIndex, 1)[0];
+      if (!movedItem) {
+        await loadData();
+        return;
+      }
       tableData.value.splice(newIndex, 0, movedItem);
 
       // 重新计算 sortOrder

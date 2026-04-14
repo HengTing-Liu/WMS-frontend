@@ -86,7 +86,7 @@ export const consigneeFieldMetas: FieldMeta[] = [
     defaultValue: 1,
   },
   {
-    fieldCode: 'remark',
+    fieldCode: 'remarks',
     fieldName: '备注',
     fieldType: 'textarea',
     maxLength: 500,
@@ -192,7 +192,7 @@ export const consigneePageConfig = {
   tableName: '收货人管理',
   queryFields: ['consignee_code', 'consignee_name', 'contact_name', 'contact_phone', 'company'],
   tableFields: ['consignee_code', 'consignee_name', 'contact_name', 'contact_phone', 'address', 'company', 'is_enabled', 'create_time'],
-  formFields: ['consignee_code', 'consignee_name', 'contact_name', 'contact_phone', 'address', 'company', 'is_enabled', 'remark'],
+  formFields: ['consignee_code', 'consignee_name', 'contact_name', 'contact_phone', 'address', 'company', 'is_enabled', 'remarks'],
   fieldMetas: consigneeFieldMetas,
   primaryKey: 'consignee_id',
   permPrefix: 'sys:consignee',

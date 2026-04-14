@@ -23,7 +23,7 @@ export interface SysLogResult {
   create_time?: string;
   update_by?: string;
   update_time?: string;
-  remark?: string;
+  remarks?: string;
 }
 
 /**

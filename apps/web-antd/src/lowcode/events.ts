@@ -17,7 +17,7 @@ import { downloadBlob } from '#/utils/download';
 import type { LowcodeAction, ApiEventConfig, DownloadEventConfig, RedirectEventConfig } from './types';
 import { expandAllPermissionCodes } from './permission-utils';
 
-interface ActionContext {
+export interface ActionContext {
   crudPrefix?: string;
   tableCode: string;
   searchForm: Record<string, any>;
@@ -53,7 +53,7 @@ export function isExportAction(key: string): boolean {
 }
 
 /** 解析事件配置 JSON */
-export function parseEventConfig(config: string | object): any {
+export function parseEventConfig(config?: string | object): any {
   // 调试信息
   if (import.meta.env.DEV) {
     console.log('[parseEventConfig] input:', config, 'type:', typeof config);
@@ -245,7 +245,7 @@ export function executeRedirectAction(
   ctx: ActionContext,
 ): void {
   const config: RedirectEventConfig = parseEventConfig(action.eventConfig);
-  const router = window.__VITE_ROUTER__; // 需要注入 router
+  const router = (window as any).__VITE_ROUTER__; // 需要注入 router
 
   if (!router) {
     console.warn('Router not available');

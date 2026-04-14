@@ -99,51 +99,21 @@ import {
   type LocationApi,
 } from '#/api';
 
-import { getEnumItemList } from '#/api/system/enum';
-
-import { onMounted } from 'vue';
-
 import LocationVisualizer from './components/LocationVisualizer.vue';
 import LocationModal from './modules/location-modal.vue';
-
-const modalRef = ref();
 const treeData = ref<LocationApi.Container[]>([]);
 const selectedNode = ref<LocationApi.Container | null>(null);
 const selectedContainer = ref<LocationApi.Container | null>(null);
 const containerList = ref<LocationApi.Container[]>([]);
 
-// 从枚举获取的容器类型数据
-const containerTypeMap = ref<Record<string, { label: string; color: string }>>({});
-
-// 加载枚举数据
-const loadContainerTypeEnum = async () => {
-  try {
-    const res = await getEnumItemList({ enumCode: 'container_type' });
-    const items = res.rows || [];
-    const map: Record<string, { label: string; color: string }> = {};
-    
-    items.forEach((item: any) => {
-      if (item.isEnabled === '1') {
-        map[item.itemKey] = {
-          label: item.itemValue,
-          color: item.itemDesc || 'default', // itemDesc can store color info
-        };
-      }
-    });
-    
-    containerTypeMap.value = map;
-  } catch (error) {
-    console.error($t('page.location.loadContainerTypeEnumFail'), error);
-    // 回退到默认数据
-    containerTypeMap.value = {
-      warehouse: { label: $t('page.location.type.warehouse'), color: 'blue' },
-      area: { label: $t('page.location.type.area'), color: 'cyan' },
-      shelf: { label: $t('page.location.type.shelf'), color: 'purple' },
-      slot: { label: $t('page.location.type.slot'), color: 'orange' },
-      box: { label: $t('page.location.type.box'), color: 'green' },
-    };
-  }
-};
+// 容器类型数据（静态配置）
+const containerTypeMap = ref<Record<string, { label: string; color: string }>>({
+  warehouse: { label: $t('page.location.type.warehouse'), color: 'blue' },
+  area: { label: $t('page.location.type.area'), color: 'cyan' },
+  shelf: { label: $t('page.location.type.shelf'), color: 'purple' },
+  slot: { label: $t('page.location.type.slot'), color: 'orange' },
+  box: { label: $t('page.location.type.box'), color: 'green' },
+});
 
 // 图标映射 - 从枚举数据动态生成
 const iconMap = computed<Record<string, string>>(() => {
@@ -436,12 +406,6 @@ const handleModalSuccess = () => {
   gridApi.reload();
   handleRefresh();
 };
-
-// 组件挂载时加载枚举数据
-onMounted(() => {
-  loadContainerTypeEnum();
-});
-</script>
 
 <style scoped lang="less">
 .location-page {

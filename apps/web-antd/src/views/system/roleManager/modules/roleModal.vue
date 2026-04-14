@@ -154,7 +154,7 @@ const [Modal, modalApi] = useVbenModal({
           roleSort: record.roleSort,
           status: record.status ?? '0',
           dataScope: record.dataScope ?? '1',
-          remark: record.remark ?? '',
+          remarks: record.remarks ?? '',
         });
       } else {
         // 新增角色：加载完整菜单树（/api/menu/list）
@@ -262,7 +262,7 @@ const onSubmit = async (values: Record<string, any>) => {
       roleSort: Number(values.roleSort ?? 1),
       status: values.status ?? '0',
       dataScope: values.dataScope ?? '1',
-      remark: values.remark || undefined,
+      remarks: values.remarks || undefined,
       menuIds,
     };
     if (isEdit.value && data.value?.record) {

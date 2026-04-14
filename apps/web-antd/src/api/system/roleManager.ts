@@ -15,7 +15,7 @@ export namespace RoleApi {
     createTime: string;
     updateBy?: string | null;
     updateTime?: string | null;
-    remark?: string | null;
+    remarks?: string | null;
     flag?: boolean;
     menuIds?: number[] | null;
     deptIds?: number[] | null;
@@ -73,7 +73,7 @@ export interface RoleSaveBody {
   status: string;
   dataScope?: string;
   menuIds?: number[];
-  remark?: string;
+  remarks?: string;
   menuCheckStrictly?: boolean;
   deptCheckStrictly?: boolean;
   [key: string]: any;

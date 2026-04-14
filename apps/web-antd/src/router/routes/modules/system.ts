@@ -1,4 +1,4 @@
-import type { RouteRecordRaw } from 'vue-router';
+﻿import type { RouteRecordRaw } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -6,14 +6,14 @@ const routes: RouteRecordRaw[] = [
       icon: 'ic:baseline-view-in-ar',
       keepAlive: true,
       order: 1000,
-      title: '系统设置',
+      title: '绯荤粺璁剧疆',
     },
     name: 'System',
     path: '/system',
     children: [
       {
         meta: {
-          title: '用户管理',
+          title: '鐢ㄦ埛绠＄悊',
         },
         name: 'User',
         path: '/user',
@@ -21,7 +21,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
-          title: '角色管理',
+          title: '瑙掕壊绠＄悊',
         },
         name: 'RoleManager',
         path: '/role',
@@ -29,7 +29,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
-          title: '部门管理',
+          title: '閮ㄩ棬绠＄悊',
         },
         name: 'DepartmentManager',
         path: '/dept',
@@ -37,7 +37,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
-          title: '菜单管理',
+          title: '鑿滃崟绠＄悊',
         },
         name: 'Management',
         path: '/menu',
@@ -45,7 +45,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
-          title: '权限管理',
+          title: '鏉冮檺绠＄悊',
         },
         name: 'SysPermission',
         path: '/permission',
@@ -59,7 +59,7 @@ const routes: RouteRecordRaw[] = [
         path: '/lowcode',
         children: [
           {
-            meta: { title: '表元数据' },
+            meta: { title: '琛ㄥ厓鏁版嵁' },
             name: 'TableMeta',
             path: 'table',
             component: () => import('#/views/system/tableMeta/index.vue'),
@@ -71,13 +71,19 @@ const routes: RouteRecordRaw[] = [
             component: () => import('#/views/system/columnMeta/index.vue'),
           },
           {
+            meta: { title: '分组元数据' },
+            name: 'GroupMeta',
+            path: 'group',
+            component: () => import('#/views/system/groupMeta/index.vue'),
+          },
+          {
             meta: { title: '操作元数据' },
             name: 'OperationMeta',
             path: 'operation',
             component: () => import('#/views/system/operationMeta/index.vue'),
           },
           {
-            meta: { title: '发布管理' },
+            meta: { title: '鍙戝竷绠＄悊' },
             name: 'MetaPublish',
             path: 'publish',
             component: () => import('#/views/system/metaPublish/index.vue'),
@@ -87,14 +93,14 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
-          title: '日志管理',
+          title: '鏃ュ織绠＄悊',
         },
         name: 'LogManager',
         path: '/log',
         children: [
           {
             meta: {
-              title: '操作日志',
+              title: '鎿嶄綔鏃ュ織',
             },
             name: 'OperLog',
             path: '/log/oper',
@@ -102,7 +108,7 @@ const routes: RouteRecordRaw[] = [
           },
           {
             meta: {
-              title: '登录日志',
+              title: '鐧诲綍鏃ュ織',
             },
             name: 'LoginLog',
             path: '/log/login',
@@ -113,7 +119,7 @@ const routes: RouteRecordRaw[] = [
       {
         meta: {
           hideInMenu: true,
-          title: '数据权限',
+          title: '鏁版嵁鏉冮檺',
         },
         name: 'RoleDataScope',
         path: '/role/dataScope/:roleId',
@@ -123,7 +129,7 @@ const routes: RouteRecordRaw[] = [
         meta: {
           hideInMenu: true,
           ignoreAccess: true,
-          title: '分配用户',
+          title: '鍒嗛厤鐢ㄦ埛',
         },
         name: 'RoleAssignUser',
         path: '/role/assignUser/:roleId',
@@ -132,7 +138,7 @@ const routes: RouteRecordRaw[] = [
       {
         meta: {
           hideInMenu: true,
-          title: '分配角色',
+          title: '鍒嗛厤瑙掕壊',
         },
         name: 'UserAssignRole',
         path: '/user/assignRole/:userId',
@@ -141,7 +147,7 @@ const routes: RouteRecordRaw[] = [
       {
         meta: {
           hideInMenu: true,
-          title: '产品分类',
+          title: '浜у搧鍒嗙被',
         },
         name: 'ProductCategory',
         path: '/productCategory',
@@ -150,7 +156,7 @@ const routes: RouteRecordRaw[] = [
       {
         meta: {
           hideInMenu: true,
-          title: '产品分类-新增',
+          title: '浜у搧鍒嗙被-鏂板',
         },
         name: 'ProductCategoryAdd',
         path: 'productCategory/add',
@@ -159,7 +165,7 @@ const routes: RouteRecordRaw[] = [
       {
         meta: {
           hideInMenu: true,
-          title: '测试数据',
+          title: '娴嬭瘯鏁版嵁',
         },
         name: 'Testing',
         path: '/Testing',
@@ -170,3 +176,5 @@ const routes: RouteRecordRaw[] = [
 ];
 
 export default routes;
+
+

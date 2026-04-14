@@ -58,7 +58,7 @@
         <Switch v-model:checked="statusChecked" />
       </FormItem>
       <FormItem label="备注">
-        <Textarea v-model:value="formData.remark" :rows="3" />
+        <Textarea v-model:value="formData.remarks" :rows="3" />
       </FormItem>
     </Form>
   </Modal>
@@ -117,7 +117,7 @@ const formData = reactive<Record<string, any>>({
   pageSize: 20,
   isTree: 0,
   status: 1,
-  remark: '',
+  remarks: '',
 });
 
 const statusChecked = computed({
@@ -183,7 +183,7 @@ function resetForm() {
     pageSize: 20,
     isTree: 0,
     status: 1,
-    remark: '',
+    remarks: '',
   });
 }
 
@@ -216,7 +216,7 @@ async function handleSubmit() {
       entityClass: formData.entityClass?.trim() || '',
       serviceClass: formData.serviceClass?.trim() || '',
       permissionCode: formData.permissionCode?.trim() || '',
-      remark: formData.remark?.trim() || '',
+      remarks: formData.remarks?.trim() || '',
     };
 
     if (isEdit.value) {

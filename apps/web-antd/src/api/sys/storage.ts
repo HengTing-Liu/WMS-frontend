@@ -20,7 +20,7 @@ export interface StorageResult {
   storageCode: string;
   storageName: string;
   status: number;
-  remark?: string;
+  remarks?: string;
   createBy?: string;
   createTime?: string;
   updateBy?: string;
@@ -38,7 +38,7 @@ function normalizeStorageRow(row: any): StorageResult {
     storageCode: row?.storageCode ?? row?.storage_code,
     storageName: row?.storageName ?? row?.storage_name,
     status: Number(row?.status ?? 1),
-    remark: row?.remark,
+    remarks: row?.remarks,
     createBy: row?.createBy ?? row?.create_by,
     createTime: row?.createTime ?? row?.create_time,
     updateBy: row?.updateBy ?? row?.update_by,

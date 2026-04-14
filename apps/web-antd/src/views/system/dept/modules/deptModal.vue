@@ -63,7 +63,7 @@ const [Modal, modalApi] = useVbenModal({
           phone: record.phone,
           email: record.email,
           status: record.status ?? '0',
-          remark: record.remark,
+          remarks: record.remarks ?? '',
         });
       } else if (parent) {
         formApi.setValues({ parentId: parent.deptId, orderNum: 0, status: '0' });
@@ -144,7 +144,7 @@ const onSubmit = async (values: Record<string, any>) => {
       phone: values.phone || undefined,
       email: values.email || undefined,
       status: values.status ?? '0',
-      remark: values.remark || undefined,
+      remarks: values.remarks || undefined,
     };
     if (isEdit.value && data.value?.record) {
       body.deptId = data.value.record.deptId;

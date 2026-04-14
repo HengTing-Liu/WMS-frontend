@@ -88,7 +88,7 @@ export interface LocationResult {
   warehouseCode?: string;
   locationType?: string;
   isEnabled: number;
-  remark?: string;
+  remarks?: string;
   createBy?: string;
   createTime?: string;
   updateBy?: string;
@@ -106,7 +106,7 @@ function normalizeLocationRow(row: any): LocationResult {
     warehouseCode: row?.warehouse_code ?? row?.warehouseCode,
     locationType: row?.location_type ?? row?.locationType,
     isEnabled: Number(row?.is_enabled ?? row?.isEnabled ?? row?.status ?? 0),
-    remark: row?.remark,
+    remarks: row?.remarks,
     createBy: row?.create_by ?? row?.createBy,
     createTime: row?.create_time ?? row?.createTime,
     updateBy: row?.update_by ?? row?.updateBy,

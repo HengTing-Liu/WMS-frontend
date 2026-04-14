@@ -40,8 +40,8 @@
           <Select.Option :value="1">启用</Select.Option>
         </Select>
       </Form.Item>
-      <Form.Item label="备注" name="remark">
-        <Textarea v-model:value="formData.remark" placeholder="请输入备注" :rows="3" />
+      <Form.Item label="备注" name="remarks">
+        <Textarea v-model:value="formData.remarks" placeholder="请输入备注" :rows="3" />
       </Form.Item>
     </Form>
   </Modal>
@@ -78,7 +78,7 @@ const formData = ref({
   storageCode: '',
   storageName: '',
   status: 1,
-  remark: '',
+  remarks: '',
 });
 
 const rules = {};

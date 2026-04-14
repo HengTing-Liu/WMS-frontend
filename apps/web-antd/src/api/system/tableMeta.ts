@@ -14,7 +14,7 @@ export namespace TableMetaApi {
     pageSize?: number;
     isTree?: number;
     status?: number;
-    remark?: string;
+    remarks?: string;
     createBy?: string;
     createTime?: string;
     updateBy?: string;

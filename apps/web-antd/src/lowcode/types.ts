@@ -1,11 +1,11 @@
-/**
- * Lowcode 模块 - 共享类型定义
- * 与后端 sys_table_meta / sys_column_meta / sys_table_operation 对齐
+﻿/**
+ * Lowcode 妯″潡 - 鍏变韩绫诲瀷瀹氫箟
+ * 涓庡悗绔?sys_table_meta / sys_column_meta / sys_table_operation 瀵归綈
  */
 
-// ==================== 后端返回类型 ====================
+// ==================== 鍚庣杩斿洖绫诲瀷 ====================
 
-/** 表元数据 */
+/** 琛ㄥ厓鏁版嵁 */
 export interface TableMeta {
   id?: number;
   tableCode: string;
@@ -15,12 +15,12 @@ export interface TableMeta {
   serviceClass?: string;
   permissionCode?: string;
   pageSize?: number;
-  isTree?: number | boolean; // 0/1 或 true/false
+  isTree?: number | boolean; // 0/1 鎴?true/false
   status?: number;
   remark?: string;
 }
 
-/** 字段元数据（ColumnMetaVO）*/
+/** 字段元数据（ColumnMetaVO） */
 export interface ColumnMeta {
   id?: number;
   tableCode: string;
@@ -44,6 +44,10 @@ export interface ColumnMeta {
   defaultValue?: string;
   colSpan?: number;
   sectionKey?: string;
+  sectionTitle?: string;
+  sectionOrder?: number;
+  sectionType?: 'card' | 'collapse' | string;
+  sectionOpen?: number | boolean;
   i18nKey?: string;
   visibleCondition?: string;
   status?: number;
@@ -52,7 +56,28 @@ export interface ColumnMeta {
   dataSource?: Array<{ label: string; value: string | number }>;
 }
 
-/** 操作按钮配置 */
+export interface LowcodeFormGroup {
+  key: string;
+  title: string;
+  order: number;
+  type: 'card' | 'collapse';
+  defaultOpen: boolean;
+  fields: ColumnMeta[];
+}
+
+export interface FormGroupMeta {
+  id?: number;
+  tableCode: string;
+  groupCode: string;
+  groupTitle: string;
+  groupType?: 'card' | 'collapse' | string;
+  sortOrder?: number;
+  defaultOpen?: number | boolean;
+  status?: number;
+  remarks?: string;
+}
+
+/** 鎿嶄綔鎸夐挳閰嶇疆 */
 export interface TableOperation {
   id?: number;
   tableCode: string;
@@ -64,16 +89,15 @@ export interface TableOperation {
   position?: 'toolbar' | 'row';
   sortOrder?: number;
   status?: number;
-  // 新增字段（支持工具栏事件配置）
-  eventType?: string;
+  // 鏂板瀛楁锛堟敮鎸佸伐鍏锋爮浜嬩欢閰嶇疆锛?  eventType?: string;
   eventConfig?: string;
   confirmMessage?: string;
   isEnabled?: number;
 }
 
-// ==================== 前端解析后类型 ====================
+// ==================== 鍓嶇瑙ｆ瀽鍚庣被鍨?====================
 
-/** 搜索栏字段（与 WmsSearchBar.SearchField 兼容）*/
+/** 鎼滅储鏍忓瓧娈碉紙涓?WmsSearchBar.SearchField 鍏煎锛?/
 export interface LowcodeSearchField {
   key: string;
   label: string;
@@ -81,7 +105,7 @@ export interface LowcodeSearchField {
   options?: { label: string; value: string | number }[];
 }
 
-/** 表格列配置（与 ant-design-vue Table columns 兼容）*/
+/** 琛ㄦ牸鍒楅厤缃紙涓?ant-design-vue Table columns 鍏煎锛?/
 export interface LowcodeColumn {
   title: string;
   dataIndex: string;
@@ -92,17 +116,17 @@ export interface LowcodeColumn {
   customRender?: (opts: { text: any; record: any; index: number }) => any;
 }
 
-// ==================== 事件配置类型 ====================
+// ==================== 浜嬩欢閰嶇疆绫诲瀷 ====================
 
-/** 事件类型 */
+/** 浜嬩欢绫诲瀷 */
 export type EventType = 'builtin' | 'api' | 'download' | 'redirect' | 'modal' | 'drawer' | 'custom';
 
-/** 内置动作配置 */
+/** 鍐呯疆鍔ㄤ綔閰嶇疆 */
 export interface BuiltinEventConfig {
   handler: 'create' | 'edit' | 'delete' | 'toggle' | 'export';
 }
 
-/** API 调用配置 */
+/** API 璋冪敤閰嶇疆 */
 export interface ApiEventConfig {
   url: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -112,7 +136,7 @@ export interface ApiEventConfig {
   failMessage?: string;
 }
 
-/** 文件下载配置 */
+/** 鏂囦欢涓嬭浇閰嶇疆 */
 export interface DownloadEventConfig {
   url: string;
   method: 'GET' | 'POST';
@@ -121,16 +145,16 @@ export interface DownloadEventConfig {
   responseType?: 'blob';
 }
 
-/** 页面跳转配置 */
+/** 椤甸潰璺宠浆閰嶇疆 */
 export interface RedirectEventConfig {
   path: string;
   query?: Record<string, string>;
 }
 
-/** 载荷类型 */
+/** 杞借嵎绫诲瀷 */
 export type PayloadType = 'none' | 'filtered' | 'selected' | 'currentPage' | 'all';
 
-/** 操作按钮完整配置 */
+/** 鎿嶄綔鎸夐挳瀹屾暣閰嶇疆 */
 export interface LowcodeAction {
   key: string;
   label: string;
@@ -144,29 +168,29 @@ export interface LowcodeAction {
   confirm?: string;
 }
 
-// ==================== 页面模板类型 ====================
+// ==================== 椤甸潰妯℃澘绫诲瀷 ====================
 
 export type PageTemplate = 'standard-list' | 'tree-list';
 
-/** LowcodePage 配置项 */
+/** LowcodePage 閰嶇疆椤?*/
 export interface LowcodePageConfig {
-  /** 表编码，对应 sys_table_meta.table_code */
+  /** 琛ㄧ紪鐮侊紝瀵瑰簲 sys_table_meta.table_code */
   tableCode: string;
-  /** 页面标题 */
+  /** 椤甸潰鏍囬 */
   pageTitle: string;
-  /** 页面描述 */
+  /** 椤甸潰鎻忚堪 */
   pageDesc?: string;
-  /** 页面模板 */
+  /** 椤甸潰妯℃澘 */
   template: PageTemplate;
-  /** 页面元数据（从后端加载，或前端传入）*/
+  /** 椤甸潰鍏冩暟鎹紙浠庡悗绔姞杞斤紝鎴栧墠绔紶鍏ワ級*/
   tableMeta?: TableMeta;
-  /** 字段列表 */
+  /** 瀛楁鍒楄〃 */
   columns?: ColumnMeta[];
-  /** 操作按钮列表 */
+  /** 鎿嶄綔鎸夐挳鍒楄〃 */
   operations?: TableOperation[];
-  /** 是否显示统计卡片 */
+  /** 鏄惁鏄剧ず缁熻鍗＄墖 */
   showStats?: boolean;
-  /** 统计卡片配置 */
+  /** 缁熻鍗＄墖閰嶇疆 */
   statsConfig?: StatsCardConfig[];
 }
 
@@ -175,13 +199,13 @@ export interface StatsCardConfig {
   label: string;
   icon: string;
   color: string;
-  /** 统计值字段路径，如 'totalCount' */
+  /** 缁熻鍊煎瓧娈佃矾寰勶紝濡?'totalCount' */
   field: string;
-  /** 格式化函数 */
+  /** 鏍煎紡鍖栧嚱鏁?*/
   format?: (value: any) => string;
 }
 
-// ==================== 通用响应结构 ====================
+// ==================== 閫氱敤鍝嶅簲缁撴瀯 ====================
 
 export interface ListResponse<T = any> {
   code?: number;
@@ -199,3 +223,4 @@ export interface ApiResponse<T = any> {
   data?: T;
   msg?: string;
 }
+

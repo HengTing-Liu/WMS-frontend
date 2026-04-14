@@ -224,7 +224,7 @@ const [Form, formApi] = useVbenForm({
         placeholder: '请输入',
       },
        formItemClass: 'col-span-2 items-baseline',
-      fieldName: 'remark',
+      fieldName: 'remarks',
       label: '备注',
     },
     

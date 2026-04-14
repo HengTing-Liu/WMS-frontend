@@ -32,7 +32,7 @@
         </Col>
         <Col :span="12">
           <FormItem :label="$t('page.common.remark')">
-            <Input v-model:value="formData.remark" />
+            <Input v-model:value="formData.remarks" />
           </FormItem>
         </Col>
       </Row>

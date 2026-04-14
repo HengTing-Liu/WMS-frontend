@@ -21,7 +21,7 @@ export interface RoleDataPermission {
   createByName?: string;
   createTime?: string;
   updateTime?: string;
-  remark?: string;
+  remarks?: string;
 }
 
 /**

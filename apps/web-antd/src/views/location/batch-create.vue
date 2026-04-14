@@ -227,7 +227,6 @@ import { IconifyIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
 
 import { getLocationTree, batchCreateContainers } from '#/api';
-import { getEnumItemList } from '#/api/system/enum';
 
 const router = useRouter();
 const formRef = ref();
@@ -249,56 +248,23 @@ const formData = ref({
   },
 });
 
-// 从枚举获取的容器类型数据
-const containerTypeEnum = ref<Array<{ value: string; label: string; icon: string; sortOrder: number }>>([]);
-const typeOrder = ref<string[]>([]);
+// 容器类型数据（静态配置）
+const containerTypeEnum = ref<Array<{ value: string; label: string; icon: string; sortOrder: number }>>([
+  { value: 'warehouse', label: $t('page.location.locationType.warehouse'), icon: iconMap.warehouse, sortOrder: 1 },
+  { value: 'area', label: $t('page.location.locationType.area'), icon: iconMap.area, sortOrder: 2 },
+  { value: 'shelf', label: $t('page.location.locationType.shelf'), icon: iconMap.shelf, sortOrder: 3 },
+  { value: 'slot', label: $t('page.location.locationType.slot'), icon: iconMap.slot, sortOrder: 4 },
+  { value: 'box', label: $t('page.location.locationType.box'), icon: iconMap.box, sortOrder: 5 },
+]);
+const typeOrder = ref<string[]>(['warehouse', 'area', 'shelf', 'slot', 'box']);
 
 // 图标映射
 const iconMap: Record<string, string> = {
-  refrigerator: 'material-symbols:kitchen',
-  layer: 'material-symbols:layers',
+  warehouse: 'material-symbols:warehouse',
+  area: 'material-symbols:map',
   shelf: 'material-symbols:shelves',
-  row: 'material-symbols:view-week',
+  slot: 'material-symbols:grid-view',
   box: 'material-symbols:box',
-  hole: 'material-symbols:grid-on',
-};
-
-// 加载枚举数据
-const loadContainerTypeEnum = async () => {
-  try {
-    const res = await getEnumItemList({ enumCode: 'container_type' });
-    const items = (res as any)?.data?.rows || (res as any)?.rows || [];
-    
-    // 建立中文到英文的映射
-    const typeValueMap: Record<string, string> = {};
-    items.forEach((item: any) => {
-      const key = item.itemKey;
-      const value = item.itemValue;
-      if (key && value) {
-        typeValueMap[value] = key;
-      }
-    });
-    console.log('[DEBUG] type mapping:', typeValueMap);
-    
-    // 直接使用所有数据，不过滤
-    // 按 sortOrder 排序
-    const sortedItems = [...items].sort((a: any, b: any) => 
-      (a.sortOrder || 0) - (b.sortOrder || 0)
-    );
-    
-    typeOrder.value = sortedItems.map((item: any) => item.itemKey);
-    
-    // 存储中文和英文的映射
-    containerTypeEnum.value = sortedItems.map((item: any) => ({
-      value: item.itemKey,
-      label: item.itemValue,
-      icon: iconMap[item.itemKey] || 'material-symbols:folder',
-      sortOrder: item.sortOrder || 0,
-    }));
-    console.log('[DEBUG] sorted typeOrder:', typeOrder.value);
-  } catch (error) {
-    console.error($t('page.location.loadEnumFail'), error);
-  }
 };
 
 // parent node debug
@@ -508,7 +474,6 @@ watch(
 // 初始化
 onMounted(() => {
   loadTreeData();
-  loadContainerTypeEnum();
 });
 </script>
 
