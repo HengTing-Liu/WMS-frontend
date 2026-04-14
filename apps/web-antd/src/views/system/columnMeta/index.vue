@@ -479,6 +479,10 @@ async function handleToggleShowInForm(record: ColumnMetaApi.ColumnMeta, checked:
 let sortableInstance: any = null;
 
 async function initSortable() {
+  if (searchKeyword.value.trim()) {
+    destroySortable();
+    return;
+  }
   const tbody = document.querySelector('.drag-table .ant-table-tbody') as HTMLElement;
   if (!tbody) return;
 
@@ -491,6 +495,11 @@ async function initSortable() {
     onEnd: async (evt: any) => {
       const { oldIndex, newIndex } = evt;
       if (oldIndex === newIndex || oldIndex === undefined || newIndex === undefined) return;
+      if (searchKeyword.value.trim()) {
+        message.warning('存在搜索条件时不允许拖拽排序，请先清空搜索条件');
+        await loadData();
+        return;
+      }
 
       // 本地调整顺序
       const movedItem = tableData.value.splice(oldIndex, 1)[0];
@@ -600,8 +609,22 @@ watch(tableData, async (newVal) => {
   if (newVal?.length > 0) {
     await nextTick();
     initSortable();
+  } else {
+    destroySortable();
   }
 }, { immediate: false });
+
+watch(
+  () => searchKeyword.value,
+  async () => {
+    await nextTick();
+    if (tableData.value.length > 0) {
+      await initSortable();
+    } else {
+      destroySortable();
+    }
+  },
+);
 
 watch(
   [selectedRowKeys, selectedTableCode, tableData, tableList, searchKeyword],
