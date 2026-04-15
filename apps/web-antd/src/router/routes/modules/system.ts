@@ -25,7 +25,7 @@ const routes: RouteRecordRaw[] = [
         },
         name: 'RoleManager',
         path: '/role',
-        component: () => import('#/views/system/role/index.vue'),
+        component: () => import('#/views/system/role/lowcode-index.vue'),
       },
       {
         meta: {
