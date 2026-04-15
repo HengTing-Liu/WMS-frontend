@@ -1,10 +1,10 @@
 <template>
   <LowcodePage
     ref="lowcodePageRef"
-    table-code="sys_material"
+    table-code="inv_material"
     :page-title="$t('page.wms.material.listTitle')"
     :page-desc="$t('page.wms.material.listDescription')"
-    crud-prefix="/api/wms/crud/sys_material"
+    crud-prefix="/api/wms/crud/inv_material"
     @form-success="handleFormSuccess"
   />
 </template>

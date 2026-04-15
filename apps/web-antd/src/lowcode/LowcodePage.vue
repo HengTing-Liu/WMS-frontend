@@ -434,7 +434,7 @@ function canRenderAction(action: LowcodeAction): boolean {
   const codes = expandAllPermissionCodes(action.permission);
   if (codes.length === 0) return true;
   const matched = codes.find((code) => hasAccessByCodes([code]));
-  if (!matched && import.meta.env.DEV && props.tableCode === 'sys_warehouse') {
+  if (!matched && import.meta.env.DEV && props.tableCode === 'inv_warehouse') {
     console.warn('[LowcodePage] action hidden by permission check', {
       actionKey: action.key,
       actionLabel: action.label,
@@ -737,7 +737,7 @@ async function init() {
       confirm: op.operationType === 'confirm' ? '是否确认该操作?' : undefined,
     }));
 
-    if (import.meta.env.DEV && props.tableCode === 'sys_warehouse') {
+    if (import.meta.env.DEV && props.tableCode === 'inv_warehouse') {
       console.warn('[LowcodePage] meta operations loaded', {
         tableCode: props.tableCode,
         operationCount: operations.length,

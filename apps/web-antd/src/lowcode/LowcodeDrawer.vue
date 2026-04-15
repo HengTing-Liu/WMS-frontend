@@ -248,8 +248,8 @@ function inferDetailUrl(): string {
   const urlMap: Record<string, string> = {
     WMS0010: '/api/base/warehouse',
     WMS0030: '/api/base/material',
-    sys_warehouse: '/api/base/warehouse',
-    sys_material: '/api/base/material',
+    inv_warehouse: '/api/base/warehouse',
+    inv_material: '/api/base/material',
     sys_user: '/api/system/user',
     sys_role: '/api/system/role',
   };
@@ -263,7 +263,7 @@ function inferDetailUrl(): string {
     return `/api/base/${props.tableCode.replace(/^WMS/, '').toLowerCase()}`;
   }
 
-  // 其他情况：取 tableCode 最后一段（支持 sys_warehouse → warehouse）
+  // 其他情况：取 tableCode 最后一段（支持 inv_warehouse → warehouse）
   const segments = props.tableCode.split('_');
   const entityName = segments[segments.length - 1];
   return `/api/base/${entityName}`;

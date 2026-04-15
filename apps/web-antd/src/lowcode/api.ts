@@ -153,10 +153,10 @@ export function inferCrudPrefix(tableCode: string): string {
     // WMS缂傛牜鐖?    WMS0010: '/api/base/warehouse',
     WMS0030: '/api/base/material',
     WMS0040: '/api/base/basicData',
-    // 閻椻晝鎮婄悰銊ユ倳閿涘牅缍嗘禒锝囩垳娑撴挾鏁ら敍?    sys_warehouse: '/api/wms/crud/sys_warehouse',
-    sys_warehouse_receiver: '/api/wms/crud/sys_warehouse_receiver',
+    // 閻椻晝鎮婄悰銊ユ倳閿涘牅缍嗘禒锝囩垳娑撴挾鏁ら敍?    inv_warehouse: '/api/wms/crud/inv_warehouse',
+    inv_warehouse_receiver: '/api/wms/crud/inv_warehouse_receiver',
     sys_user: '/api/wms/crud/sys_user',
-    // 娑撴艾濮熺悰銊ㄨ泲娴ｅ簼鍞惍渚€鈧氨鏁ら幒褍鍩楅崳?    sys_material: '/api/wms/crud/sys_material',
+    // 娑撴艾濮熺悰銊ㄨ泲娴ｅ簼鍞惍渚€鈧氨鏁ら幒褍鍩楅崳?    inv_material: '/api/wms/crud/inv_material',
   };
   if (entityMap[tableCode]) return entityMap[tableCode];
   // 閸忔粌绨崇憴鍕灟

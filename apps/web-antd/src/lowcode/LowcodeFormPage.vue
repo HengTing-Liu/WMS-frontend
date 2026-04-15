@@ -745,8 +745,8 @@ async function goBack() {
   }
 
   const fallbackByTable: Record<string, string[]> = {
-    sys_warehouse: ['/sys/warehouse', '/warehouse'],
-    sys_material: ['/sys/material', '/material'],
+    inv_warehouse: ['/sys/warehouse', '/warehouse'],
+    inv_material: ['/sys/material', '/material'],
     sys_location: ['/sys/location', '/location'],
   };
 

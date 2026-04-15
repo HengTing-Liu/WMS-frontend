@@ -2,7 +2,7 @@
   <div class="sys-warehouse-page">
   <LowcodePage
     ref="lowcodePageRef"
-    table-code="sys_warehouse"
+    table-code="inv_warehouse"
     page-title="WMS0010 仓库档案"
     page-desc="管理仓库基本信息、温区、质检分区等"
     :crud-prefix="crudPrefix"
@@ -34,7 +34,7 @@ import { IconifyIcon } from '@vben/icons';
 import LowcodePage from '#/lowcode/LowcodePage.vue';
 import WarehouseReceiverModal from '#/views/sys/warehouse/modules/warehouse-receiver-modal.vue';
 
-const crudPrefix = '/api/wms/crud/sys_warehouse';
+const crudPrefix = '/api/wms/crud/inv_warehouse';
 
 // LowcodePage 引用
 const lowcodePageRef = ref<InstanceType<typeof LowcodePage> | null>(null);

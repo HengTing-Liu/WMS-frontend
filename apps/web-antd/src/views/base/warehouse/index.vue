@@ -243,7 +243,7 @@ const searchForm = reactive({
 });
 
 // 远程字段接口 URL（后端根据 dict_type 自动加载下拉选项）
-const remoteFieldsUrl = '/api/system/meta/column/schema?tableCode=sys_warehouse';
+const remoteFieldsUrl = '/api/system/meta/column/schema?tableCode=inv_warehouse';
 
 // 弹窗
 const modalVisible = ref(false);
