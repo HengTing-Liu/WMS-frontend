@@ -151,8 +151,8 @@ const formModel = computed(() => {
         console.log('[DEBUG Proxy get]', key, 'val:', val, 'field:', field ? `${field.type}` : 'null', '→ 返回:', field?.type === 'switch' ? (val === undefined || val === null ? 'true(启用)' : (val ? 'true' : 'false')) : val);
       }
       if (field?.type === 'switch') {
-        // 如果值为 undefined/null，默认返回 true（启用）
-        if (val === undefined || val === null) return true;
+        // switch 未选择时保持空值，不默认启用
+        if (val === undefined || val === null) return undefined;
         if (val === 1 || val === '1' || val === true) return true;
         if (val === 0 || val === '0' || val === false) return false;
       }
@@ -220,6 +220,11 @@ function parseMetaFields(metaData: any[]): SearchField[] {
     const key = col.code;
     const label = col.label || key;
     const formType = col.formType || 'input';
+
+    // 逻辑删除字段不应出现在默认搜索栏
+    if (key === 'isDeleted' || key === 'is_deleted') {
+      continue;
+    }
 
     // is_enabled / isEnabled 字段特殊处理：强制渲染为 switch（忽略后端的 formType）
     if (key === 'is_enabled' || key === 'isEnabled') {
@@ -351,16 +356,7 @@ async function loadRemoteFields() {
     await Promise.all(loaders);
 
     allFields.value = fields;
-    // 初始化 switch 字段的默认值：若 searchForm 中没有该字段，则默认设为 1（启用）
-    // 直接设置到 modelValue（父组件传入的响应式对象）
-    if (props.modelValue) {
-      for (const field of fields) {
-        if (field.type === 'switch' && props.modelValue[field.key] === undefined) {
-          props.modelValue[field.key] = 1;
-        }
-      }
-    }
-    console.log('[DEBUG WmsSearchBar] 加载完成 allFields:', JSON.stringify(fields.map(f => f.key)));
+    initSelectedKeys();
   } catch {
     allFields.value = props.fields;
     console.error('[DEBUG WmsSearchBar] 加载失败，使用 props.fields');

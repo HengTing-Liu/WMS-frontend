@@ -4,7 +4,7 @@
     v-model:open="visible"
     @ok="handleSubmit"
     :confirm-loading="loading"
-    :width="isEdit ? 900 : 500"
+    :width="isEdit ? 1000 : 500"
   >
     <!-- 字典类型基本信息 -->
     <Form :model="formData" layout="vertical">
@@ -67,6 +67,21 @@
               :placeholder="$t('page.system.dict.valuePlaceholder')"
             />
             <span v-else>{{ record.dictValue }}</span>
+          </template>
+
+          <!-- 语言类型列 -->
+          <template v-if="column.key === 'languageType'">
+            <Select 
+              v-if="record.isEditing"
+              v-model:value="record.editData.languageType" 
+              size="small"
+              style="width: 100px"
+            >
+              <SelectOption value="zh_CN">简体中文</SelectOption>
+              <SelectOption value="en_US">English</SelectOption>
+              <SelectOption value="zh_TW">繁体中文</SelectOption>
+            </Select>
+            <span v-else>{{ getLanguageTypeLabel(record.languageType) }}</span>
           </template>
 
           <!-- 排序列 -->
@@ -140,14 +155,28 @@ const formData = reactive({
   remark: '',
 });
 
+// 语言类型选项
+const languageTypeOptions = [
+  { label: '简体中文', value: 'zh_CN' },
+  { label: 'English', value: 'en_US' },
+  { label: '繁体中文', value: 'zh_TW' },
+];
+
+// 获取语言类型显示文本
+const getLanguageTypeLabel = (value?: string) => {
+  const option = languageTypeOptions.find((o) => o.value === value);
+  return option ? option.label : value || '-';
+};
+
 // 字典数据列表
 const dictDataList = ref<any[]>([]);
 
 const dataColumns = [
-  { title: () => $t('page.common.dictLabel'), key: 'dictLabel', width: 150 },
-  { title: () => $t('page.common.dictValue'), key: 'dictValue', width: 150 },
-  { title: () => $t('page.system.dict.sortOrder'), key: 'dictSort', width: 80, align: 'center' as const },
-  { title: () => $t('page.common.status'), key: 'status', width: 90, align: 'center' as const },
+  { title: () => $t('page.common.dictLabel'), key: 'dictLabel', width: 120 },
+  { title: () => $t('page.common.dictValue'), key: 'dictValue', width: 120 },
+  { title: '语言', key: 'languageType', width: 100 },
+  { title: () => $t('page.system.dict.sortOrder'), key: 'dictSort', width: 70, align: 'center' as const },
+  { title: () => $t('page.common.status'), key: 'status', width: 80, align: 'center' as const },
   { title: () => $t('page.common.operation'), key: 'action', width: 120, align: 'center' as const },
 ];
 
@@ -189,6 +218,7 @@ const handleAddData = () => {
     dictValue: '',
     dictSort: dictDataList.value.length,
     status: '0',
+    languageType: 'zh_CN',
     isEditing: true,
     isNew: true,
     editData: {
@@ -196,6 +226,7 @@ const handleAddData = () => {
       dictValue: '',
       dictSort: dictDataList.value.length,
       status: '0',
+      languageType: 'zh_CN',
     },
   };
   dictDataList.value.push(newRow);
@@ -209,12 +240,13 @@ const handleEditData = (record: any) => {
     dictValue: record.dictValue,
     dictSort: record.dictSort,
     status: record.status,
+    languageType: record.languageType || 'zh_CN',
   };
 };
 
 // 保存数据行
 const handleSaveData = async (record: any) => {
-  const { dictLabel, dictValue, dictSort, status } = record.editData;
+  const { dictLabel, dictValue, dictSort, status, languageType } = record.editData;
   
   if (!dictLabel || !dictValue) {
     message.error($t('page.system.dict.tagValueEmpty'));
@@ -229,6 +261,7 @@ const handleSaveData = async (record: any) => {
       dictValue,
       dictSort: dictSort || 0,
       status: status || '0',
+      languageType: languageType || 'zh_CN',
     };
 
     if (record.isNew) {

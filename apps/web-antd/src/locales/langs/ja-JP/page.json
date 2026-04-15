@@ -203,7 +203,10 @@
       "copy": "コピー",
       "copyAll": "すべてコピー",
       "copySuccess": "コピーしました",
-      "copyAllSuccess": "すべてコピーしました"
+      "copyAllSuccess": "すべてコピーしました",
+      "startSeq": "???",
+      "suffix": "???",
+      "suffixPlaceholder": "??????"
     },
     "dict": {
       "title": "辞書管理",

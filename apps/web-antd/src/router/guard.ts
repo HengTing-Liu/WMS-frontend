@@ -92,10 +92,10 @@ function setupAccessGuard(router: Router) {
 
     // ---- 已登录但 Vue Router 里没有该路由（刷新后动态路由丢失） ----
     if (accessStore.isAccessChecked && accessStore.accessRoutes?.length > 0) {
-      const existingRoutes = router.getRoutes();
-      const routeExists = existingRoutes.some(
-        (r) => r.path === to.path || r.name === to.name
-      );
+      // Use router.resolve to determine whether current target is routable.
+      // Path/name exact comparisons are unreliable for nested/aliased backend routes
+      // (for example lowcode tabs), and can cause unnecessary dynamic-route regeneration.
+      const routeExists = canResolveToTarget();
 
       if (!routeExists) {
         console.log('[Router] Route not found in Vue Router, regenerating...');

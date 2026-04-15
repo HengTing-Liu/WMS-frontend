@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, reactive, ref, watch } from 'vue';
 import { Button, Card, Input, Popconfirm, Select, SelectOption, Space, Switch, message } from 'ant-design-vue';
 import { Download, Plus } from 'lucide-vue-next';
 import type { TableColumnsType, TablePaginationConfig } from 'ant-design-vue';
@@ -114,6 +114,58 @@ const tableRef = ref();
 const modalVisible = ref(false);
 const modalMode = ref<'add' | 'edit'>('add');
 const currentRecord = ref<TableMetaResult | null>(null);
+
+type TableMetaPageState = {
+  pagination: Pick<TablePaginationConfig, 'current' | 'pageSize' | 'total'>;
+  queryForm: TableMetaQuery;
+  selectedRowKeys: Array<number | string>;
+  tableData: TableMetaResult[];
+};
+
+const TABLE_META_STATE_KEY = 'system-table-meta-page-state-v1';
+const tableMetaPageState = ref<TableMetaPageState | null>(null);
+
+function savePageState() {
+  const state: TableMetaPageState = {
+    pagination: {
+      current: pagination.current,
+      pageSize: pagination.pageSize,
+      total: pagination.total,
+    },
+    queryForm: { ...queryForm },
+    selectedRowKeys: [...selectedRowKeys.value],
+    tableData: [...tableData.value],
+  };
+  tableMetaPageState.value = state;
+  try {
+    sessionStorage.setItem(TABLE_META_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore
+  }
+}
+
+function restorePageState(): boolean {
+  let state = tableMetaPageState.value;
+  if (!state) {
+    try {
+      const raw = sessionStorage.getItem(TABLE_META_STATE_KEY);
+      if (raw) state = JSON.parse(raw) as TableMetaPageState;
+    } catch {
+      // ignore
+    }
+  }
+  if (!state) return false;
+  tableMetaPageState.value = state;
+  pagination.current = state.pagination.current;
+  pagination.pageSize = state.pagination.pageSize;
+  pagination.total = state.pagination.total;
+  queryForm.tableCode = state.queryForm.tableCode || '';
+  queryForm.tableName = state.queryForm.tableName || '';
+  queryForm.module = state.queryForm.module || '';
+  selectedRowKeys.value = [...(state.selectedRowKeys || [])];
+  tableData.value = [...(state.tableData || [])];
+  return true;
+}
 
 const pagination = reactive<TablePaginationConfig>({
   current: 1,
@@ -266,7 +318,29 @@ function handleModalSuccess() {
   loadData();
 }
 
-onMounted(() => {
-  loadData();
+onMounted(async () => {
+  const restored = restorePageState();
+  if (!restored) {
+    await loadData();
+  }
+});
+
+watch([tableData, selectedRowKeys], savePageState, { deep: true });
+watch(
+  () => [pagination.current, pagination.pageSize, pagination.total, queryForm.tableCode, queryForm.tableName, queryForm.module],
+  savePageState,
+);
+
+onActivated(() => {
+  // When keep-alive instance is already warm, keep in-memory state as-is.
+  if (tableData.value.length === 0) {
+    restorePageState();
+  }
+});
+onDeactivated(() => {
+  savePageState();
+});
+onBeforeUnmount(() => {
+  savePageState();
 });
 </script>

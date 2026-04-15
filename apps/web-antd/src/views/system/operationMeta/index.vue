@@ -11,7 +11,7 @@
               style="width: 320px"
               show-search
               :filter-option="filterTableOption"
-              @change="loadData"
+              @change="(value) => handleTableChange(value as string | number | undefined)"
             >
               <SelectOption v-for="table in tableList" :key="table.tableCode" :value="table.tableCode">
                 {{ table.tableCode }} - {{ table.tableName }}
@@ -102,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue';
 import {
   Button,
   Card,
@@ -151,6 +151,83 @@ const modalVisible = ref(false);
 const modalMode = ref<'add' | 'edit'>('add');
 const currentRecord = ref<OperationMetaApi.OperationMeta | null>(null);
 
+type OperationMetaPageState = {
+  searchKeyword: string;
+  selectedTableCode: string;
+  tableList: Array<{ id: number; tableCode: string; tableName: string }>;
+  tableDataRaw: OperationMetaApi.OperationMeta[];
+  selectedRowKeys: Array<number | string>;
+};
+const OPERATION_META_STATE_KEY = 'system-operation-meta-page-state-v1';
+const OPERATION_META_NON_EMPTY_STATE_KEY = 'system-operation-meta-page-state-non-empty-v1';
+let operationMetaStateCache: OperationMetaPageState | null = null;
+let operationMetaNonEmptyStateCache: OperationMetaPageState | null = null;
+
+function savePageState() {
+  const state: OperationMetaPageState = {
+    searchKeyword: searchKeyword.value,
+    selectedTableCode: selectedTableCode.value,
+    tableList: [...tableList.value],
+    tableDataRaw: [...tableDataRaw.value],
+    selectedRowKeys: [...selectedRowKeys.value],
+  };
+  // Guard against transient empty snapshots during tab switch.
+  if (!state.selectedTableCode && state.tableDataRaw.length === 0 && operationMetaNonEmptyStateCache) {
+    return;
+  }
+  operationMetaStateCache = state;
+  try {
+    sessionStorage.setItem(OPERATION_META_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore
+  }
+  if (state.selectedTableCode || state.tableDataRaw.length > 0) {
+    operationMetaNonEmptyStateCache = state;
+    try {
+      sessionStorage.setItem(OPERATION_META_NON_EMPTY_STATE_KEY, JSON.stringify(state));
+    } catch {
+      // ignore
+    }
+  }
+}
+
+function restorePageState() {
+  let state = operationMetaStateCache;
+  if (!state) {
+    try {
+      const raw = sessionStorage.getItem(OPERATION_META_STATE_KEY);
+      if (raw) state = JSON.parse(raw) as OperationMetaPageState;
+    } catch {
+      // ignore
+    }
+  }
+  if (!state || (!state.selectedTableCode && state.tableDataRaw.length === 0)) {
+    let fallback = operationMetaNonEmptyStateCache;
+    if (!fallback) {
+      try {
+        const raw = sessionStorage.getItem(OPERATION_META_NON_EMPTY_STATE_KEY);
+        if (raw) {
+          fallback = JSON.parse(raw) as OperationMetaPageState;
+          operationMetaNonEmptyStateCache = fallback;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    if (fallback) {
+      state = fallback;
+    }
+  }
+  if (!state) return false;
+  operationMetaStateCache = state;
+  searchKeyword.value = state.searchKeyword || '';
+  selectedTableCode.value = state.selectedTableCode || '';
+  tableList.value = [...(state.tableList || [])];
+  tableDataRaw.value = [...(state.tableDataRaw || [])];
+  selectedRowKeys.value = [...(state.selectedRowKeys || [])];
+  return true;
+}
+
 const columns = computed<TableColumnsType<OperationMetaApi.OperationMeta>>(() => [
   { title: '序号', key: 'seq', width: 70, align: 'center' },
   { title: '操作编码', dataIndex: 'operationCode', key: 'operationCode', width: 140 },
@@ -196,7 +273,7 @@ async function loadTableList() {
 
 async function loadData() {
   if (!selectedTableCode.value) {
-    tableData.value = [];
+    // Keep current data when table code is transiently empty during tab switches.
     return;
   }
   loading.value = true;
@@ -206,7 +283,7 @@ async function loadData() {
     selectedRowKeys.value = [];
   } catch (error: any) {
     message.error(error?.message || '加载操作元数据失败');
-    tableData.value = [];
+    tableDataRaw.value = [];
   } finally {
     loading.value = false;
   }
@@ -269,9 +346,37 @@ function handleModalSuccess() {
   loadData();
 }
 
+function handleTableChange(value?: string | number) {
+  if (!value) return;
+  selectedTableCode.value = String(value);
+  void loadData();
+}
+
 onMounted(async () => {
-  await loadTableList();
-  await loadData();
+  const restored = restorePageState();
+  if (!tableList.value.length) {
+    await loadTableList();
+  }
+  if (!restored) {
+    await loadData();
+  }
+});
+
+watch([searchKeyword, selectedTableCode, tableList, tableDataRaw, selectedRowKeys], savePageState, {
+  deep: true,
+});
+
+onActivated(() => {
+  // When keep-alive instance is already warm, keep in-memory state as-is.
+  if (tableDataRaw.value.length === 0) {
+    restorePageState();
+  }
+});
+onDeactivated(() => {
+  savePageState();
+});
+onBeforeUnmount(() => {
+  savePageState();
 });
 </script>
 

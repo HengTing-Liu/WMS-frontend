@@ -11,7 +11,7 @@
               style="width: 320px"
               show-search
               :filter-option="filterTableOption"
-              @change="loadData"
+              @change="(value) => handleTableChange(value as string | number | undefined)"
             >
               <SelectOption v-for="table in tableList" :key="table.tableCode" :value="table.tableCode">
                 {{ table.tableCode }} - {{ table.tableName }}
@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue';
 import {
   Button,
   Card,
@@ -155,6 +155,80 @@ const modalVisible = ref(false);
 const modalMode = ref<'add' | 'edit'>('add');
 const currentRecord = ref<GroupMetaApi.GroupMeta | null>(null);
 
+type GroupMetaPageState = {
+  searchKeyword: string;
+  selectedTableCode: string;
+  tableList: Array<{ id: number; tableCode: string; tableName: string }>;
+  tableDataRaw: GroupMetaRow[];
+};
+const GROUP_META_STATE_KEY = 'system-group-meta-page-state-v1';
+const GROUP_META_NON_EMPTY_STATE_KEY = 'system-group-meta-page-state-non-empty-v1';
+let groupMetaStateCache: GroupMetaPageState | null = null;
+let groupMetaNonEmptyStateCache: GroupMetaPageState | null = null;
+
+function savePageState() {
+  const state: GroupMetaPageState = {
+    searchKeyword: searchKeyword.value,
+    selectedTableCode: selectedTableCode.value,
+    tableList: [...tableList.value],
+    tableDataRaw: [...tableDataRaw.value],
+  };
+  // Guard against transient empty snapshots during tab switch.
+  if (!state.selectedTableCode && state.tableDataRaw.length === 0 && groupMetaNonEmptyStateCache) {
+    return;
+  }
+  groupMetaStateCache = state;
+  try {
+    sessionStorage.setItem(GROUP_META_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore
+  }
+  if (state.selectedTableCode || state.tableDataRaw.length > 0) {
+    groupMetaNonEmptyStateCache = state;
+    try {
+      sessionStorage.setItem(GROUP_META_NON_EMPTY_STATE_KEY, JSON.stringify(state));
+    } catch {
+      // ignore
+    }
+  }
+}
+
+function restorePageState() {
+  let state = groupMetaStateCache;
+  if (!state) {
+    try {
+      const raw = sessionStorage.getItem(GROUP_META_STATE_KEY);
+      if (raw) state = JSON.parse(raw) as GroupMetaPageState;
+    } catch {
+      // ignore
+    }
+  }
+  if (!state || (!state.selectedTableCode && state.tableDataRaw.length === 0)) {
+    let fallback = groupMetaNonEmptyStateCache;
+    if (!fallback) {
+      try {
+        const raw = sessionStorage.getItem(GROUP_META_NON_EMPTY_STATE_KEY);
+        if (raw) {
+          fallback = JSON.parse(raw) as GroupMetaPageState;
+          groupMetaNonEmptyStateCache = fallback;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    if (fallback) {
+      state = fallback;
+    }
+  }
+  if (!state) return false;
+  groupMetaStateCache = state;
+  searchKeyword.value = state.searchKeyword || '';
+  selectedTableCode.value = state.selectedTableCode || '';
+  tableList.value = [...(state.tableList || [])];
+  tableDataRaw.value = [...(state.tableDataRaw || [])];
+  return true;
+}
+
 const columns = computed<TableColumnsType<GroupMetaRow>>(() => [
   { title: '序号', key: 'seq', width: 70, align: 'center' },
   { title: '分组编码', dataIndex: 'groupCode', key: 'groupCode', width: 180 },
@@ -193,7 +267,7 @@ async function loadTableList() {
 
 async function loadData() {
   if (!selectedTableCode.value) {
-    tableDataRaw.value = [];
+    // Keep current data when table code is transiently empty during tab switches.
     return;
   }
   loading.value = true;
@@ -268,9 +342,37 @@ function handleModalSuccess() {
   loadData();
 }
 
+function handleTableChange(value?: string | number) {
+  if (!value) return;
+  selectedTableCode.value = String(value);
+  void loadData();
+}
+
 onMounted(async () => {
-  await loadTableList();
-  await loadData();
+  const restored = restorePageState();
+  if (!tableList.value.length) {
+    await loadTableList();
+  }
+  if (!restored) {
+    await loadData();
+  }
+});
+
+watch([searchKeyword, selectedTableCode, tableList, tableDataRaw], savePageState, {
+  deep: true,
+});
+
+onActivated(() => {
+  // When keep-alive instance is already warm, keep in-memory state as-is.
+  if (tableDataRaw.value.length === 0) {
+    restorePageState();
+  }
+});
+onDeactivated(() => {
+  savePageState();
+});
+onBeforeUnmount(() => {
+  savePageState();
 });
 </script>
 

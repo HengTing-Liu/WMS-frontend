@@ -231,7 +231,9 @@ type ColumnMetaPageState = {
 
 const PAGE_STATE_CACHE_KEY = 'system-column-meta-page-state';
 const PAGE_STATE_STORAGE_KEY = `${PAGE_STATE_CACHE_KEY}:session-v1`;
+const PAGE_STATE_NON_EMPTY_STORAGE_KEY = `${PAGE_STATE_CACHE_KEY}:session-non-empty-v1`;
 const pageStateCache = new Map<string, ColumnMetaPageState>();
+let nonEmptyPageStateCache: ColumnMetaPageState | null = null;
 let restoringPageState = false;
 
 // ========== 状态 ==========
@@ -256,11 +258,26 @@ function savePageState() {
     tableList: [...tableList.value],
     searchKeyword: searchKeyword.value,
   };
+
+  // Guard against transient empty snapshots during tab switch.
+  if (!state.selectedTableCode && state.tableData.length === 0 && nonEmptyPageStateCache) {
+    return;
+  }
+
   pageStateCache.set(PAGE_STATE_CACHE_KEY, state);
   try {
     sessionStorage.setItem(PAGE_STATE_STORAGE_KEY, JSON.stringify(state));
   } catch {
     // ignore storage failures
+  }
+
+  if (state.selectedTableCode || state.tableData.length > 0) {
+    nonEmptyPageStateCache = state;
+    try {
+      sessionStorage.setItem(PAGE_STATE_NON_EMPTY_STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // ignore storage failures
+    }
   }
 }
 
@@ -275,6 +292,24 @@ function restorePageState() {
       }
     } catch {
       // ignore parse/storage failures
+    }
+  }
+  if (!cached || (!cached.selectedTableCode && cached.tableData.length === 0)) {
+    let fallback = nonEmptyPageStateCache;
+    if (!fallback) {
+      try {
+        const raw = sessionStorage.getItem(PAGE_STATE_NON_EMPTY_STORAGE_KEY);
+        if (raw) {
+          fallback = JSON.parse(raw) as ColumnMetaPageState;
+          nonEmptyPageStateCache = fallback;
+        }
+      } catch {
+        // ignore parse/storage failures
+      }
+    }
+    if (fallback) {
+      cached = fallback;
+      pageStateCache.set(PAGE_STATE_CACHE_KEY, fallback);
     }
   }
   if (!cached) return false;
@@ -331,7 +366,7 @@ async function loadTableList() {
 
 async function loadData() {
   if (!selectedTableCode.value) {
-    tableData.value = [];
+    // Keep current data when table code is transiently empty during tab switches.
     return;
   }
 
@@ -367,9 +402,9 @@ async function loadData() {
 
 // ========== 事件处理 ==========
 function handleTableChange(value?: string | number) {
-  // Ignore transient clear events while options are still loading.
-  if (!value && tableLoading.value) return;
-  selectedTableCode.value = value ? String(value) : undefined;
+  // Ignore transient clear events from Select during options/layout updates.
+  if (!value) return;
+  selectedTableCode.value = String(value);
   searchKeyword.value = '';
 }
 
@@ -612,9 +647,6 @@ onMounted(async () => {
   if (!restored && selectedTableCode.value) {
     await loadData();
   }
-  if (restored && selectedTableCode.value && tableData.value.length === 0) {
-    await loadData();
-  }
 });
 
 watch(
@@ -659,7 +691,10 @@ watch(
 );
 
 onActivated(() => {
-  restorePageState();
+  // When keep-alive instance is already warm, keep in-memory state as-is.
+  if (tableData.value.length === 0) {
+    restorePageState();
+  }
 });
 
 onDeactivated(() => {

@@ -32,6 +32,18 @@
           </FormItem>
         </Col>
         <Col :span="12">
+          <FormItem :label="$t('page.system.dict.languageType')" name="languageType">
+            <Select v-model:value="form.languageType" style="width: 100%">
+              <SelectOption value="zh_CN">简体中文</SelectOption>
+              <SelectOption value="en_US">English</SelectOption>
+              <SelectOption value="zh_TW">繁体中文</SelectOption>
+            </Select>
+          </FormItem>
+        </Col>
+      </Row>
+
+      <Row :gutter="16">
+        <Col :span="12">
           <FormItem :label="$t('page.common.status')" name="status">
             <RadioGroup v-model:value="form.status">
               <Radio value="0">{{ $t('page.common.enabled') }}</Radio>
@@ -50,7 +62,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue';
-import { Modal, Form, FormItem, Input, InputNumber, RadioGroup, Radio, Textarea, Row, Col, message } from 'ant-design-vue';
+import { Modal, Form, FormItem, Input, InputNumber, RadioGroup, Radio, Textarea, Row, Col, Select, SelectOption, message } from 'ant-design-vue';
 import { addDictData, editDictData } from '#/api';
 
 const props = defineProps<{
@@ -67,12 +79,13 @@ const isEdit = ref(false);
 const formRef = ref();
 
 const form = reactive({
-  dictCode: undefined,
+  dictCode: undefined as number | undefined,
   dictType: '',
   dictLabel: '',
   dictValue: '',
   dictSort: 0,
   status: '0',
+  languageType: 'zh_CN',
   remark: '',
 });
 
@@ -91,6 +104,10 @@ const open = (row?: any) => {
   if (row) {
     isEdit.value = true;
     Object.assign(form, row);
+    // 确保语言类型有默认值
+    if (!form.languageType) {
+      form.languageType = 'zh_CN';
+    }
   } else {
     isEdit.value = false;
     resetForm();
@@ -103,6 +120,7 @@ const resetForm = () => {
   form.dictValue = '';
   form.dictSort = 0;
   form.status = '0';
+  form.languageType = 'zh_CN';
   form.remark = '';
 };
 

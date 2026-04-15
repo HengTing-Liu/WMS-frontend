@@ -110,8 +110,12 @@ function shouldForceKeepAlive(
       '/lowcode',
       '/lowcode/table',
       '/lowcode/column',
+      '/lowcode/group',
       '/lowcode/operation',
+      '/lowcode/lowcode/table',
       '/lowcode/lowcode/column',
+      '/lowcode/lowcode/group',
+      '/lowcode/lowcode/operation',
     ].includes(path)
   ) {
     return true;
@@ -121,6 +125,7 @@ function shouldForceKeepAlive(
     [
       'tablemeta',
       'columnmeta',
+      'groupmeta',
       'operationmeta',
       'lowcodemanager',
       'basewarehouselist',

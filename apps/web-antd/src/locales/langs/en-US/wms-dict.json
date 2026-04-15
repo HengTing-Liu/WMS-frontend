@@ -1,0 +1,70 @@
+{
+  "page": {
+    "wms": {
+      "dict": {
+        "listTitle": "Dictionary Management",
+        "listDescription": "Manage dictionary types and dictionary items",
+        "addType": "Add Dict Type",
+        "addData": "Add Dict Data",
+        "export": "Export",
+        "exportFileName": "dict_data",
+        "tabs": {
+          "type": "Dict Type",
+          "data": "Dict Data"
+        },
+        "status": {
+          "all": "All",
+          "enabled": "Enabled",
+          "disabled": "Disabled"
+        },
+        "filter": {
+          "dictCode": "Dict Code",
+          "dictName": "Dict Name",
+          "dictType": "Dict Type",
+          "dictLabel": "Dict Label",
+          "dictValue": "Dict Value"
+        },
+        "columns": {
+          "dictCode": "Dict Code",
+          "dictName": "Dict Name",
+          "dictType": "Dict Type",
+          "dictTypeName": "Dict Type Name",
+          "dictLabel": "Dict Label",
+          "dictValue": "Dict Value",
+          "sortOrder": "Sort Order"
+        },
+        "stats": {
+          "type": {
+            "total": "Total Types",
+            "enabled": "Enabled Types",
+            "disabled": "Disabled Types",
+            "customType": "Custom Types"
+          },
+          "data": {
+            "total": "Total Items",
+            "enabled": "Enabled Items",
+            "disabled": "Disabled Items",
+            "type": "Type Count"
+          }
+        },
+        "deleteTypeConfirm": "Are you sure to delete this dict type?",
+        "deleteDataConfirm": "Are you sure to delete this dict item?",
+        "batchDeleteTypeConfirm": "Are you sure to batch delete selected dict types?",
+        "batchDeleteDataConfirm": "Are you sure to batch delete selected dict items?",
+        "messages": {
+          "loadTypeFail": "Failed to load dictionary types",
+          "loadDataFail": "Failed to load dictionary data",
+          "deleteSuccess": "Deleted successfully",
+          "deleteFail": "Delete failed",
+          "batchDeleteFail": "Batch delete failed",
+          "selectToDelete": "Please select records to delete",
+          "enableSuccess": "Enabled successfully",
+          "disableSuccess": "Disabled successfully",
+          "statusToggleFail": "Failed to toggle status",
+          "exportSuccess": "Exported successfully",
+          "exportFail": "Export failed"
+        }
+      }
+    }
+  }
+}

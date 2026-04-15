@@ -386,7 +386,20 @@ async function loadData() {
       pageSize: pagination.pageSize,
     });
 
-    dataList.value = res.rows;
+    let rows = res.rows;
+    // 字典类型/数据表沿用 RuoYi status 语义：0=启用(正常), 1=停用
+    if (props.tableCode === 'sys_dict_type' || props.tableCode === 'sys_dict_data') {
+      rows = (res.rows || []).map((row: Record<string, any>) => {
+        if (row?.isEnabled === undefined && row?.is_enabled === undefined && row?.status !== undefined) {
+          return {
+            ...row,
+            isEnabled: String(row.status) === '0' ? 1 : 0,
+          };
+        }
+        return row;
+      });
+    }
+    dataList.value = rows;
     pagination.total = res.total;
 
     // 更新统计数据
@@ -650,7 +663,8 @@ function handleCreate() {
 }
 
 function handleEdit(record: any) {
-  const id = record?.id;
+  // 优先取 id，兼容字典表等特殊表（dictId / dictCode）
+  const id = record?.id ?? record?.dictId ?? record?.dictCode;
   if (id === undefined || id === null || id === '') {
     message.error('当前记录缺少 ID，无法编辑');
     return;
@@ -661,10 +675,11 @@ function handleEdit(record: any) {
 
 async function handleToggle(record: any, enabled: boolean) {
   try {
+    const id = record?.id ?? record?.dictId ?? record?.dictCode;
     await toggleRecord({
       tableCode: props.tableCode,
       prefix: props.crudPrefix,
-      id: record.id,
+      id,
       enabled,
     });
     message.success(enabled ? '启用成功' : '停用成功');

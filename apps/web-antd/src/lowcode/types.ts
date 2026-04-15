@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Lowcode 妯″潡 - 鍏变韩绫诲瀷瀹氫箟
  * 涓庡悗绔?sys_table_meta / sys_column_meta / sys_table_operation 瀵归綈
  */
@@ -167,7 +167,6 @@ export interface LowcodeAction {
   confirmMessage?: string;
   confirm?: string;
 }
-
 // ==================== 椤甸潰妯℃澘绫诲瀷 ====================
 
 export type PageTemplate = 'standard-list' | 'tree-list';
@@ -223,4 +222,5 @@ export interface ApiResponse<T = any> {
   data?: T;
   msg?: string;
 }
+
 

@@ -1,0 +1,70 @@
+{
+  "page": {
+    "wms": {
+      "dict": {
+        "listTitle": "辞書管理",
+        "listDescription": "辞書タイプと辞書データを管理",
+        "addType": "辞書タイプ追加",
+        "addData": "辞書データ追加",
+        "export": "エクスポート",
+        "exportFileName": "dict_data",
+        "tabs": {
+          "type": "辞書タイプ",
+          "data": "辞書データ"
+        },
+        "status": {
+          "all": "すべて",
+          "enabled": "有効",
+          "disabled": "無効"
+        },
+        "filter": {
+          "dictCode": "辞書コード",
+          "dictName": "辞書名",
+          "dictType": "辞書タイプ",
+          "dictLabel": "辞書ラベル",
+          "dictValue": "辞書値"
+        },
+        "columns": {
+          "dictCode": "辞書コード",
+          "dictName": "辞書名",
+          "dictType": "辞書タイプ",
+          "dictTypeName": "辞書タイプ名",
+          "dictLabel": "辞書ラベル",
+          "dictValue": "辞書値",
+          "sortOrder": "並び順"
+        },
+        "stats": {
+          "type": {
+            "total": "タイプ総数",
+            "enabled": "有効タイプ",
+            "disabled": "無効タイプ",
+            "customType": "カスタムタイプ"
+          },
+          "data": {
+            "total": "データ総数",
+            "enabled": "有効データ",
+            "disabled": "無効データ",
+            "type": "タイプ数"
+          }
+        },
+        "deleteTypeConfirm": "この辞書タイプを削除しますか？",
+        "deleteDataConfirm": "この辞書データを削除しますか？",
+        "batchDeleteTypeConfirm": "選択した辞書タイプを一括削除しますか？",
+        "batchDeleteDataConfirm": "選択した辞書データを一括削除しますか？",
+        "messages": {
+          "loadTypeFail": "辞書タイプの読み込みに失敗しました",
+          "loadDataFail": "辞書データの読み込みに失敗しました",
+          "deleteSuccess": "削除成功",
+          "deleteFail": "削除失敗",
+          "batchDeleteFail": "一括削除失敗",
+          "selectToDelete": "削除するデータを選択してください",
+          "enableSuccess": "有効化成功",
+          "disableSuccess": "無効化成功",
+          "statusToggleFail": "状態切替に失敗しました",
+          "exportSuccess": "エクスポート成功",
+          "exportFail": "エクスポート失敗"
+        }
+      }
+    }
+  }
+}

@@ -1,9 +1,10 @@
 /**
- * 瀛楀吀绠＄悊 API
- * WMS0070 瀛楀吀绠＄悊 - 绯荤粺瀛楀吀绫诲瀷鍜屽瓧鍏告暟鎹? */
+ * 字典管理 API
+ * WMS0070 字典管理 - 系统字典类型和字典数据
+ */
 import { requestClient } from '#/api/request';
 
-// ========== 瀛楀吀绫诲瀷 Types ==========
+// ========== 字典类型 Types ==========
 
 export interface DictTypeQuery {
   pageNum?: number;
@@ -17,7 +18,9 @@ export interface DictTypeResult {
   id?: number;
   dictCode: string;
   dictName: string;
-  dictType?: string; // system=绯荤粺瀛楀吀, custom=鑷畾涔?  isEnabled: number;
+  dictType?: string;
+  languageType?: string;
+  isEnabled: number;
   remarks?: string;
   createBy?: string;
   createTime?: string;
@@ -25,21 +28,30 @@ export interface DictTypeResult {
   updateTime?: string;
 }
 
-// ========== 瀛楀吀鏁版嵁 Types ==========
+// ========== 字典数据 Types ==========
 
 export interface DictDataQuery {
   pageNum?: number;
   pageSize?: number;
-  dictType?: string; // 鎵€灞炵被鍨嬬紪鐮?  dictLabel?: string;
+  dictType?: string;
+  dictLabel?: string;
   dictValue?: string;
   isEnabled?: number;
+  languageType?: string;
 }
 
 export interface DictDataResult {
   id?: number;
-  dictType?: string;   // 鎵€灞炵被鍨嬬紪鐮?  dictTypeName?: string; // 鎵€灞炵被鍨嬪悕绉?  dictCode?: string;  // 瀛楀吀缂栫爜锛堝悓 dictType锛?  dictLabel: string;  // 瀛楀吀鏍囩
-  dictValue: string;  // 瀛楀吀鍊?  sortOrder?: number; // 鎺掑簭
+  dictType?: string;
+  dictTypeName?: string;
+  dictCode?: string;
+  dictLabel: string;
+  dictValue: string;
+  sortOrder?: number;
   isEnabled: number;
+  isDeleted?: number;
+  status?: string | number;
+  languageType?: string;
   remarks?: string;
   createBy?: string;
   createTime?: string;
@@ -54,6 +66,7 @@ function normalizeDictTypeRow(row: any): DictTypeResult {
     dictCode: row?.dict_code ?? row?.dictCode,
     dictName: row?.dict_name ?? row?.dictName,
     dictType: row?.dict_type ?? row?.dictType,
+    languageType: row?.language_type ?? row?.languageType,
     isEnabled: Number(row?.is_enabled ?? row?.isEnabled ?? row?.status ?? 0),
     remarks: row?.remarks,
     createBy: row?.create_by ?? row?.createBy,
@@ -64,6 +77,11 @@ function normalizeDictTypeRow(row: any): DictTypeResult {
 }
 
 function normalizeDictDataRow(row: any): DictDataResult {
+  const rawStatus = row?.status;
+  const rawEnabled = row?.is_enabled ?? row?.isEnabled;
+  const isEnabled = rawEnabled !== undefined && rawEnabled !== null
+    ? Number(rawEnabled)
+    : (String(rawStatus) === '0' ? 1 : 0);
   return {
     ...row,
     id: row?.id,
@@ -73,13 +91,41 @@ function normalizeDictDataRow(row: any): DictDataResult {
     dictLabel: row?.dict_label ?? row?.dictLabel,
     dictValue: row?.dict_value ?? row?.dictValue,
     sortOrder: row?.sort_order ?? row?.sortOrder ?? 0,
-    isEnabled: Number(row?.is_enabled ?? row?.isEnabled ?? row?.status ?? 0),
+    languageType: row?.language_type ?? row?.languageType,
+    isEnabled,
+    isDeleted: Number(row?.is_deleted ?? row?.isDeleted ?? 0),
     remarks: row?.remarks,
     createBy: row?.create_by ?? row?.createBy,
     createTime: row?.create_time ?? row?.createTime,
     updateBy: row?.update_by ?? row?.updateBy,
     updateTime: row?.update_time ?? row?.updateTime,
   } as DictDataResult;
+}
+
+function toDictDataPayload(data: Partial<DictDataResult>) {
+  const payload: Record<string, any> = { ...data };
+  if (payload.sortOrder !== undefined && payload.dictSort === undefined) {
+    payload.dictSort = payload.sortOrder;
+  }
+  if (payload.isEnabled !== undefined && payload.status === undefined) {
+    payload.status = String(Number(payload.isEnabled) === 1 ? 0 : 1);
+  }
+  if (payload.isDeleted !== undefined) {
+    payload.isDeleted = String(Number(payload.isDeleted));
+  }
+  // Backend table uses `status`, not `is_enabled`.
+  delete payload.isEnabled;
+  return payload;
+}
+
+function toDictTypePayload(data: Partial<DictTypeResult>) {
+  const payload: Record<string, any> = { ...data };
+  if (payload.isEnabled !== undefined && payload.status === undefined) {
+    payload.status = String(Number(payload.isEnabled) === 1 ? 0 : 1);
+  }
+  // Backend table uses `status`, not `is_enabled`.
+  delete payload.isEnabled;
+  return payload;
 }
 
 // ========== Mock Data ==========
@@ -123,7 +169,7 @@ const MOCK_DICT_DATA_LIST: DictDataResult[] = [
 
 const MOCK_USE_MOCK = false;
 
-// ========== 瀛楀吀绫诲瀷 API ==========
+// ========== 字典类型 API ==========
 
 export async function listDictTypePage(params: DictTypeQuery) {
   if (MOCK_USE_MOCK) {
@@ -137,7 +183,7 @@ export async function listDictTypePage(params: DictTypeQuery) {
     const rows = filtered.slice(start, start + (pageSize || 10));
     return { rows, total };
   }
-  const res = await requestClient.get('/sys/dict/type/list', { params });
+  const res = await requestClient.get('/api/dict/type/list', { params });
   const rawRows = res?.rows || res?.list || res?.data?.rows || res?.data?.list || [];
   return { rows: Array.isArray(rawRows) ? rawRows.map(normalizeDictTypeRow) : [], total: Number(res?.total || res?.data?.total || 0) };
 }
@@ -147,7 +193,7 @@ export async function getDictTypeDetail(id: number): Promise<DictTypeResult> {
     const row = MOCK_DICT_TYPE_LIST.find((r) => r.id === id);
     return row ? normalizeDictTypeRow(row) : normalizeDictTypeRow({});
   }
-  const res = await requestClient.get(`/sys/dict/type/${id}`);
+  const res = await requestClient.get(`/api/dict/type/${id}`);
   return normalizeDictTypeRow(res?.data || res);
 }
 
@@ -158,7 +204,7 @@ export async function createDictType(data: Partial<DictTypeResult>) {
     MOCK_DICT_TYPE_LIST.unshift(newRow);
     return { code: 0, data: newRow };
   }
-  return requestClient.post('/sys/dict/type', data);
+  return requestClient.post('/sys/dict/type', toDictTypePayload(data));
 }
 
 export async function updateDictType(data: Partial<DictTypeResult>) {
@@ -168,8 +214,8 @@ export async function updateDictType(data: Partial<DictTypeResult>) {
     return { code: 0 };
   }
   const id = data.id;
-  if (!id) throw new Error('瀛楀吀绫诲瀷ID涓嶈兘涓虹┖');
-  return requestClient.put(`/sys/dict/type/${id}`, data);
+  if (!id) throw new Error('字典类型ID不能为空');
+  return requestClient.put(`/api/dict/type/${id}`, toDictTypePayload(data));
 }
 
 export async function toggleDictTypeStatus(id: number, enabled: number) {
@@ -178,7 +224,7 @@ export async function toggleDictTypeStatus(id: number, enabled: number) {
     if (row) row.isEnabled = enabled;
     return { code: 0 };
   }
-  return requestClient.patch(`/sys/dict/type/${id}/status`, null, { params: { enabled } });
+  return requestClient.patch(`/api/dict/type/${id}/status`, null, { params: { enabled } });
 }
 
 export async function deleteDictType(id: number) {
@@ -187,7 +233,7 @@ export async function deleteDictType(id: number) {
     if (idx >= 0) MOCK_DICT_TYPE_LIST.splice(idx, 1);
     return { code: 0 };
   }
-  return requestClient.delete(`/sys/dict/type/${id}`);
+  return requestClient.delete(`/api/dict/type/${id}`);
 }
 
 export async function exportDictType(params: DictTypeQuery) {
@@ -196,10 +242,10 @@ export async function exportDictType(params: DictTypeQuery) {
     const blob = new Blob([JSON.stringify(rows)], { type: 'application/json' });
     return blob;
   }
-  return requestClient.post('/sys/dict/type/export', params, { responseType: 'blob' });
+  return requestClient.post('/api/dict/type/export', params, { responseType: 'blob' });
 }
 
-// ========== 瀛楀吀鏁版嵁 API ==========
+// ========== 字典数据 API ==========
 
 export async function listDictDataPage(params: DictDataQuery) {
   if (MOCK_USE_MOCK) {
@@ -214,7 +260,7 @@ export async function listDictDataPage(params: DictDataQuery) {
     const rows = filtered.slice(start, start + (pageSize || 10));
     return { rows, total };
   }
-  const res = await requestClient.get('/sys/dict/data/list', { params });
+  const res = await requestClient.get('/api/dict/data/list', { params });
   const rawRows = res?.rows || res?.list || res?.data?.rows || res?.data?.list || [];
   return { rows: Array.isArray(rawRows) ? rawRows.map(normalizeDictDataRow) : [], total: Number(res?.total || res?.data?.total || 0) };
 }
@@ -224,7 +270,7 @@ export async function getDictDataDetail(id: number): Promise<DictDataResult> {
     const row = MOCK_DICT_DATA_LIST.find((r) => r.id === id);
     return row ? normalizeDictDataRow(row) : normalizeDictDataRow({});
   }
-  const res = await requestClient.get(`/sys/dict/data/${id}`);
+  const res = await requestClient.get(`/api/dict/data/${id}`);
   return normalizeDictDataRow(res?.data || res);
 }
 
@@ -235,7 +281,7 @@ export async function createDictData(data: Partial<DictDataResult>) {
     MOCK_DICT_DATA_LIST.unshift(newRow);
     return { code: 0, data: newRow };
   }
-  return requestClient.post('/sys/dict/data', data);
+  return requestClient.post('/api/dict/data', toDictDataPayload(data));
 }
 
 export async function updateDictData(data: Partial<DictDataResult>) {
@@ -244,9 +290,7 @@ export async function updateDictData(data: Partial<DictDataResult>) {
     if (idx >= 0) Object.assign(MOCK_DICT_DATA_LIST[idx], data);
     return { code: 0 };
   }
-  const id = data.id;
-  if (!id) throw new Error('瀛楀吀鏁版嵁ID涓嶈兘涓虹┖');
-  return requestClient.put(`/sys/dict/data/${id}`, data);
+  return requestClient.put(`/api/dict/data`, toDictDataPayload(data));
 }
 
 export async function toggleDictDataStatus(id: number, enabled: number) {
@@ -255,7 +299,7 @@ export async function toggleDictDataStatus(id: number, enabled: number) {
     if (row) row.isEnabled = enabled;
     return { code: 0 };
   }
-  return requestClient.patch(`/sys/dict/data/${id}/status`, null, { params: { enabled } });
+  return requestClient.patch(`/api/dict/data/${id}/status`, null, { params: { enabled } });
 }
 
 export async function deleteDictData(id: number) {
@@ -264,7 +308,7 @@ export async function deleteDictData(id: number) {
     if (idx >= 0) MOCK_DICT_DATA_LIST.splice(idx, 1);
     return { code: 0 };
   }
-  return requestClient.delete(`/sys/dict/data/${id}`);
+  return requestClient.delete(`/api/dict/data/${id}`);
 }
 
 export async function exportDictData(params: DictDataQuery) {
@@ -273,10 +317,10 @@ export async function exportDictData(params: DictDataQuery) {
     const blob = new Blob([JSON.stringify(rows)], { type: 'application/json' });
     return blob;
   }
-  return requestClient.post('/sys/dict/data/export', params, { responseType: 'blob' });
+  return requestClient.post('/api/dict/data/export', params, { responseType: 'blob' });
 }
 
-// 鑾峰彇鎵€鏈夊瓧鍏哥被鍨嬶紙涓嬫媺鍒楄〃鐢級
+// 获取所有字典类型（下拉列表用）
 export async function listDictTypeSimple() {
   if (MOCK_USE_MOCK) {
     return MOCK_DICT_TYPE_LIST.map((r) => ({
@@ -284,7 +328,7 @@ export async function listDictTypeSimple() {
       value: r.dictCode,
     }));
   }
-  const res = await requestClient.get('/sys/dict/type/list', { params: { pageNum: 1, pageSize: 999, isEnabled: 1 } });
+  const res = await requestClient.get('/api/dict/type/list', { params: { pageNum: 1, pageSize: 999, isEnabled: 1 } });
   const rawRows = res?.rows || res?.list || res?.data?.rows || res?.data?.list || [];
   return Array.isArray(rawRows) ? rawRows.map((r: any) => ({
     label: `${r.dict_name ?? r.dictName} (${r.dict_code ?? r.dictCode})`,
@@ -292,3 +336,8 @@ export async function listDictTypeSimple() {
   })) : [];
 }
 
+// Backward-compatible aliases for older imports.
+export const getDictTypeById = getDictTypeDetail;
+export const getDictDataById = getDictDataDetail;
+export const addDictType = createDictType;
+export const addDictData = createDictData;
