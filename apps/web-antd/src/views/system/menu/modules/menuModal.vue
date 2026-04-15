@@ -136,8 +136,12 @@ const [Modal, modalApi] = useVbenModal({
         form.visible = detail.visible ?? '0';
         form.status = detail.status ?? '0';
       } else {
-        const parentId = data.value?.parentRow?.menuId ?? 0;
+        const parentRow = data.value?.parentRow;
+        const parentId = parentRow?.menuId ?? 0;
         resetForm(parentId);
+        if (parentRow && parentRow.menuType === 'M') {
+          form.menuType = 'C';
+        }
       }
     } catch (e: any) {
       message.error(e?.message ?? '加载菜单信息失败');
@@ -219,7 +223,7 @@ defineExpose({ modalApi });
           <Radio.Group v-model:value="form.menuType">
             <Radio value="M">目录</Radio>
             <Radio value="C">菜单</Radio>
-            <Radio value="F">按钮</Radio>
+            <Radio v-if="form.menuType === 'F'" value="F">按钮</Radio>
           </Radio.Group>
         </Form.Item>
 

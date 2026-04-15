@@ -91,7 +91,7 @@ const formRef = ref();
 const deptTreeData = ref<any[]>([]);
 
 const formData = reactive({
-  roleId: undefined as number | undefined,
+  id: undefined as number | undefined,
   roleName: '',
   roleKey: '',
   roleSort: 0,
@@ -132,11 +132,11 @@ const handleDataScopeChange = (value: any) => {
 
 const open = async (row?: any) => {
   visible.value = true;
-  isEdit.value = !!row?.roleId;
+  isEdit.value = !!row?.id;
   
   // 重置表单
   Object.assign(formData, {
-    roleId: undefined,
+    id: undefined,
     roleName: '',
     roleKey: '',
     roleSort: 0,
@@ -149,13 +149,13 @@ const open = async (row?: any) => {
   // 加载部门树
   await loadDeptTree();
 
-  if (isEdit.value && row?.roleId) {
+  if (isEdit.value && row?.id) {
     try {
       loading.value = true;
-      const res = await getRoleById(row.roleId);
+      const res = await getRoleById(row.id);
       if (res) {
         Object.assign(formData, {
-          roleId: res.roleId,
+          id: res.id,
           roleName: res.roleName,
           roleKey: res.roleKey,
           roleSort: res.roleSort || 0,

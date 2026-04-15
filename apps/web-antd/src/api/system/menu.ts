@@ -49,7 +49,7 @@ async function getMenuDetail(menuId: number | string) {
  * POST /api/menu
  */
 async function addMenu(data: Record<string, any>) {
-  return requestClient.post<{ code?: number; msg?: string }>('/api/menu/add', data, {
+  return requestClient.post<{ code?: number; msg?: string }>('/api/menu', data, {
     responseReturn: 'body',
   });
 }
@@ -59,7 +59,7 @@ async function addMenu(data: Record<string, any>) {
  * PUT /api/menu
  */
 async function updateMenu(data: Record<string, any>) {
-  return requestClient.put<{ code?: number; msg?: string }>('/api/menu/edit', data, {
+  return requestClient.put<{ code?: number; msg?: string }>('/api/menu', data, {
     responseReturn: 'body',
   });
 }
@@ -70,12 +70,22 @@ async function updateMenu(data: Record<string, any>) {
  */
 async function deleteMenu(menuId: number | string) {
   return requestClient.delete<{ code?: number; msg?: string }>(
-    `/api/menu/remove/${menuId}`,
+    `/api/menu/${menuId}`,
     { responseReturn: 'body' },
   );
 }
 
-export { getMenuList, getMenuDetail, addMenu, updateMenu, deleteMenu };
+/**
+ * 获取按钮列表（按父菜单ID和类型过滤）
+ */
+async function getButtonList(parentId: number | string) {
+  return requestClient.get<{ code?: number; msg?: string; data?: MenuItem[] }>(
+    '/api/menu/list',
+    { params: { menuType: 'F', parentId }, responseReturn: 'body' },
+  );
+}
+
+export { getMenuList, getMenuDetail, addMenu, updateMenu, deleteMenu, getButtonList };
 export const getMenuById = getMenuDetail;
 export const editMenu = updateMenu;
 

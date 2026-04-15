@@ -123,10 +123,10 @@ async function getRoleMenuTree(roleId: number | string) {
 
 /**
  * 分配角色菜单
- * PUT /api/menu/assignMenu
+ * PUT /api/system/role/assignMenu
  */
-async function assignRoleMenu(data: { roleId: number | string; menuIds: number[] }) {
-  return requestClient.put('/api/menu/assignMenu', data, { responseReturn: 'body' });
+async function assignRoleMenu(data: { id: number | string; menuIds: number[]; menuCheckStrictly?: boolean }) {
+  return requestClient.put('/api/system/role/assignMenu', data, { responseReturn: 'body' });
 }
 
 /**

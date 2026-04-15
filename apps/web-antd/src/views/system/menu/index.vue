@@ -39,6 +39,11 @@
                     <IconifyIcon
                         :icon="record.icon || 'mdi:checkbox-blank-circle-outline'" />
                 </template>
+                <template v-else-if="column.key === 'menuType'">
+                    <Tag :color="record.menuType === 'M' ? 'blue' : 'green'">
+                        {{ record.menuType === 'M' ? '目录' : record.menuType === 'C' ? '菜单' : record.menuType === 'F' ? '按钮' : record.menuType }}
+                    </Tag>
+                </template>
                 <template v-else-if="column.key === 'status'">
                     <Tag :color="record.status === '0' ? 'processing' : 'default'">
                         {{ record.status === '0' ? '正常' : '停用' }}
@@ -47,7 +52,8 @@
                 <template v-else-if="column.key === 'action'">
                     <span class="cell-action">
                         <Button type="link" class="p-0 link-edit" @click="handleEdit(record)">编辑</Button>
-                        <Button type="link" class="p-0 link-add" @click="handleAdd(record)">新增</Button>
+                        <Button v-if="record.menuType !== 'C'" type="link" class="p-0 link-add" @click="handleAdd(record)">新增</Button>
+                        <Button type="link" class="p-0" @click="handleButtons(record)">按钮</Button>
                         <Popconfirm
                             title="是否确认删除该菜单及子菜单？"
                             ok-text="确认"
@@ -62,6 +68,7 @@
         </Table>
 
         <MenuModal ref="menuModalRef" @success="loadMenuList" />
+        <ButtonManagerDrawer ref="buttonDrawerRef" @success="loadMenuList" />
     </div>
 </template>
 
@@ -72,6 +79,7 @@ import { IconifyIcon } from '@vben/icons';
 import { message } from 'ant-design-vue';
 import { getMenuList, deleteMenu, type MenuItem } from '#/api';
 import MenuModal from './modules/menuModal.vue';
+import ButtonManagerDrawer from './modules/button-manager-drawer.vue';
 
 const loading = ref(false);
 const rawList = ref<MenuItem[]>([]);
@@ -91,6 +99,7 @@ const statusOptions = [
 
 const columns = [
     { title: '菜单名称', dataIndex: 'menuName', key: 'menuName', width: 200 },
+    { title: '类型', dataIndex: 'menuType', key: 'menuType', width: 80, align: 'center' as const },
     { title: '图标', dataIndex: 'icon', key: 'icon', width: 80, align: 'center' as const },
     { title: '排序', dataIndex: 'orderNum', key: 'orderNum', width: 80, align: 'center' as const },
     { title: '权限标识', dataIndex: 'perms', key: 'perms', width: 200 },
@@ -169,12 +178,16 @@ async function loadMenuList() {
         let list: MenuItem[] = [];
         if (Array.isArray(res)) {
             list = res;
+        } else if (Array.isArray(res?.rows)) {
+            list = res.rows;
         } else if (Array.isArray(res?.data)) {
             list = res.data;
+        } else if (Array.isArray(res?.data?.rows)) {
+            list = res.data.rows;
         } else if (Array.isArray(res?.data?.data)) {
             list = res.data.data;
         }
-        rawList.value = list ?? [];
+        rawList.value = (list ?? []).filter((item) => item.menuType !== 'F');
     } catch (e: any) {
         message.error(e?.message ?? '加载菜单列表失败');
     } finally {
@@ -192,6 +205,7 @@ function handleReset() {
 }
 
 const menuModalRef = ref<InstanceType<typeof MenuModal> | null>(null);
+const buttonDrawerRef = ref<InstanceType<typeof ButtonManagerDrawer> | null>(null);
 
 function handleAdd(parentRow?: MenuItem) {
     // 使用 setData + open，确保 onSuccess 等回调在 modal 内部能正确拿到
@@ -226,6 +240,10 @@ async function handleDelete(record: MenuItem) {
     } catch (e: any) {
         message.error(e?.message ?? '删除失败');
     }
+}
+
+function handleButtons(record: MenuItem) {
+    buttonDrawerRef.value?.open(record);
 }
 
 onMounted(() => {

@@ -40,7 +40,11 @@ export const BUILTIN_HANDLERS: Record<string, (ctx: ActionContext, record?: any)
   /** 与 create 同义，兼容 operation_code = add */
   add: (ctx) => ctx.handleCreate(),
   edit: (ctx, record) => ctx.handleEdit(record),
+  /** 与 edit 同义，兼容 operation_code = row_edit */
+  row_edit: (ctx, record) => ctx.handleEdit(record),
   delete: (ctx, record) => ctx.handleDelete(record?.id ?? record?.dictId ?? record?.dictCode),
+  /** 与 delete 同义，兼容 operation_code = row_delete */
+  row_delete: (ctx, record) => ctx.handleDelete(record?.id ?? record?.dictId ?? record?.dictCode),
   toggle: (ctx, record) => ctx.handleToggle(record, !((record?.isEnabled ?? record?.is_enabled) === 1 || (record?.isEnabled ?? record?.is_enabled) === true)),
   export: (ctx) => ctx.handleExport(),
 };

@@ -62,7 +62,7 @@ const emit = defineEmits<{
 
 const open = async (row: any) => {
   visible.value = true;
-  roleId.value = row.roleId;
+  roleId.value = row.id ?? row.roleId;
   roleName.value = row.roleName;
   checkedKeys.value = [];
   expandedKeys.value = [];
@@ -72,17 +72,19 @@ const open = async (row: any) => {
   treeLoading.value = true;
   try {
     // 调用后端接口获取菜单树和已勾选菜单
-    const res = await getRoleMenuTree(row.roleId);
+    const res = await getRoleMenuTree(row.id ?? row.roleId);
     if (res) {
-      // 后端返回: { checkedKeys: [...], menus: [...] }
-      menuTreeData.value = res.menus || [];
-      checkedKeys.value = (res.checkedKeys || []).map(Number);
+      // 兼容 responseReturn='body' 的完整响应体 { code, msg, data: { checkedKeys, menus } }
+      const menus = res?.data?.menus ?? res?.menus ?? [];
+      const checkedKeysList = res?.data?.checkedKeys ?? res?.checkedKeys ?? [];
+      menuTreeData.value = menus;
+      checkedKeys.value = checkedKeysList.map(Number);
       // 默认展开所有节点
       expandedKeys.value = getAllNodeKeys(menuTreeData.value);
     }
   } catch (error) {
-    console.error($t('page.common.loadRoleMenuFail'), error);
-    message.error($t('page.message.loadFail'));
+    console.error('加载角色菜单失败', error);
+    message.error('加载角色菜单失败');
   } finally {
     treeLoading.value = false;
   }
@@ -126,7 +128,7 @@ const handleSubmit = async () => {
     }
 
     await assignRoleMenu({
-      roleId: roleId.value,
+      id: roleId.value,
       menuIds,
       menuCheckStrictly: checkedStrictly.value,
     });

@@ -37,6 +37,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/sys/material/index.vue'),
       },
       {
+        meta: { title: '批次管理', keepAlive: true, fullPathKey: false },
+        name: 'BaseBatch',
+        path: 'batch',
+        component: () => import('#/views/sys/batch/index.vue'),
+      },
+      {
         meta: {
           hideInMenu: true,
           keepAlive: false,

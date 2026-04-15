@@ -69,6 +69,35 @@
       "copyAll": "Copy All",
       "copySuccess": "Copied",
       "copyAllSuccess": "Copied all"
+    },
+    "role": {
+      "title": "Role Management",
+      "roleName": "Role Name",
+      "roleKey": "Role Key",
+      "roleSort": "Role Sort",
+      "dataScope": "Data Scope",
+      "status": "Status",
+      "assignMenu": "Assign Menu",
+      "addTitle": "Add Role",
+      "editTitle": "Edit Role",
+      "assignMenuTitle": "Assign Menu Permissions - {name}",
+      "roleNameRequired": "Please input role name",
+      "roleKeyRequired": "Please input role key",
+      "roleSortRequired": "Please input role sort",
+      "roleNamePlaceholder": "Please input role name",
+      "roleKeyPlaceholder": "Please input role key, e.g. system:admin",
+      "dataScopePlaceholder": "Please select data scope",
+      "dataScope1": "All data permissions",
+      "dataScope2": "Current dept data permissions",
+      "dataScope3": "Current dept and below data permissions",
+      "dataScope4": "Self data permissions only",
+      "dataScope5": "Custom data permissions",
+      "parentChildLinked": "Parent-child linkage",
+      "confirmEnable": "Are you sure to enable role \"{name}\"?",
+      "confirmDisable": "Are you sure to disable role \"{name}\"?",
+      "confirmDelete": "Are you sure to delete role \"{name}\"?",
+      "dataScopeDepts": "Data scope departments",
+      "deptIdsRequired": "Please select data scope departments"
     }
   },
   "common": {
@@ -98,7 +127,8 @@
     "disabled": "Disabled",
     "operation": "Operation",
     "treeTable": "Tree Table",
-    "pleaseSelect": "Please select"
+    "pleaseSelect": "Please select",
+    "save": "Save"
   },
   "lowcode": {
     "meta": {
@@ -382,6 +412,10 @@
         "exportSuccess": "Exported successfully",
         "exportFail": "Export failed"
       }
+    },
+    "batch": {
+      "listTitle": "Batch Management",
+      "listDescription": "Manage material batch information, expiry dates, supplier batch numbers, etc."
     }
   }
 }

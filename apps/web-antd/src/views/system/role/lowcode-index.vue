@@ -33,6 +33,8 @@ import { Button } from 'ant-design-vue';
 import LowcodePage from '#/lowcode/LowcodePage.vue';
 import AssignMenuDrawer from './modules/assign-menu-drawer.vue';
 
+console.log('[RoleLowcode] component loaded, tableCode=sys_role, crudPrefix=/api/wms/crud/sys_role');
+
 const lowcodePageRef = ref<InstanceType<typeof LowcodePage> | null>(null);
 const menuDrawerRef = ref<InstanceType<typeof AssignMenuDrawer> | null>(null);
 
@@ -45,6 +47,11 @@ function handleReload() {
 }
 
 function handleAssignMenu(record: Record<string, any>) {
-  menuDrawerRef.value?.open(record);
+  // 低代码返回 snake_case 字段，需要映射为 AssignMenuDrawer 期望的 camelCase
+  const mappedRecord = {
+    roleId: record.role_id ?? record.roleId,
+    roleName: record.role_name ?? record.roleName,
+  };
+  menuDrawerRef.value?.open(mappedRecord);
 }
 </script>

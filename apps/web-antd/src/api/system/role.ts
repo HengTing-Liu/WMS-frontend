@@ -119,12 +119,12 @@ export function dataScope(data: any) {
  * 获取角色菜单树
  */
 export function getRoleMenuTree(roleId: number | string) {
-  return requestClient.get(`/api/system/role/menuTree/${roleId}`);
+  return requestClient.get(`/api/menu/roleMenuTreeselect/${roleId}`);
 }
 
 /**
  * 分配角色菜单
  */
-export function assignRoleMenu(data: { roleId: number | string; menuIds: number[] }) {
-  return requestClient.put('/system/role/menu', data);
+export function assignRoleMenu(data: { id: number | string; menuIds: number[]; menuCheckStrictly?: boolean }) {
+  return requestClient.put('/api/system/role/assignMenu', data);
 }

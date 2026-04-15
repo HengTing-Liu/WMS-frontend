@@ -207,6 +207,10 @@
         "exportSuccess": "导出成功",
         "exportFail": "导出失败"
       }
+    },
+    "batch": {
+      "listTitle": "批次管理",
+      "listDescription": "管理物料批次信息、有效期、供应商批号等"
     }
   },
   "common": {
@@ -236,7 +240,8 @@
     "disabled": "已停用",
     "operation": "操作",
     "treeTable": "树形表",
-    "pleaseSelect": "请选择"
+    "pleaseSelect": "请选择",
+    "save": "保存"
   },
   "lowcode": {
     "meta": {
@@ -371,6 +376,35 @@
       "copyAll": "全部复制",
       "copySuccess": "复制成功",
       "copyAllSuccess": "全部复制成功"
+    },
+    "role": {
+      "title": "角色管理",
+      "roleName": "角色名称",
+      "roleKey": "角色标识",
+      "roleSort": "角色排序",
+      "dataScope": "数据权限",
+      "status": "状态",
+      "assignMenu": "分配菜单",
+      "addTitle": "新增角色",
+      "editTitle": "编辑角色",
+      "assignMenuTitle": "分配菜单权限 - {name}",
+      "roleNameRequired": "请输入角色名称",
+      "roleKeyRequired": "请输入角色标识",
+      "roleSortRequired": "请输入角色排序",
+      "roleNamePlaceholder": "请输入角色名称",
+      "roleKeyPlaceholder": "请输入角色标识，例如：system:admin",
+      "dataScopePlaceholder": "请选择数据权限范围",
+      "dataScope1": "全部数据权限",
+      "dataScope2": "本部门数据权限",
+      "dataScope3": "本部门及以下数据权限",
+      "dataScope4": "仅本人数据权限",
+      "dataScope5": "自定义数据权限",
+      "parentChildLinked": "父子联动",
+      "confirmEnable": "确认要启用角色「{name}」吗？",
+      "confirmDisable": "确认要停用角色「{name}」吗？",
+      "confirmDelete": "确认要删除角色「{name}」吗？",
+      "dataScopeDepts": "数据权限部门",
+      "deptIdsRequired": "请选择数据权限部门"
     }
   }
 }

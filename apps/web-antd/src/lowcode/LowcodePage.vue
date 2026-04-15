@@ -169,6 +169,7 @@ import WmsSearchBar from '#/components/common/WmsSearchBar.vue';
 import WmsDataTable from '#/components/common/WmsDataTable.vue';
 import { fetchPageMeta, fetchList, deleteRecord, toggleRecord } from './api';
 import type { ColumnMeta, LowcodeAction, LowcodeSearchField, StatsCardConfig } from './types';
+import { useSlots } from 'vue';
 import {
   handleAction,
   isExportAction,
@@ -336,9 +337,12 @@ const columns = computed<any[]>(() => {
     cols.push(tableCol);
   }
 
-  // 操作列
-  if (metaOperations.value.some((op) => op.position === 'row')) {
-    cols.push({ title: '操作', key: 'action', width: 120, align: 'center', fixed: 'right' });
+  // 操作列（宽度根据行内操作数量 + appendAction slot 动态计算）
+  const hasAppendActionSlot = !!slots.appendAction;
+  if (metaOperations.value.some((op) => op.position === 'row') || hasAppendActionSlot) {
+    const rowCount = rowActions.value.length + (hasAppendActionSlot ? 1 : 0);
+    const actionWidth = Math.max(120, rowCount * 44 + 16);
+    cols.push({ title: '操作', key: 'action', width: actionWidth, align: 'center', fixed: 'right' });
   }
 
   return cols;
@@ -428,6 +432,7 @@ function updateStats(rows: any[]) {
 
 // ==================== 事件处理上下文 ====================
 const { hasAccessByCodes } = useAccess();
+const slots = useSlots();
 
 /** 检查按钮是否有权限渲染（支持逗号分隔多码；兼容前缀与同义后缀，见 permission-utils） */
 function canRenderAction(action: LowcodeAction): boolean {
