@@ -38,7 +38,7 @@
             共 <span class="font-medium">{{ pagination.total }}</span> 条
           </template>
         </div>
-        <div v-if="visibleToolbarActions.length" class="flex gap-2">
+        <div v-if="visibleToolbarActions.length || !!slots.toolbarExtra" class="flex gap-2">
           <template v-for="action in visibleToolbarActions" :key="action.key">
             <Button
               :danger="isDangerButton(action)"
@@ -50,6 +50,7 @@
               {{ action.label }}
             </Button>
           </template>
+          <slot name="toolbarExtra" />
         </div>
       </div>
 
@@ -231,6 +232,7 @@ const loading = ref(false);
 const dataList = ref<any[]>([]);
 const selectedRowKeys = ref<any[]>([]);
 const searchForm = reactive<Record<string, any>>({});
+const searchQueryModes = ref<Record<string, 'eq' | 'like'>>({});
 const actionLoading = ref<Record<string, boolean>>({});
 const router = useRouter();
 const route = useRoute();
@@ -258,6 +260,30 @@ const stats = reactive<Record<string, any>>({});
 // ==================== Meta 配置 ====================
 const metaColumns = ref<ColumnMeta[]>([]);
 const metaOperations = ref<LowcodeAction[]>([]);
+const dictLabelMapByField = computed(() => {
+  const map = new Map<string, Map<string, string>>();
+  for (const col of metaColumns.value) {
+    const code = col.code ?? col.field;
+    if (!code) continue;
+    const options = Array.isArray(col.options)
+      ? col.options
+      : Array.isArray(col.dataSource)
+        ? col.dataSource
+        : [];
+    if (!options.length) continue;
+    const valueLabelMap = new Map<string, string>();
+    for (const option of options) {
+      const value = (option as any)?.value;
+      const label = (option as any)?.label;
+      if (value === undefined || value === null || label === undefined || label === null) continue;
+      valueLabelMap.set(String(value), String(label));
+    }
+    if (valueLabelMap.size > 0) {
+      map.set(code, valueLabelMap);
+    }
+  }
+  return map;
+});
 
 // ==================== 搜索栏 URL ====================
 const searchFieldsUrl = computed(() =>
@@ -364,6 +390,11 @@ function formatDefaultCell(record: Record<string, any>, column: any): string {
   if (key == null || key === 'seq' || key === 'action') return '';
   const raw = pickRecordField(record, String(key));
   if (raw === null || raw === undefined) return '';
+  const dictLabelMap = dictLabelMapByField.value.get(String(key));
+  if (dictLabelMap) {
+    const mapped = dictLabelMap.get(String(raw));
+    if (mapped !== undefined) return mapped;
+  }
   if (typeof raw === 'object') return JSON.stringify(raw);
   return String(raw);
 }
@@ -375,17 +406,25 @@ async function loadData() {
     // 转换搜索参数（驼峰 → 蛇形，兼容后端）
     const query: Record<string, any> = {};
     for (const [key, val] of Object.entries(searchForm)) {
+      if (key === '__queryModes') continue;
       if (val !== undefined && val !== null && val !== '') {
         // 转换驼峰到蛇形
         const snakeKey = key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
         query[snakeKey] = val;
       }
     }
+    const queryModes: Record<string, 'eq' | 'like'> = {};
+    for (const [key, mode] of Object.entries(searchQueryModes.value)) {
+      const snakeKey = key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
+      if (query[snakeKey] === undefined) continue;
+      queryModes[snakeKey] = mode === 'eq' ? 'eq' : 'like';
+    }
 
     const res = await fetchList({
       tableCode: props.tableCode,
       prefix: props.crudPrefix,
       query,
+      queryModes,
       pageNum: pagination.current,
       pageSize: pagination.pageSize,
     });
@@ -510,12 +549,20 @@ function camelToSnake(str: string): string {
 function buildExportParams(): Record<string, any> {
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(searchForm)) {
+    if (key === '__queryModes') continue;
     if (value !== undefined && value !== null && value !== '') {
       // 转换字段名为蛇形
       const snakeKey = camelToSnake(key);
       result[snakeKey] = value;
     }
   }
+  const queryModes: Record<string, 'eq' | 'like'> = {};
+  for (const [key, mode] of Object.entries(searchQueryModes.value)) {
+    const snakeKey = camelToSnake(key);
+    if (result[snakeKey] === undefined) continue;
+    queryModes[snakeKey] = mode === 'eq' ? 'eq' : 'like';
+  }
+  result.queryModes = JSON.stringify(queryModes);
   return result;
 }
 
@@ -598,8 +645,21 @@ async function handleExportAction(action: LowcodeAction) {
   }
 }
 
-function handleSearch() {
+function handleSearch(payload?: Record<string, any>) {
+  if (payload && typeof payload === 'object') {
+    // 同步一次最新搜索值，确保带上 __queryModes
+    Object.keys(searchForm).forEach((key) => {
+      if (!(key in payload)) {
+        delete searchForm[key];
+      }
+    });
+    Object.entries(payload).forEach(([key, value]) => {
+      searchForm[key] = value;
+    });
+  }
   pagination.current = 1;
+  const modesSource = payload && payload.__queryModes ? payload.__queryModes : searchForm.__queryModes;
+  searchQueryModes.value = { ...(modesSource ?? {}) };
   loadData();
   emit('search', { ...searchForm });
 }
@@ -609,6 +669,7 @@ function handleReset() {
   for (const key of Object.keys(searchForm)) {
     delete searchForm[key];
   }
+  searchQueryModes.value = {};
   pagination.current = 1;
   loadData();
 }

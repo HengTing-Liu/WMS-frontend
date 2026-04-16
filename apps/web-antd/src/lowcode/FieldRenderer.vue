@@ -148,7 +148,7 @@ async function loadDictOptions(dictType: string) {
   optionsLoading.value = true;
   loadingSet.add(cacheKey);
   try {
-    const res = await requestClient.get<any>(`/api/system/dict/data/${dictType}`);
+    const res = await requestClient.get<any>(`/api/dict/data/type/${dictType}`);
     const list = normalizeDictData(res);
     optionsCache[cacheKey] = list;
     remoteOptions.value = list;

@@ -10,10 +10,15 @@
               :loading="tableLoading"
               style="width: 320px"
               show-search
-              :filter-option="filterTableOption"
+              option-filter-prop="label"
               @change="(value) => handleTableChange(value as string | number | undefined)"
             >
-              <SelectOption v-for="table in tableList" :key="table.tableCode" :value="table.tableCode">
+              <SelectOption
+                v-for="table in tableList"
+                :key="table.tableCode"
+                :value="table.tableCode"
+                :label="`${table.tableCode} - ${table.tableName}`"
+              >
                 {{ table.tableCode }} - {{ table.tableName }}
               </SelectOption>
             </Select>
@@ -247,11 +252,6 @@ const rowSelection = computed(() => ({
     selectedRowKeys.value = keys;
   },
 }));
-
-function filterTableOption(input: string, option: any) {
-  const text = option.children?.() || option.children || '';
-  return String(text).toLowerCase().includes(input.toLowerCase());
-}
 
 function handleSearch() {
   // 搜索由 computed tableData 自动处理，无需额外操作

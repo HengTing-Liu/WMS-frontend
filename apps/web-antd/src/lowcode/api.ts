@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Lowcode 濡€虫健 - 缂佺喍绔?API 閹恒儱褰? *
  * 閹恒儱褰涚痪锕€鐣鹃敍? * - 閸掓銆冮敍娆窫T  /api/{module}/{entity}/list
  * - 鐠囷附鍎忛敍娆窫T  /api/{module}/{entity}/{id}
@@ -171,13 +171,19 @@ export async function fetchList(params: {
   tableCode: string;
   prefix?: string;
   query?: Record<string, any>;
+  queryModes?: Record<string, 'eq' | 'like'>;
   pageNum?: number;
   pageSize?: number;
 }) {
-  const { tableCode, prefix, query = {}, pageNum = 1, pageSize = 20 } = params;
+  const { tableCode, prefix, query = {}, queryModes = {}, pageNum = 1, pageSize = 20 } = params;
   const basePrefix = prefix ?? inferCrudPrefix(tableCode);
   const res = await requestClient.get<any>(`${basePrefix}/list`, {
-    params: { pageNum, pageSize, ...query },
+    params: {
+      pageNum,
+      pageSize,
+      ...query,
+      queryModes: JSON.stringify(queryModes),
+    },
   });
   const rows = res?.rows ?? res?.data?.rows ?? res?.data ?? [];
   const total = res?.total ?? res?.data?.total ?? 0;

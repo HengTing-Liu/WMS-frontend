@@ -103,6 +103,31 @@ async function refreshDictCache() {
   return requestClient.get('/api/dict/type/refreshCache', { responseReturn: 'body' });
 }
 
+/**
+ * 导入字典类型
+ * POST /api/dict/type/importData
+ */
+async function importDictType(file: File, updateSupport = false) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('updateSupport', String(updateSupport));
+  return requestClient.post('/api/dict/type/importData', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    responseReturn: 'body',
+  });
+}
+
+/**
+ * 下载字典类型导入模板
+ * POST /api/dict/type/downLoadTemplate
+ */
+async function downloadDictTypeTemplate() {
+  return requestClient.post('/api/dict/type/downLoadTemplate', undefined, {
+    responseType: 'blob',
+    responseReturn: 'body',
+  });
+}
+
 // ========== 字典数据函数 ==========
 
 export interface DictDataItem {
@@ -211,6 +236,8 @@ export {
   deleteDictType,
   exportDictType,
   refreshDictCache,
+  importDictType,
+  downloadDictTypeTemplate,
   getDictDataList,
   getDictDataDetail,
   addDictData,

@@ -20,10 +20,13 @@ export namespace ColumnMetaApi {
     showInList: number;
     showInForm: number;
     showInExport?: number;
+    showInImport?: number;
     searchable?: number;
     sortable?: number;
     width?: number;
     colSpan?: number;
+    readonly?: number;
+    editReadonly?: number;
     defaultValue?: string;
     placeholder?: string;
     rulesJson?: string;
@@ -91,10 +94,13 @@ function normalizeColumn(item: any): ColumnMetaApi.ColumnMeta {
     showInList: Number(item.showInList ?? item.isShowInList ?? 1),
     showInForm: Number(item.showInForm ?? item.isShowInForm ?? 1),
     showInExport: Number(item.showInExport ?? item.isShowInExport ?? 0),
+    showInImport: Number(item.showInImport ?? item.isShowInImport ?? 1),
     searchable: Number(item.searchable ?? item.isSearchable ?? 0),
     sortable: Number(item.sortable ?? item.isSortable ?? 0),
     width: Number(item.width ?? item.listWidth ?? 120),
     colSpan: Number(item.colSpan ?? item.formColSpan ?? 24),
+    readonly: Number(item.readonly ?? item.isReadonly ?? 0),
+    editReadonly: Number(item.editReadonly ?? item.isEditReadonly ?? 0),
     rulesJson: item.rulesJson ?? item.validRules ?? '',
     status: Number(item.status ?? item.isEnabled ?? 1),
   };
@@ -115,10 +121,13 @@ function normalizeSchemaColumn(item: any): ColumnMetaApi.ColumnMeta {
     showInList: Number(item.showInList ?? item.isShowInList ?? item.isVisible ?? 1),
     showInForm: Number(item.showInForm ?? item.isShowInForm ?? 1),
     showInExport: Number(item.showInExport ?? 0),
+    showInImport: Number(item.showInImport ?? item.isShowInImport ?? 1),
     searchable: Number(item.searchable ?? item.isSearchable ?? 0),
     sortable: Number(item.sortable ?? item.isSortable ?? 0),
     width: Number(item.width ?? 120),
     colSpan: Number(item.colSpan ?? 24),
+    readonly: Number(item.readonly ?? item.isReadonly ?? 0),
+    editReadonly: Number(item.editReadonly ?? item.isEditReadonly ?? 0),
     defaultValue: item.defaultValue ?? '',
     placeholder: item.placeholder ?? '',
     rulesJson: item.rulesJson ?? '',
@@ -221,6 +230,26 @@ export async function batchAddColumnMeta(data: Partial<ColumnMetaApi.ColumnMeta>
 
 export async function batchUpdateSortOrder(orders: SortOrderItem[]) {
   return requestClient.put('/api/system/meta/column/sort', orders, {
+    responseReturn: 'body',
+  });
+}
+
+export interface BatchSectionPayload {
+  ids: number[];
+  sectionKey: string;
+  sectionTitle: string;
+  sectionOrder: number;
+  sectionType: string;
+}
+
+export async function batchUpdateColumnSection(payload: BatchSectionPayload) {
+  return requestClient.put('/api/system/meta/column/batch-group', payload, {
+    responseReturn: 'body',
+  });
+}
+
+export async function batchUpdateColSpan(ids: number[], colSpan: number) {
+  return requestClient.put('/api/system/meta/column/colspan', { ids, colSpan }, {
     responseReturn: 'body',
   });
 }

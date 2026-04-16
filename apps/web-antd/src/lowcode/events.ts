@@ -14,7 +14,7 @@
 import { message, Modal } from 'ant-design-vue';
 import { useAccess } from '@vben/access';
 import { downloadBlob } from '#/utils/download';
-import type { LowcodeAction, ApiEventConfig, DownloadEventConfig, RedirectEventConfig } from './types';
+import type { LowcodeAction, ApiEventConfig, DownloadEventConfig, UploadEventConfig, RedirectEventConfig } from './types';
 import { expandAllPermissionCodes } from './permission-utils';
 
 export interface ActionContext {
@@ -223,6 +223,88 @@ export async function executeDownloadAction(
 }
 
 /** 驼峰转蛇形 */
+/** 执行文件上传（导入） */
+export async function executeUploadAction(
+  action: LowcodeAction,
+  ctx: ActionContext,
+): Promise<boolean> {
+  const config: UploadEventConfig = parseEventConfig(action.eventConfig);
+  const { hasAccessByCodes } = useAccess();
+
+  const permCodes = expandAllPermissionCodes(action.permission);
+  if (permCodes.length && !permCodes.some((c) => hasAccessByCodes([c]))) {
+    message.error('您没有执行此操作的权限');
+    return false;
+  }
+
+  const url = config.url || (ctx.crudPrefix ? `${ctx.crudPrefix}/importData` : '');
+  if (!url) {
+    message.error('上传接口未配置');
+    return false;
+  }
+
+  const accept = config.accept || '.xlsx,.xls';
+  const fileField = config.fileField || 'file';
+
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = accept;
+    input.onchange = async (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) {
+        resolve(false);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append(fileField, file);
+      if (config.updateSupport !== undefined) {
+        formData.append('updateSupport', String(config.updateSupport));
+      }
+      if (config.extraParams) {
+        for (const [key, value] of Object.entries(config.extraParams)) {
+          formData.append(key, String(value));
+        }
+      }
+
+      try {
+        const requestOptions: RequestInit = {
+          method: config.method || 'POST',
+          headers: {},
+          body: formData,
+        };
+
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('oms_token');
+        if (token) {
+          (requestOptions.headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+        }
+        const tenantId = localStorage.getItem('tenant_id') || localStorage.getItem('oms_tenant_id');
+        if (tenantId) {
+          (requestOptions.headers as Record<string, string>)['X-Tenant-Id'] = tenantId;
+        }
+
+        const response = await fetch(url, requestOptions);
+        const result = await response.json().catch(() => ({}));
+
+        if (response.ok && (result.code === 0 || result.code === 200)) {
+          message.success(config.successMessage || result.data || '导入成功');
+          ctx.reload();
+          resolve(true);
+        } else {
+          message.error(config.failMessage || result.message || `导入失败: ${response.status}`);
+          resolve(false);
+        }
+      } catch (error: any) {
+        console.error('Upload failed:', error);
+        message.error(config.failMessage || error.message || '上传失败');
+        resolve(false);
+      }
+    };
+    input.click();
+  });
+}
+
 function camelToSnake(str: string): string {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
@@ -375,6 +457,9 @@ export async function handleAction(
 
     case 'download':
       return executeDownloadAction(action, ctx);
+
+    case 'upload':
+      return executeUploadAction(action, ctx);
 
     case 'redirect':
       executeRedirectAction(action, ctx);

@@ -9,18 +9,30 @@
           :label="field.label"
           class="search-field-item"
         >
-          <a-input
-            v-if="field.type === 'input'"
-            v-model:value="formModel[field.key]"
-            :placeholder="`请输入${field.label}`"
-            @press-enter="handleSearch"
-          />
+          <div v-if="field.type === 'input'" class="input-with-mode">
+            <a-input
+              v-model:value="formModel[field.key]"
+              :placeholder="`请输入${field.label}`"
+              @press-enter="handleSearch"
+            />
+            <a-switch
+              :checked="isFuzzyMode(field.key)"
+              size="small"
+              checked-children="模糊"
+              un-checked-children="精确"
+              @change="(checked) => handleQueryModeChange(field.key, checked as boolean)"
+            />
+          </div>
           <a-select
             v-else-if="field.type === 'select'"
             v-model:value="formModel[field.key]"
             :placeholder="`请选择${field.label}`"
-            :options="field.options"
+            :options="getFilteredOptions(field)"
             allow-clear
+            show-search
+            :filter-option="false"
+            @search="(keyword) => handleSelectSearch(field.key, keyword)"
+            @dropdown-visible-change="(open) => !open && clearSelectSearch(field.key)"
             style="width: 100%"
           />
           <a-switch
@@ -88,6 +100,8 @@ export interface SearchField {
   options?: { label: string; value: string | number }[];
 }
 
+type QueryMode = 'eq' | 'like';
+
 interface Props {
   fields?: SearchField[];
   remoteFieldsUrl?: string;
@@ -111,6 +125,8 @@ const emit = defineEmits<{
 const allFields = ref<SearchField[]>([]);
 const selectedKeys = ref<string[]>([]);
 const fieldsDropdownOpen = ref(false);
+const fieldQueryModes = ref<Record<string, QueryMode>>({});
+const selectSearchKeywords = ref<Record<string, string>>({});
 
 const camelToSnake: Record<string, string> = {
   warehouseCode: 'warehouse_code',
@@ -195,9 +211,79 @@ function saveCache() {
   localStorage.setItem(props.cacheKey, JSON.stringify(selectedKeys.value));
 }
 
+function loadQueryModeCache() {
+  if (!props.cacheKey) return;
+  try {
+    const cached = sessionStorage.getItem(`${props.cacheKey}-query-modes`);
+    if (!cached) return;
+    const parsed = JSON.parse(cached);
+    if (parsed && typeof parsed === 'object') {
+      const restored: Record<string, QueryMode> = {};
+      Object.keys(parsed).forEach((key) => {
+        restored[key] = parsed[key] === 'eq' ? 'eq' : 'like';
+      });
+      fieldQueryModes.value = restored;
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function saveQueryModeCache() {
+  if (!props.cacheKey) return;
+  try {
+    sessionStorage.setItem(
+      `${props.cacheKey}-query-modes`,
+      JSON.stringify(fieldQueryModes.value),
+    );
+  } catch {
+    // ignore
+  }
+}
+
+function ensureFieldQueryModes() {
+  const next: Record<string, QueryMode> = {};
+  allFields.value.forEach((field) => {
+    if (field.type !== 'input') return;
+    next[field.key] = fieldQueryModes.value[field.key] === 'eq' ? 'eq' : 'like';
+  });
+  fieldQueryModes.value = next;
+  saveQueryModeCache();
+}
+
+function isFuzzyMode(fieldKey: string) {
+  return fieldQueryModes.value[fieldKey] !== 'eq';
+}
+
+function handleQueryModeChange(fieldKey: string, checked: boolean) {
+  // 开关开启表示“模糊搜索”
+  fieldQueryModes.value[fieldKey] = checked ? 'like' : 'eq';
+  saveQueryModeCache();
+}
+
+function handleSelectSearch(fieldKey: string, keyword: string) {
+  selectSearchKeywords.value[fieldKey] = keyword || '';
+}
+
+function clearSelectSearch(fieldKey: string) {
+  delete selectSearchKeywords.value[fieldKey];
+}
+
+function getFilteredOptions(field: SearchField) {
+  const options = field.options || [];
+  const keyword = (selectSearchKeywords.value[field.key] || '').trim().toLowerCase();
+  if (!keyword) return options;
+  return options.filter((option) => {
+    const label = String(option.label || '').toLowerCase();
+    const value = String(option.value || '').toLowerCase();
+    return label.includes(keyword) || value.includes(keyword);
+  });
+}
+
 function initSelectedKeys() {
   if (props.cacheKey) {
     loadCache();
+    loadQueryModeCache();
   }
   if (selectedKeys.value.length === 0 && allFields.value.length > 0) {
     selectedKeys.value = allFields.value.map((f) => f.key);
@@ -208,6 +294,7 @@ function initSelectedKeys() {
     allFields.value = props.fields;
     selectedKeys.value = props.fields.map((f) => f.key);
   }
+  ensureFieldQueryModes();
 }
 
 function parseMetaFields(metaData: any[]): SearchField[] {
@@ -388,6 +475,14 @@ function handleSearch() {
     model.is_enabled = isEnabledValue(rawEnabled) ? 1 : 0;
     model.isEnabled = model.is_enabled;
   }
+  const queryModes: Record<string, QueryMode> = {};
+  allFields.value.forEach((field) => {
+    if (field.type !== 'input') return;
+    const value = model[field.key];
+    if (value === undefined || value === null || value === '') return;
+    queryModes[field.key] = fieldQueryModes.value[field.key] === 'eq' ? 'eq' : 'like';
+  });
+  model.__queryModes = queryModes;
   emit('search', model);
 }
 
@@ -405,7 +500,15 @@ function handleReset() {
   const empty: Record<string, any> = {};
   allFields.value.forEach((f) => {
     empty[f.key] = undefined;
+    if (f.type === 'input') {
+      fieldQueryModes.value[f.key] = 'like';
+    }
+    if (f.type === 'select') {
+      clearSelectSearch(f.key);
+    }
   });
+  empty.__queryModes = {};
+  saveQueryModeCache();
   emit('update:modelValue', empty);
   emit('reset');
 }
@@ -489,5 +592,11 @@ defineExpose({ updateFieldOptions });
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.input-with-mode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 </style>

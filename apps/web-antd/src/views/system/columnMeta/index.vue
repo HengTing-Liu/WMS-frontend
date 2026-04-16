@@ -15,10 +15,15 @@
               placeholder="请选择表"
               style="width: 280px"
               show-search
-              :filter-option="filterTableOption"
+              option-filter-prop="label"
               @change="(value) => handleTableChange(value as string | number | undefined)"
             >
-              <Select.Option v-for="table in tableList" :key="table.tableCode" :value="table.tableCode">
+              <Select.Option
+                v-for="table in tableList"
+                :key="table.tableCode"
+                :value="table.tableCode"
+                :label="`${table.tableCode} - ${table.tableName}`"
+              >
                 {{ table.tableCode }} - {{ table.tableName }}
               </Select.Option>
             </Select>
@@ -51,6 +56,24 @@
                 <Trash2 class="btn-icon" /> 批量删除
               </Button>
             </Popconfirm>
+            <Button
+              v-if="selectedRowKeys.length > 0"
+              type="primary"
+              ghost
+              @click="handleBatchSetGroup"
+            >
+              <IconifyIcon icon="material-symbols:folder-managed" class="btn-icon" />
+              批量设置分组
+            </Button>
+            <Button
+              v-if="selectedRowKeys.length > 0"
+              type="primary"
+              ghost
+              @click="handleBatchSetColspan"
+            >
+              <IconifyIcon icon="material-symbols:view-column" class="btn-icon" />
+              批量设置列宽
+            </Button>
           </div>
         </div>
       </Card>
@@ -122,6 +145,24 @@
           />
         </template>
 
+        <!-- 只读 -->
+        <template v-else-if="column.key === 'readonly'">
+          <Switch
+            :checked="record.readonly === 1"
+            size="small"
+            @change="(checked) => void handleToggleReadonly(record, checked as boolean)"
+          />
+        </template>
+
+        <!-- 编辑时只读 -->
+        <template v-else-if="column.key === 'editReadonly'">
+          <Switch
+            :checked="record.editReadonly === 1"
+            size="small"
+            @change="(checked) => void handleToggleEditReadonly(record, checked as boolean)"
+          />
+        </template>
+
         <!-- 列表显示 -->
         <template v-else-if="column.key === 'showInList'">
           <Switch
@@ -137,6 +178,24 @@
             :checked="record.showInForm === 1"
             size="small"
             @change="(checked) => void handleToggleShowInForm(record, checked as boolean)"
+          />
+        </template>
+
+        <!-- 导出显示 -->
+        <template v-else-if="column.key === 'showInExport'">
+          <Switch
+            :checked="record.showInExport === 1"
+            size="small"
+            @change="(checked) => void handleToggleShowInExport(record, checked as boolean)"
+          />
+        </template>
+
+        <!-- 导入显示 -->
+        <template v-else-if="column.key === 'showInImport'">
+          <Switch
+            :checked="record.showInImport === 1"
+            size="small"
+            @change="(checked) => void handleToggleShowInImport(record, checked as boolean)"
           />
         </template>
 
@@ -188,6 +247,17 @@
       :table-code="selectedTableCode"
       @success="handleModalSuccess"
     />
+    <BatchSetGroupModal
+      v-model:visible="batchSetGroupVisible"
+      :table-code="selectedTableCode || ''"
+      :selected-ids="selectedRowKeys.map((k) => Number(k))"
+      @success="handleModalSuccess"
+    />
+    <BatchSetColspanModal
+      v-model:visible="batchSetColspanVisible"
+      :selected-ids="selectedRowKeys.map((k) => Number(k))"
+      @success="handleModalSuccess"
+    />
   </WmsPageLayout>
 </template>
 
@@ -211,6 +281,8 @@ import type { TableColumnsType } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 import { WmsDataTable, WmsPageLayout } from '#/components/wms';
 import ColumnMetaModal from './modules/column-meta-modal.vue';
+import BatchSetGroupModal from './modules/batch-set-group-modal.vue';
+import BatchSetColspanModal from './modules/batch-set-colspan-modal.vue';
 import {
   getColumnMetaList,
   deleteColumnMeta,
@@ -249,6 +321,9 @@ const searchKeyword = ref('');
 const modalVisible = ref(false);
 const modalMode = ref<'add' | 'edit'>('add');
 const currentRecord = ref<ColumnMetaApi.ColumnMeta | null>(null);
+
+const batchSetGroupVisible = ref(false);
+const batchSetColspanVisible = ref(false);
 
 function savePageState() {
   const state: ColumnMetaPageState = {
@@ -328,6 +403,9 @@ const columns = computed<TableColumnsType>(() => [
   { title: '排序', key: 'seq', width: 70, align: 'center' },
   { title: '字段编码', dataIndex: 'field', key: 'field', width: 150 },
   { title: '字段名称', dataIndex: 'title', key: 'title', width: 150 },
+  { title: '栅格列宽', dataIndex: 'colSpan', key: 'colSpan', width: 90, align: 'center' },
+  { title: '只读', key: 'readonly', width: 70, align: 'center' },
+  { title: '编辑只读', key: 'editReadonly', width: 90, align: 'center' },
   { title: '分组', dataIndex: 'sectionTitle', key: 'sectionTitle', width: 140 },
   { title: '分组Key', dataIndex: 'sectionKey', key: 'sectionKey', width: 120 },
   { title: '容器', dataIndex: 'sectionType', key: 'sectionType', width: 90, align: 'center' },
@@ -336,6 +414,8 @@ const columns = computed<TableColumnsType>(() => [
   { title: '必填', key: 'required', width: 70, align: 'center' },
   { title: '列表显示', key: 'showInList', width: 90, align: 'center' },
   { title: '表单显示', key: 'showInForm', width: 90, align: 'center' },
+  { title: '导出显示', key: 'showInExport', width: 90, align: 'center' },
+  { title: '导入显示', key: 'showInImport', width: 90, align: 'center' },
   { title: '排序号', dataIndex: 'sortOrder', key: 'sortOrder', width: 80, align: 'center' },
   { title: '分组排序', dataIndex: 'sectionOrder', key: 'sectionOrder', width: 90, align: 'center' },
   { title: '默认展开', dataIndex: 'sectionOpen', key: 'sectionOpen', width: 90, align: 'center' },
@@ -408,11 +488,6 @@ function handleTableChange(value?: string | number) {
   searchKeyword.value = '';
 }
 
-function filterTableOption(input: string, option: any) {
-  const text = option.children?.() || option.children || '';
-  return String(text).toLowerCase().includes(input.toLowerCase());
-}
-
 function handleSearch() {
   loadData();
 }
@@ -443,6 +518,22 @@ async function handleDelete(record: ColumnMetaApi.ColumnMeta) {
   } catch (error: any) {
     message.error(error?.message || '删除失败');
   }
+}
+
+function handleBatchSetGroup() {
+  if (selectedRowKeys.value.length === 0) {
+    message.warning('请先选择字段');
+    return;
+  }
+  batchSetGroupVisible.value = true;
+}
+
+function handleBatchSetColspan() {
+  if (selectedRowKeys.value.length === 0) {
+    message.warning('请先选择字段');
+    return;
+  }
+  batchSetColspanVisible.value = true;
 }
 
 async function handleBatchDelete() {
@@ -500,6 +591,34 @@ async function handleToggleRequired(record: ColumnMetaApi.ColumnMeta, checked: b
   }
 }
 
+async function handleToggleReadonly(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
+  try {
+    await updateColumnMeta({
+      ...record,
+      readonly: checked ? 1 : 0,
+    });
+    message.success(checked ? '已设为只读' : '已取消只读');
+    loadData();
+  } catch (error: any) {
+    message.error(error?.message || '操作失败');
+    loadData();
+  }
+}
+
+async function handleToggleEditReadonly(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
+  try {
+    await updateColumnMeta({
+      ...record,
+      editReadonly: checked ? 1 : 0,
+    });
+    message.success(checked ? '已设为编辑时只读' : '已取消编辑时只读');
+    loadData();
+  } catch (error: any) {
+    message.error(error?.message || '操作失败');
+    loadData();
+  }
+}
+
 async function handleToggleShowInList(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
     await updateColumnMeta({
@@ -521,6 +640,34 @@ async function handleToggleShowInForm(record: ColumnMetaApi.ColumnMeta, checked:
       showInForm: checked ? 1 : 0,
     });
     message.success(checked ? '表单显示已开启' : '表单显示已关闭');
+    loadData();
+  } catch (error: any) {
+    message.error(error?.message || '操作失败');
+    loadData();
+  }
+}
+
+async function handleToggleShowInExport(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
+  try {
+    await updateColumnMeta({
+      ...record,
+      showInExport: checked ? 1 : 0,
+    });
+    message.success(checked ? '导出显示已开启' : '导出显示已关闭');
+    loadData();
+  } catch (error: any) {
+    message.error(error?.message || '操作失败');
+    loadData();
+  }
+}
+
+async function handleToggleShowInImport(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
+  try {
+    await updateColumnMeta({
+      ...record,
+      showInImport: checked ? 1 : 0,
+    });
+    message.success(checked ? '导入显示已开启' : '导入显示已关闭');
     loadData();
   } catch (error: any) {
     message.error(error?.message || '操作失败');

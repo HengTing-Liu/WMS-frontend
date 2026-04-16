@@ -10,10 +10,15 @@
               :loading="tableLoading"
               style="width: 320px"
               show-search
-              :filter-option="filterTableOption"
+              option-filter-prop="label"
               @change="(value) => handleTableChange(value as string | number | undefined)"
             >
-              <SelectOption v-for="table in tableList" :key="table.tableCode" :value="table.tableCode">
+              <SelectOption
+                v-for="table in tableList"
+                :key="table.tableCode"
+                :value="table.tableCode"
+                :label="`${table.tableCode} - ${table.tableName}`"
+              >
                 {{ table.tableCode }} - {{ table.tableName }}
               </SelectOption>
             </Select>
@@ -83,6 +88,7 @@
         <template v-else-if="column.key === 'action'">
           <Space>
             <Button type="link" size="small" @click="handleEdit(record)">编辑</Button>
+            <Button type="link" size="small" @click="handleAssign(record)">分配字段</Button>
             <Popconfirm
               title="确认删除这个分组吗？"
               ok-text="确认"
@@ -101,6 +107,16 @@
       :mode="modalMode"
       :data="currentRecord"
       :table-code="selectedTableCode"
+      @success="handleModalSuccess"
+    />
+    <AssignFieldsModal
+      v-if="assignRecord"
+      v-model:visible="assignModalVisible"
+      :table-code="selectedTableCode"
+      :group-code="assignRecord.groupCode"
+      :group-title="assignRecord.groupTitle"
+      :group-type="assignRecord.groupType || 'card'"
+      :sort-order="Number(assignRecord.sortOrder || 0)"
       @success="handleModalSuccess"
     />
   </WmsPageLayout>
@@ -133,6 +149,7 @@ import {
 } from '#/api/system/groupMeta';
 
 import GroupMetaModal from './modules/group-meta-modal.vue';
+import AssignFieldsModal from './modules/assign-fields-modal.vue';
 
 const loading = ref(false);
 const tableLoading = ref(false);
@@ -154,6 +171,9 @@ const tableData = computed(() => {
 const modalVisible = ref(false);
 const modalMode = ref<'add' | 'edit'>('add');
 const currentRecord = ref<GroupMetaApi.GroupMeta | null>(null);
+
+const assignModalVisible = ref(false);
+const assignRecord = ref<GroupMetaApi.GroupMeta | null>(null);
 
 type GroupMetaPageState = {
   searchKeyword: string;
@@ -242,11 +262,6 @@ const columns = computed<TableColumnsType<GroupMetaRow>>(() => [
   { title: '操作', key: 'action', width: 120, align: 'center', fixed: 'right' },
 ]);
 
-function filterTableOption(input: string, option: any) {
-  const text = option.children?.() || option.children || '';
-  return String(text).toLowerCase().includes(input.toLowerCase());
-}
-
 function handleSearch() {
   // 使用计算属性过滤
 }
@@ -310,6 +325,11 @@ function handleEdit(record: GroupMetaRow) {
   modalMode.value = 'edit';
   currentRecord.value = { ...record };
   modalVisible.value = true;
+}
+
+function handleAssign(record: GroupMetaRow) {
+  assignRecord.value = { ...record };
+  assignModalVisible.value = true;
 }
 
 async function handleDelete(record: GroupMetaRow) {

@@ -517,11 +517,20 @@ function resolvePlaceholder(field: ColumnMeta, component: string) {
   return `请输入${field.title ?? field.label ?? field.field}`;
 }
 
+const SYSTEM_READONLY_FIELDS = new Set(['id', 'createBy', 'createTime', 'updateBy', 'updateTime']);
+
+function isSystemReadonlyField(field: ColumnMeta) {
+  const key = getFieldKey(field);
+  return SYSTEM_READONLY_FIELDS.has(key);
+}
+
 function resolveSpanClass(field: ColumnMeta) {
   const span = Number(field.colSpan ?? 24);
-  if (span >= 24) return 'col-span-1 md:col-span-2 xl:col-span-4';
-  if (span >= 12) return 'col-span-1 md:col-span-2 xl:col-span-2';
-  return 'col-span-1';
+  if (span >= 24) return 'col-span-12';
+  if (span >= 12) return 'col-span-12 md:col-span-6';
+  if (span >= 8) return 'col-span-12 md:col-span-6 lg:col-span-4';
+  if (span >= 6) return 'col-span-12 md:col-span-6 lg:col-span-3';
+  return 'col-span-12';
 }
 
 function buildFieldSchema(field: ColumnMeta, values: Record<string, any>): VbenFormSchema {
@@ -539,7 +548,7 @@ function buildFieldSchema(field: ColumnMeta, values: Record<string, any>): VbenF
       },
       placeholder: resolvePlaceholder(field, String(component)),
     },
-    disabled: computeFieldDisabled(fieldKey, values),
+    disabled: isSystemReadonlyField(field) || field.readonly === 1 || field.readonly === true || (isEdit.value && (field.editReadonly === 1 || field.editReadonly === true)) || computeFieldDisabled(fieldKey, values),
     fieldName: fieldKey,
     formItemClass: resolveSpanClass(field),
     hidden: !evaluateFieldVisibility(field, values),
@@ -698,6 +707,9 @@ function buildSubmitPayload(fields: ColumnMeta[], values: Record<string, any>) {
   const payload: Record<string, any> = {};
   for (const field of fields) {
     const key = getFieldKey(field);
+    if (SYSTEM_READONLY_FIELDS.has(key)) {
+      continue;
+    }
     payload[key] = serializeFieldValue(field, values[key]);
   }
   return payload;

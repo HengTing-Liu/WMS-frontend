@@ -138,6 +138,27 @@ export function exportDictData(params?: Recordable<any>) {
 }
 
 /**
+ * 导入字典数据
+ */
+export function importDictData(file: File, updateSupport = false) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('updateSupport', String(updateSupport));
+  return requestClient.post('/api/dict/data/importData', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}
+
+/**
+ * 下载字典数据导入模板
+ */
+export function downloadDictDataTemplate() {
+  return requestClient.download('/api/dict/data/downLoadTemplate');
+}
+
+/**
  * 刷新字典缓存
  */
 export function refreshDictCache() {

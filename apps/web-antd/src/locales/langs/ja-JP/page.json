@@ -837,6 +837,35 @@
         "data": "辞書のデータ"
       },
       "exportFileName": "辞書アーカイブ"
+    },
+    "permission": {
+      "addTopMenu": "トップメニュー追加",
+      "addInterface": "インターフェース追加",
+      "addButton": "ボタン追加",
+      "addMenu": "メニュー追加",
+      "typeCatalog": "カタログ",
+      "typeMenu": "メニュー",
+      "typeButton": "ボタン",
+      "typeDirectory": "ディレクトリ",
+      "typeUnknown": "不明",
+      "perms": "権限コード",
+      "permsPlaceholder": "権限コードを入力 例：system:user:add",
+      "permsRequired": "権限コードを入力してください",
+      "permissionCode": "権限コード",
+      "permissionName": "権限名称",
+      "permissionType": "権限タイプ",
+      "sort": "並び順",
+      "isEnabled": "有効化",
+      "createBy": "作成者",
+      "createTime": "作成時間",
+      "assignPerm": "権限割り当て",
+      "assignPermTitle": "権限割り当て - {name}",
+      "confirmEnable": "権限点「{name}」を有効にしてもよろしいですか？",
+      "confirmDisable": "権限点「{name}」を無効にしてもよろしいですか？",
+      "confirmDelete": "権限点「{name}」を削除してもよろしいですか？",
+      "confirmDeleteWithChildren": "「{name}」に子ノードがあります。削除してもよろしいですか？",
+      "entityName": "低コードエンティティ",
+      "entityNamePlaceholder": "低コードエンティティ名を入力 例：wms_user"
     }
   }
 }

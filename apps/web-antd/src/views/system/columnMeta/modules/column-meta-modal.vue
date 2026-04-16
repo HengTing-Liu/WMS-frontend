@@ -73,13 +73,18 @@
       <div class="section-title">展示与校验</div>
       <Row :gutter="16">
         <Col :span="8"><FormItem label="必填" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.required" /></FormItem></Col>
-        <Col :span="8"><FormItem label="唯一" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.isUnique" /></FormItem></Col>
-        <Col :span="8"><FormItem label="可搜索" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.searchable" /></FormItem></Col>
+        <Col :span="8"><FormItem label="只读" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.readonly" /></FormItem></Col>
+        <Col :span="8"><FormItem label="编辑只读" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.editReadonly" /></FormItem></Col>
       </Row>
+      <Row :gutter="16">
+        <Col :span="8"><FormItem label="唯一" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.isUnique" /></FormItem></Col>
+      <Row :gutter="16">
+        <Col :span="8"><FormItem label="可搜索" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.searchable" /></FormItem></Col>
       <Row :gutter="16">
         <Col :span="8"><FormItem label="列表显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInList" /></FormItem></Col>
         <Col :span="8"><FormItem label="表单显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInForm" /></FormItem></Col>
         <Col :span="8"><FormItem label="导出显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInExport" /></FormItem></Col>
+        <Col :span="8"><FormItem label="导入显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInImport" /></FormItem></Col>
       </Row>
       <Row :gutter="16">
         <Col :span="8"><FormItem label="可排序" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.sortable" /></FormItem></Col>
@@ -434,6 +439,7 @@ const formData = reactive<Record<string, any>>({
   showInList: 1,
   showInForm: 1,
   showInExport: 0,
+  showInImport: 1,
   sortable: 0,
   width: 120,
   colSpan: 24,
@@ -460,11 +466,14 @@ const formData = reactive<Record<string, any>>({
 
 const switches = reactive({
   required: false,
+  readonly: false,
+  editReadonly: false,
   isUnique: false,
   searchable: false,
   showInList: true,
   showInForm: true,
   showInExport: false,
+  showInImport: true,
   sortable: false,
   status: true,
   sectionOpen: true,
@@ -536,11 +545,14 @@ function resetBuilders() {
 
 function syncSwitchFromForm() {
   switches.required = Number(formData.required || 0) === 1;
+  switches.readonly = Number(formData.readonly || 0) === 1;
+  switches.editReadonly = Number(formData.editReadonly || 0) === 1;
   switches.isUnique = Number(formData.isUnique || 0) === 1;
   switches.searchable = Number(formData.searchable || 0) === 1;
   switches.showInList = Number(formData.showInList || 0) === 1;
   switches.showInForm = Number(formData.showInForm || 0) === 1;
   switches.showInExport = Number(formData.showInExport || 0) === 1;
+  switches.showInImport = Number(formData.showInImport ?? 1) === 1;
   switches.sortable = Number(formData.sortable || 0) === 1;
   switches.status = Number(formData.status || 0) === 1;
   switches.sectionOpen = Number(formData.sectionOpen ?? 1) === 1;
@@ -548,11 +560,14 @@ function syncSwitchFromForm() {
 
 function syncFormFromSwitch() {
   formData.required = switches.required ? 1 : 0;
+  formData.readonly = switches.readonly ? 1 : 0;
+  formData.editReadonly = switches.editReadonly ? 1 : 0;
   formData.isUnique = switches.isUnique ? 1 : 0;
   formData.searchable = switches.searchable ? 1 : 0;
   formData.showInList = switches.showInList ? 1 : 0;
   formData.showInForm = switches.showInForm ? 1 : 0;
   formData.showInExport = switches.showInExport ? 1 : 0;
+  formData.showInImport = switches.showInImport ? 1 : 0;
   formData.sortable = switches.sortable ? 1 : 0;
   formData.status = switches.status ? 1 : 0;
   formData.sectionOpen = switches.sectionOpen ? 1 : 0;
@@ -846,11 +861,14 @@ function resetForm() {
     dataType: 'string',
     dictType: '',
     required: 0,
+    readonly: 0,
+    editReadonly: 0,
     isUnique: 0,
     searchable: 0,
     showInList: 1,
     showInForm: 1,
     showInExport: 0,
+    showInImport: 1,
     sortable: 0,
     width: 120,
     colSpan: 24,
@@ -915,6 +933,8 @@ async function handleSubmit() {
       dictType: formData.dictType?.trim() || '',
       defaultValue: formData.defaultValue ?? '',
       placeholder: formData.placeholder ?? '',
+      readonly: formData.readonly ?? 0,
+      editReadonly: formData.editReadonly ?? 0,
       sectionKey: formData.sectionKey ?? '',
       sectionTitle: formData.sectionTitle ?? '',
       sectionOrder: formData.sectionOrder ?? 0,

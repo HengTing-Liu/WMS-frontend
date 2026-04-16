@@ -22,6 +22,11 @@ import {
   updateDictData,
   type DictDataResult,
 } from '#/api/sys/dict';
+import {
+  exportDictData,
+  importDictData,
+  downloadDictDataTemplate,
+} from '#/api/system/dict';
 
 const props = defineProps<{
   open: boolean;
@@ -128,6 +133,50 @@ const resetForm = () => {
   };
   formRef.value?.resetFields();
 };
+
+async function handleExport() {
+  try {
+    const blob = (await exportDictData({ dictType: props.dictTypeCode })) as Blob;
+    downloadFileFromBlob({
+      fileName: `字典数据_${props.dictTypeCode}_${Date.now()}.xlsx`,
+      source: blob,
+    });
+    message.success('导出成功');
+  } catch (e: any) {
+    message.error(e?.message ?? '导出失败');
+  }
+}
+
+async function handleImport() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.xlsx,.xls';
+  input.onchange = async (e: Event) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    try {
+      await importDictData(file, true);
+      message.success('导入成功');
+      fetchData();
+    } catch (err: any) {
+      message.error(err?.message ?? '导入失败');
+    }
+  };
+  input.click();
+}
+
+async function handleDownloadTemplate() {
+  try {
+    const blob = (await downloadDictDataTemplate()) as Blob;
+    downloadFileFromBlob({
+      fileName: `字典数据导入模板_${Date.now()}.xlsx`,
+      source: blob,
+    });
+    message.success('模板下载成功');
+  } catch (e: any) {
+    message.error(e?.message ?? '模板下载失败');
+  }
+}
 
 const handleAdd = () => {
   editId.value = undefined;
@@ -300,6 +349,18 @@ defineExpose({ open });
         <Button type="primary" @click="handleAdd">
           <IconifyIcon icon="material-symbols:add" class="size-5" />
           {{ $t('page.common.add') }}
+        </Button>
+        <Button class="ml-2" @click="handleExport">
+          <IconifyIcon icon="material-symbols:download" class="size-5" />
+          导出
+        </Button>
+        <Button class="ml-2" @click="handleImport">
+          <IconifyIcon icon="material-symbols:upload" class="size-5" />
+          导入
+        </Button>
+        <Button class="ml-2" @click="handleDownloadTemplate">
+          <IconifyIcon icon="material-symbols:description" class="size-5" />
+          下载模板
         </Button>
       </div>
 

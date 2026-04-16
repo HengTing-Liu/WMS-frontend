@@ -319,8 +319,8 @@ function handleModalSuccess() {
 }
 
 onMounted(async () => {
-  const restored = restorePageState();
-  if (!restored) {
+  restorePageState();
+  if (!tableData.value.length) {
     await loadData();
   }
 });
@@ -335,6 +335,9 @@ onActivated(() => {
   // When keep-alive instance is already warm, keep in-memory state as-is.
   if (tableData.value.length === 0) {
     restorePageState();
+    if (!tableData.value.length) {
+      loadData();
+    }
   }
 });
 onDeactivated(() => {

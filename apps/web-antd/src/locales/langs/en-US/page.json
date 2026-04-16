@@ -98,6 +98,35 @@
       "confirmDelete": "Are you sure to delete role \"{name}\"?",
       "dataScopeDepts": "Data scope departments",
       "deptIdsRequired": "Please select data scope departments"
+    },
+    "permission": {
+      "addTopMenu": "Add Top Catalog",
+      "addInterface": "Add Interface",
+      "addButton": "Add Button",
+      "addMenu": "Add Menu",
+      "typeCatalog": "Catalog",
+      "typeMenu": "Menu",
+      "typeButton": "Button",
+      "typeDirectory": "Directory",
+      "typeUnknown": "Unknown",
+      "perms": "Permission Key",
+      "permsPlaceholder": "Input permission key, e.g. system:user:add",
+      "permsRequired": "Please input permission key",
+      "permissionCode": "Permission Code",
+      "permissionName": "Permission Name",
+      "permissionType": "Permission Type",
+      "sort": "Sort",
+      "isEnabled": "Status",
+      "createBy": "Created By",
+      "createTime": "Created Time",
+      "assignPerm": "Assign Permissions",
+      "assignPermTitle": "Assign Permissions - {name}",
+      "confirmEnable": "Are you sure to enable permission \"{name}\"?",
+      "confirmDisable": "Are you sure to disable permission \"{name}\"?",
+      "confirmDelete": "Are you sure to delete permission \"{name}\"?",
+      "confirmDeleteWithChildren": "Permission \"{name}\" has child nodes. Continue to delete?",
+      "entityName": "Lowcode Entity",
+      "entityNamePlaceholder": "Input lowcode entity name, e.g. wms_user"
     }
   },
   "common": {
@@ -416,6 +445,35 @@
     "batch": {
       "listTitle": "Batch Management",
       "listDescription": "Manage material batch information, expiry dates, supplier batch numbers, etc."
+    },
+    "permission": {
+      "addTopMenu": "Add Top Catalog",
+      "addInterface": "Add Interface",
+      "addButton": "Add Button",
+      "addMenu": "Add Menu",
+      "typeCatalog": "Catalog",
+      "typeMenu": "Menu",
+      "typeButton": "Button",
+      "typeDirectory": "Directory",
+      "typeUnknown": "Unknown",
+      "perms": "Permission Key",
+      "permsPlaceholder": "Input permission key, e.g. system:user:add",
+      "permsRequired": "Please input permission key",
+      "permissionCode": "Permission Code",
+      "permissionName": "Permission Name",
+      "permissionType": "Permission Type",
+      "sort": "Sort",
+      "isEnabled": "Status",
+      "createBy": "Created By",
+      "createTime": "Created Time",
+      "assignPerm": "Assign Permissions",
+      "assignPermTitle": "Assign Permissions - {name}",
+      "confirmEnable": "Are you sure to enable permission \"{name}\"?",
+      "confirmDisable": "Are you sure to disable permission \"{name}\"?",
+      "confirmDelete": "Are you sure to delete permission \"{name}\"?",
+      "confirmDeleteWithChildren": "Permission \"{name}\" has child nodes. Continue to delete?",
+      "entityName": "Lowcode Entity",
+      "entityNamePlaceholder": "Input lowcode entity name, e.g. wms_user"
     }
   }
 }

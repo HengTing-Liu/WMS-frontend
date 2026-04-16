@@ -211,6 +211,35 @@
     "batch": {
       "listTitle": "批次管理",
       "listDescription": "管理物料批次信息、有效期、供应商批号等"
+    },
+    "permission": {
+      "addTopMenu": "新增顶级目录",
+      "addInterface": "新增接口",
+      "addButton": "新增按钮",
+      "addMenu": "新增菜单",
+      "typeCatalog": "目录",
+      "typeMenu": "菜单",
+      "typeButton": "按钮",
+      "typeDirectory": "目录",
+      "typeUnknown": "未知",
+      "perms": "权限标识",
+      "permsPlaceholder": "请输入权限标识，例如：system:user:add",
+      "permsRequired": "请输入权限标识",
+      "permissionCode": "权限编码",
+      "permissionName": "权限名称",
+      "permissionType": "权限类型",
+      "sort": "排序",
+      "isEnabled": "状态",
+      "createBy": "创建人",
+      "createTime": "创建时间",
+      "assignPerm": "分配权限",
+      "assignPermTitle": "分配权限 - {name}",
+      "confirmEnable": "确认要启用权限点「{name}」吗？",
+      "confirmDisable": "确认要停用权限点「{name}」吗？",
+      "confirmDelete": "确认要删除权限点「{name}」吗？",
+      "confirmDeleteWithChildren": "权限点「{name}」存在子节点，确认删除吗？",
+      "entityName": "低代码实体",
+      "entityNamePlaceholder": "请输入低代码实体名，例如：wms_user"
     }
   },
   "common": {
@@ -405,6 +434,35 @@
       "confirmDelete": "确认要删除角色「{name}」吗？",
       "dataScopeDepts": "数据权限部门",
       "deptIdsRequired": "请选择数据权限部门"
+    },
+    "permission": {
+      "addTopMenu": "新增顶级目录",
+      "addInterface": "新增接口",
+      "addButton": "新增按钮",
+      "addMenu": "新增菜单",
+      "typeCatalog": "目录",
+      "typeMenu": "菜单",
+      "typeButton": "按钮",
+      "typeDirectory": "目录",
+      "typeUnknown": "未知",
+      "perms": "权限标识",
+      "permsPlaceholder": "请输入权限标识，例如：system:user:add",
+      "permsRequired": "请输入权限标识",
+      "permissionCode": "权限编码",
+      "permissionName": "权限名称",
+      "permissionType": "权限类型",
+      "sort": "排序",
+      "isEnabled": "状态",
+      "createBy": "创建人",
+      "createTime": "创建时间",
+      "assignPerm": "分配权限",
+      "assignPermTitle": "分配权限 - {name}",
+      "confirmEnable": "确认要启用权限点「{name}」吗？",
+      "confirmDisable": "确认要停用权限点「{name}」吗？",
+      "confirmDelete": "确认要删除权限点「{name}」吗？",
+      "confirmDeleteWithChildren": "权限点「{name}」存在子节点，确认删除吗？",
+      "entityName": "低代码实体",
+      "entityNamePlaceholder": "请输入低代码实体名，例如：wms_user"
     }
   }
 }

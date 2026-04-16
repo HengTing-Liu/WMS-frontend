@@ -34,6 +34,8 @@ export interface ColumnMeta {
   linkageJson?: string;
   isShowInList?: number | boolean;
   isShowInForm?: number | boolean;
+  isShowInExport?: number | boolean;
+  isShowInImport?: number | boolean;
   isSearchable?: number | boolean;
   isSortable?: number | boolean;
   isRequired?: number | boolean;
@@ -43,6 +45,8 @@ export interface ColumnMeta {
   placeholder?: string;
   defaultValue?: string;
   colSpan?: number;
+  readonly?: number | boolean;
+  editReadonly?: number | boolean;
   sectionKey?: string;
   sectionTitle?: string;
   sectionOrder?: number;
@@ -119,7 +123,7 @@ export interface LowcodeColumn {
 // ==================== 浜嬩欢閰嶇疆绫诲瀷 ====================
 
 /** 浜嬩欢绫诲瀷 */
-export type EventType = 'builtin' | 'api' | 'download' | 'redirect' | 'modal' | 'drawer' | 'custom';
+export type EventType = 'builtin' | 'api' | 'download' | 'upload' | 'redirect' | 'modal' | 'drawer' | 'custom';
 
 /** 鍐呯疆鍔ㄤ綔閰嶇疆 */
 export interface BuiltinEventConfig {
@@ -143,6 +147,18 @@ export interface DownloadEventConfig {
   payloadType: PayloadType;
   fileName?: string;
   responseType?: 'blob';
+}
+
+/** 文件上传配置 */
+export interface UploadEventConfig {
+  url: string;
+  method?: 'POST' | 'PUT';
+  fileField?: string;
+  extraParams?: Record<string, any>;
+  accept?: string;
+  successMessage?: string;
+  failMessage?: string;
+  updateSupport?: boolean;
 }
 
 /** 椤甸潰璺宠浆閰嶇疆 */

@@ -45,14 +45,6 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
-          title: '鏉冮檺绠＄悊',
-        },
-        name: 'SysPermission',
-        path: '/permission',
-        component: () => import('#/views/system/permission/index.vue'),
-      },
-      {
-        meta: {
           title: '低代码管理',
         },
         name: 'LowcodeManager',

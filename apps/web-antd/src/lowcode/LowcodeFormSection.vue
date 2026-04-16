@@ -89,7 +89,7 @@ const formOptions = reactive({
   },
   layout: 'horizontal',
   showDefaultActions: false,
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-4',
+  wrapperClass: 'grid-cols-12 gap-x-4',
   schema: props.schema,
 }) as any;
 

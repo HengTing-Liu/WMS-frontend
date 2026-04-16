@@ -8,6 +8,8 @@
       :crud-prefix="crudPrefix"
       @form-success="handleFormSuccess"
     >
+
+
       <!-- 操作列追加「字典数据」按钮 -->
       <template #appendAction="{ record }">
         <Tooltip title="字典数据">
@@ -31,8 +33,10 @@
 import { ref } from 'vue';
 import { Button, Tooltip, message } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
+
 import LowcodePage from '#/lowcode/LowcodePage.vue';
 import DictDataModal from './modules/dict-data-modal.vue';
+
 
 const crudPrefix = '/api/wms/crud/sys_dict_type';
 
