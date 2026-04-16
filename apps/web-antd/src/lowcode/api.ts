@@ -73,6 +73,8 @@ export async function fetchColumnSchema(tableCode: string): Promise<ColumnMeta[]
       status: item.status ?? item.isEnabled,
       options: item.options,
       dataSource: item.dataSource,
+      readonly: Number(item.readonly ?? item.isReadonly ?? item.is_readonly ?? 0),
+      editReadonly: Number(item.editReadonly ?? item.isEditReadonly ?? item.is_edit_readonly ?? 0),
     };
   });
 }
@@ -148,35 +150,23 @@ export async function fetchPageMeta(tableCode: string) {
 // ==================== 闁氨鏁?CRUD 閹恒儱褰?====================
 
 /** 閺嶈宓佺悰銊х椽閻焦甯归弬?CRUD 閹恒儱褰涢崜宥囩磻 */
-export function inferCrudPrefix(tableCode: string): string {
-  const entityMap: Record<string, string> = {
-    // WMS缂傛牜鐖?    WMS0010: '/api/base/warehouse',
-    WMS0030: '/api/base/material',
-    WMS0040: '/api/base/basicData',
-    // 閻椻晝鎮婄悰銊ユ倳閿涘牅缍嗘禒锝囩垳娑撴挾鏁ら敍?    inv_warehouse: '/api/wms/crud/inv_warehouse',
-    inv_warehouse_receiver: '/api/wms/crud/inv_warehouse_receiver',
-    sys_user: '/api/wms/crud/sys_user',
-    // 娑撴艾濮熺悰銊ㄨ泲娴ｅ簼鍞惍渚€鈧氨鏁ら幒褍鍩楅崳?    inv_material: '/api/wms/crud/inv_material',
-  };
-  if (entityMap[tableCode]) return entityMap[tableCode];
-  // 閸忔粌绨崇憴鍕灟
-  if (tableCode.startsWith('sys_')) {
-    return `/api/wms/crud/${tableCode}`;
-  }
-  return `/api/base/${tableCode.replace(/^WMS\d+$/, (m) => m.replace(/^WMS/, '').toLowerCase())}`;
+export function inferCrudPrefix(tableCode: string, tableMeta?: TableMeta | null): string {
+  if (tableMeta?.apiPrefix) return tableMeta.apiPrefix;
+  return `/api/wms/crud/${tableCode}`;
 }
 
 /** 闁氨鏁ら崚妤勩€冮弻銉嚄 */
 export async function fetchList(params: {
   tableCode: string;
   prefix?: string;
+  tableMeta?: TableMeta | null;
   query?: Record<string, any>;
   queryModes?: Record<string, 'eq' | 'like'>;
   pageNum?: number;
   pageSize?: number;
 }) {
-  const { tableCode, prefix, query = {}, queryModes = {}, pageNum = 1, pageSize = 20 } = params;
-  const basePrefix = prefix ?? inferCrudPrefix(tableCode);
+  const { tableCode, prefix, tableMeta, query = {}, queryModes = {}, pageNum = 1, pageSize = 20 } = params;
+  const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
   const res = await requestClient.get<any>(`${basePrefix}/list`, {
     params: {
       pageNum,
@@ -194,10 +184,11 @@ export async function fetchList(params: {
 export async function fetchDetail(params: {
   tableCode: string;
   prefix?: string;
+  tableMeta?: TableMeta | null;
   id: number | string;
 }) {
-  const { tableCode, prefix, id } = params;
-  const basePrefix = prefix ?? inferCrudPrefix(tableCode);
+  const { tableCode, prefix, tableMeta, id } = params;
+  const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
   const res = await requestClient.get<any>(`${basePrefix}/${id}`);
   return res?.data ?? res ?? {};
 }
@@ -206,10 +197,11 @@ export async function fetchDetail(params: {
 export async function createRecord(params: {
   tableCode: string;
   prefix?: string;
+  tableMeta?: TableMeta | null;
   data: Record<string, any>;
 }) {
-  const { tableCode, prefix, data } = params;
-  const basePrefix = prefix ?? inferCrudPrefix(tableCode);
+  const { tableCode, prefix, tableMeta, data } = params;
+  const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
   return requestClient.post<any>(`${basePrefix}`, data);
 }
 
@@ -217,11 +209,12 @@ export async function createRecord(params: {
 export async function updateRecord(params: {
   tableCode: string;
   prefix?: string;
+  tableMeta?: TableMeta | null;
   id: number | string;
   data: Record<string, any>;
 }) {
-  const { tableCode, prefix, id, data } = params;
-  const basePrefix = prefix ?? inferCrudPrefix(tableCode);
+  const { tableCode, prefix, tableMeta, id, data } = params;
+  const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
   return requestClient.put<any>(`${basePrefix}/${id}`, data);
 }
 
@@ -229,10 +222,11 @@ export async function updateRecord(params: {
 export async function deleteRecord(params: {
   tableCode: string;
   prefix?: string;
+  tableMeta?: TableMeta | null;
   id: number | string;
 }) {
-  const { tableCode, prefix, id } = params;
-  const basePrefix = prefix ?? inferCrudPrefix(tableCode);
+  const { tableCode, prefix, tableMeta, id } = params;
+  const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
   return requestClient.delete<any>(`${basePrefix}/${id}`);
 }
 
@@ -240,11 +234,12 @@ export async function deleteRecord(params: {
 export async function toggleRecord(params: {
   tableCode: string;
   prefix?: string;
+  tableMeta?: TableMeta | null;
   id: number | string;
   enabled: boolean;
 }) {
-  const { tableCode, prefix, id, enabled } = params;
-  const basePrefix = prefix ?? inferCrudPrefix(tableCode);
+  const { tableCode, prefix, tableMeta, id, enabled } = params;
+  const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
   const enabledValue = enabled ? 1 : 0;
   return requestClient.post<any>(
     `${basePrefix}/toggle/${id}`,

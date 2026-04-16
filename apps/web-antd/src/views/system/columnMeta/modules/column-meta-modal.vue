@@ -46,6 +46,7 @@
               <SelectOption value="datetime">datetime</SelectOption>
               <SelectOption value="radio">radio</SelectOption>
               <SelectOption value="checkbox">checkbox</SelectOption>
+              <SelectOption value="upload">upload</SelectOption>
             </Select>
           </FormItem>
         </Col>
@@ -70,6 +71,44 @@
         <Input v-model:value="formData.dictType" :maxlength="100" placeholder="如 sys_yes_no" />
       </FormItem>
 
+      <template v-if="formData.formType === 'upload'">
+        <Row :gutter="16">
+          <Col :span="12">
+            <FormItem label="上传方式" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+              <Select v-model:value="uploadBuilder.uploadType">
+                <SelectOption value="">本地上传</SelectOption>
+                <SelectOption value="OSS">阿里云 OSS</SelectOption>
+                <SelectOption value="MINIO">MINIO</SelectOption>
+              </Select>
+            </FormItem>
+          </Col>
+          <Col :span="12">
+            <FormItem label="展示样式" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+              <Select v-model:value="uploadBuilder.listType">
+                <SelectOption value="text">文本列表</SelectOption>
+                <SelectOption value="picture">图片列表</SelectOption>
+                <SelectOption value="picture-card">卡片</SelectOption>
+              </Select>
+            </FormItem>
+          </Col>
+        </Row>
+        <Row :gutter="16">
+          <Col :span="12">
+            <FormItem label="最大数量" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+              <InputNumber v-model:value="uploadBuilder.maxCount" :min="1" :max="99" style="width: 100%" />
+            </FormItem>
+          </Col>
+          <Col :span="12">
+            <FormItem label="允许格式" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+              <Input v-model:value="uploadBuilder.accept" placeholder="如 .jpg,.png,.pdf" />
+            </FormItem>
+          </Col>
+        </Row>
+        <FormItem v-if="!uploadBuilder.uploadType" label="上传接口地址">
+          <Input v-model:value="uploadBuilder.action" placeholder="/api/system/file/upload" />
+        </FormItem>
+      </template>
+
       <div class="section-title">展示与校验</div>
       <Row :gutter="16">
         <Col :span="8"><FormItem label="必填" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.required" /></FormItem></Col>
@@ -78,8 +117,8 @@
       </Row>
       <Row :gutter="16">
         <Col :span="8"><FormItem label="唯一" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.isUnique" /></FormItem></Col>
-      <Row :gutter="16">
         <Col :span="8"><FormItem label="可搜索" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.searchable" /></FormItem></Col>
+      </Row>
       <Row :gutter="16">
         <Col :span="8"><FormItem label="列表显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInList" /></FormItem></Col>
         <Col :span="8"><FormItem label="表单显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInForm" /></FormItem></Col>
@@ -513,6 +552,14 @@ const componentBuilder = reactive<{ allowClear?: boolean; multiple?: boolean; sh
   showCount: false,
 });
 
+const uploadBuilder = reactive<{ uploadType?: string; listType?: string; maxCount?: number; accept?: string; action?: string }>({
+  uploadType: '',
+  listType: 'text',
+  maxCount: 1,
+  accept: '',
+  action: '',
+});
+
 const formRules: Record<string, Rule[]> = {
   field: [
     { required: true, message: '请输入字段编码', trigger: 'blur' },
@@ -541,6 +588,7 @@ function resetBuilders() {
     maxLength: undefined,
     rows: undefined,
   });
+  Object.assign(uploadBuilder, { uploadType: '', listType: 'text', maxCount: 1, accept: '', action: '' });
 }
 
 function syncSwitchFromForm() {
@@ -648,6 +696,13 @@ function hydrateBuildersFromForm() {
     componentBuilder.showCount = !!comp.showCount;
     componentBuilder.maxLength = comp.maxLength;
     componentBuilder.rows = comp.rows;
+    if (formData.formType === 'upload') {
+      uploadBuilder.uploadType = comp.uploadType || '';
+      uploadBuilder.listType = comp.listType || 'text';
+      uploadBuilder.maxCount = comp.maxCount ?? 1;
+      uploadBuilder.accept = comp.accept || '';
+      uploadBuilder.action = comp.action || '';
+    }
   }
 }
 
@@ -779,6 +834,15 @@ function removeLinkageAction(index: number) {
 }
 
 function buildComponentPropsJson() {
+  if (formData.formType === 'upload') {
+    const payload: Record<string, any> = {};
+    if (uploadBuilder.uploadType) payload.uploadType = uploadBuilder.uploadType;
+    if (uploadBuilder.listType) payload.listType = uploadBuilder.listType;
+    if (uploadBuilder.maxCount != null) payload.maxCount = uploadBuilder.maxCount;
+    if (uploadBuilder.accept) payload.accept = uploadBuilder.accept;
+    if (uploadBuilder.action) payload.action = uploadBuilder.action;
+    return Object.keys(payload).length ? JSON.stringify(payload) : '';
+  }
   const payload: Record<string, any> = {
     allowClear: !!componentBuilder.allowClear,
     multiple: !!componentBuilder.multiple,
@@ -786,7 +850,7 @@ function buildComponentPropsJson() {
   };
   if (componentBuilder.maxLength != null) payload.maxLength = componentBuilder.maxLength;
   if (componentBuilder.rows != null) payload.rows = componentBuilder.rows;
-  return JSON.stringify(payload);
+  return Object.keys(payload).length ? JSON.stringify(payload) : '';
 }
 
 function getActiveTableCode() {
@@ -950,16 +1014,16 @@ async function handleSubmit() {
 
     if (isEdit.value) {
       await updateColumnMeta(payload);
-      message.success('閺囧瓨鏌婇幋鎰');
+      message.success('保存成功');
     } else {
       await addColumnMeta(payload);
-      message.success('閺傛澘顤冮幋鎰');
+      message.success('新增成功');
     }
 
     visible.value = false;
     emit('success');
   } catch (error: any) {
-    message.error(error?.message || (isEdit.value ? '閺囧瓨鏌婃径杈Е' : '閺傛澘顤冩径杈Е'));
+    message.error(error?.message || (isEdit.value ? '保存失败' : '新增失败'));
   } finally {
     loading.value = false;
   }

@@ -72,6 +72,10 @@ import dayjs from 'dayjs';
 
 import { Page } from '@vben/common-ui';
 import { Button, Card, Empty, Spin, Tag, message } from 'ant-design-vue';
+import type { UploadRequestOption } from 'ant-design-vue/es/upload/interface';
+
+import { requestClient } from '#/api/request';
+import { confirmFile, getFilesCredential, putFileToOss } from '#/api/system/upload';
 
 import type { VbenFormSchema } from '#/adapter/form';
 
@@ -86,7 +90,7 @@ import {
 } from './api';
 import LowcodeFormSection from './LowcodeFormSection.vue';
 
-import type { ColumnMeta, FormGroupMeta, LowcodeFormGroup } from './types';
+import type { ColumnMeta, FormGroupMeta, LowcodeFormGroup, TableMeta } from './types';
 
 type LowcodeFormSectionInstance = InstanceType<typeof LowcodeFormSection>;
 type VisibleOperator = '!=' | '<' | '<=' | '==' | '>' | '>=' | 'hasValue' | 'isEmpty';
@@ -148,13 +152,14 @@ const formValues = ref<Record<string, any>>({});
 const currentValues = ref<Record<string, any>>({});
 const sectionRefs = ref<Record<string, LowcodeFormSectionInstance | null>>({});
 const allFields = ref<ColumnMeta[]>([]);
+const currentTableMeta = ref<TableMeta | null>(null);
 
 const tableCode = computed(() => String(route.params.tableCode ?? ''));
 const mode = computed(() => String(route.params.mode ?? 'create'));
 const recordId = computed(() => route.params.id as string | undefined);
 const crudPrefix = computed(() => {
   const fromQuery = route.query.crudPrefix;
-  return typeof fromQuery === 'string' && fromQuery ? fromQuery : inferCrudPrefix(tableCode.value);
+  return typeof fromQuery === 'string' && fromQuery ? fromQuery : inferCrudPrefix(tableCode.value, currentTableMeta.value);
 });
 const pageTitle = computed(() => {
   const fromQuery = route.query.title;
@@ -484,7 +489,7 @@ async function syncRuntimeState(values: Record<string, any>) {
     const schemaPatches: LowcodeFormSchemaPatch[] = group.fields.map((field) => ({
       fieldName: getFieldKey(field),
       hidden: !evaluateFieldVisibility(field, resolvedValues),
-      disabled: computeFieldDisabled(getFieldKey(field), resolvedValues),
+      disabled: computeFieldReadonly(field, isEdit.value) || computeFieldDisabled(getFieldKey(field), resolvedValues),
     }));
 
     await sectionRef.updateSchema(schemaPatches as Partial<VbenFormSchema>[]);
@@ -502,6 +507,7 @@ async function handleFieldValueChange(field: ColumnMeta, rawValue: any) {
 
 function resolveComponent(field: ColumnMeta): VbenFormSchema['component'] {
   const formType = String(field.formType ?? '').toLowerCase();
+  if (formType === 'upload' || formType === 'file') return 'Upload';
   if (isSwitchField(field)) return 'Switch';
   if (formType === 'select') return 'Select';
   if (formType === 'treeselect') return 'TreeSelect';
@@ -517,11 +523,23 @@ function resolvePlaceholder(field: ColumnMeta, component: string) {
   return `请输入${field.title ?? field.label ?? field.field}`;
 }
 
-const SYSTEM_READONLY_FIELDS = new Set(['id', 'createBy', 'createTime', 'updateBy', 'updateTime']);
+const SYSTEM_READONLY_FIELDS = new Set([
+  'id', 'createBy', 'createTime', 'updateBy', 'updateTime',
+  'create_by', 'create_time', 'update_by', 'update_time',
+]);
 
 function isSystemReadonlyField(field: ColumnMeta) {
   const key = getFieldKey(field);
   return SYSTEM_READONLY_FIELDS.has(key);
+}
+
+function computeFieldReadonly(field: ColumnMeta, editMode: boolean): boolean {
+  return (
+    isSystemReadonlyField(field) ||
+    field.readonly === 1 ||
+    field.readonly === true ||
+    (editMode && (field.editReadonly === 1 || field.editReadonly === true))
+  );
 }
 
 function resolveSpanClass(field: ColumnMeta) {
@@ -548,7 +566,7 @@ function buildFieldSchema(field: ColumnMeta, values: Record<string, any>): VbenF
       },
       placeholder: resolvePlaceholder(field, String(component)),
     },
-    disabled: isSystemReadonlyField(field) || field.readonly === 1 || field.readonly === true || (isEdit.value && (field.editReadonly === 1 || field.editReadonly === true)) || computeFieldDisabled(fieldKey, values),
+    disabled: computeFieldReadonly(field, isEdit.value) || computeFieldDisabled(fieldKey, values),
     fieldName: fieldKey,
     formItemClass: resolveSpanClass(field),
     hidden: !evaluateFieldVisibility(field, values),
@@ -618,6 +636,69 @@ function buildFieldSchema(field: ColumnMeta, values: Record<string, any>): VbenF
       showTime: String(field.formType ?? '').toLowerCase() === 'datetime',
       valueFormat: undefined,
     };
+  }
+
+  if (component === 'Upload') {
+    let uploadProps: Record<string, any> = {};
+    try {
+      uploadProps = JSON.parse(field.componentProps || '{}');
+    } catch {
+      uploadProps = {};
+    }
+    const uploadType = String(uploadProps.uploadType || '').toUpperCase(); // OSS / MINIO / ''
+    const isOssMode = uploadType === 'OSS' || uploadType === 'MINIO';
+
+    schema.componentProps = {
+      ...schema.componentProps,
+      ...uploadProps,
+      class: 'w-full',
+      customRequest: async (options: UploadRequestOption) => {
+        const { file, onSuccess, onError, onProgress } = options;
+        const rawFile = file as File;
+        try {
+          if (isOssMode) {
+            // 1. 获取 OSS/MinIO 上传凭证
+            const credRes: any = await getFilesCredential({
+              fileName: rawFile.name,
+              fileSize: rawFile.size,
+              contentType: rawFile.type || 'application/octet-stream',
+              bizModule: uploadProps.bizModule || 'product-center',
+              uploadType,
+            });
+            const cred = credRes?.data ?? credRes;
+            const { fileNo, uploadUrl, downloadUrl } = cred;
+            if (!uploadUrl) throw new Error('未获取到上传地址');
+
+            // 2. 直传到 OSS
+            await putFileToOss(uploadUrl, rawFile, (percent) => {
+              onProgress?.({ percent });
+            });
+
+            // 3. 通知后端上传完成
+            await confirmFile({ fileNo, fileSize: rawFile.size, md5: '' });
+
+            onSuccess?.({ url: downloadUrl || uploadUrl, fileNo, ...cred });
+          } else {
+            // 默认本地上传
+            const uploadUrl = uploadProps.action || uploadProps.url || '/api/system/file/upload';
+            const formData = new FormData();
+            formData.append('file', rawFile);
+            const res: any = await requestClient.post(uploadUrl, formData, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+              onUploadProgress: (e: any) => {
+                onProgress?.({ percent: Math.round((e.loaded * 100) / (e.total || 1)) });
+              },
+            });
+            const url = res?.data?.url ?? res?.url ?? res;
+            onSuccess?.({ url, ...(res?.data ?? res) });
+          }
+        } catch (error: any) {
+          onError?.(error);
+        }
+      },
+    };
+    // Upload 通常不需要 placeholder
+    delete (schema.componentProps as any).placeholder;
   }
 
   return schema;
@@ -787,6 +868,7 @@ async function loadPage() {
       fetchFormGroups(tableCode.value),
     ]);
 
+    currentTableMeta.value = tableMeta ?? null;
     if (!pageDescription.value && tableMeta?.tableName) {
       // 预留描述扩展位，后续可接 remark 等信息
     }
@@ -799,6 +881,7 @@ async function loadPage() {
       ? await fetchDetail({
         id: recordId.value,
         prefix: crudPrefix.value,
+        tableMeta: currentTableMeta.value,
         tableCode: tableCode.value,
       })
       : {};
@@ -843,6 +926,7 @@ async function handleSubmit() {
         data: payload,
         id: recordId.value,
         prefix: crudPrefix.value,
+        tableMeta: currentTableMeta.value,
         tableCode: tableCode.value,
       });
       message.success('保存成功');
@@ -850,6 +934,7 @@ async function handleSubmit() {
       await createRecord({
         data: payload,
         prefix: crudPrefix.value,
+        tableMeta: currentTableMeta.value,
         tableCode: tableCode.value,
       });
       message.success('新建成功');

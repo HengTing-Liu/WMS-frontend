@@ -13,6 +13,7 @@ export interface TableMeta {
   module: string;
   entityClass?: string;
   serviceClass?: string;
+  apiPrefix?: string;
   permissionCode?: string;
   pageSize?: number;
   isTree?: number | boolean; // 0/1 鎴?true/false

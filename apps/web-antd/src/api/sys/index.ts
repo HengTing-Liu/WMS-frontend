@@ -1,9 +1,7 @@
 export * from './location';
-export * from './log';
 export * from './material';
 export * from './warehouse';
 export * from './warehouse-receiver';
-export * from './consignee';
 
 import {
   listDictTypePage as _listDictTypePage,
@@ -17,7 +15,7 @@ import {
   toggleDictDataStatus as _toggleDictDataStatus,
   exportDictData as _exportDictData,
   listDictTypeSimple as _listDictTypeSimple,
-  getDictDataDetail as _getDictDataDetail,
+  getDictDataById as _getDictDataById,
 } from './dict';
 
 export {

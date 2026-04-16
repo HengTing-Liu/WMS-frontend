@@ -169,7 +169,7 @@ import { useAccess } from '@vben/access';
 import WmsSearchBar from '#/components/common/WmsSearchBar.vue';
 import WmsDataTable from '#/components/common/WmsDataTable.vue';
 import { fetchPageMeta, fetchList, deleteRecord, toggleRecord } from './api';
-import type { ColumnMeta, LowcodeAction, LowcodeSearchField, StatsCardConfig } from './types';
+import type { ColumnMeta, LowcodeAction, LowcodeSearchField, StatsCardConfig, TableMeta } from './types';
 import { useSlots } from 'vue';
 import {
   handleAction,
@@ -260,6 +260,7 @@ const stats = reactive<Record<string, any>>({});
 // ==================== Meta 配置 ====================
 const metaColumns = ref<ColumnMeta[]>([]);
 const metaOperations = ref<LowcodeAction[]>([]);
+const currentTableMeta = ref<TableMeta | null>(null);
 const dictLabelMapByField = computed(() => {
   const map = new Map<string, Map<string, string>>();
   for (const col of metaColumns.value) {
@@ -423,6 +424,7 @@ async function loadData() {
     const res = await fetchList({
       tableCode: props.tableCode,
       prefix: props.crudPrefix,
+      tableMeta: currentTableMeta.value,
       query,
       queryModes,
       pageNum: pagination.current,
@@ -745,6 +747,7 @@ async function handleToggle(record: any, enabled: boolean) {
     await toggleRecord({
       tableCode: props.tableCode,
       prefix: props.crudPrefix,
+      tableMeta: currentTableMeta.value,
       id,
       enabled,
     });
@@ -761,6 +764,7 @@ async function handleDelete(id: number | string) {
     await deleteRecord({
       tableCode: props.tableCode,
       prefix: props.crudPrefix,
+      tableMeta: currentTableMeta.value,
       id,
     });
     message.success('删除成功');
@@ -777,6 +781,7 @@ async function init() {
     // 加载 meta 配置（字段 + 操作按钮）
     const { columns: metaCols, operations, tableMeta } = await fetchPageMeta(props.tableCode);
     metaColumns.value = metaCols;
+    currentTableMeta.value = tableMeta ?? null;
     const configuredPageSize = Number(tableMeta?.pageSize);
     if (Number.isFinite(configuredPageSize) && configuredPageSize > 0) {
       pagination.pageSize = configuredPageSize;
