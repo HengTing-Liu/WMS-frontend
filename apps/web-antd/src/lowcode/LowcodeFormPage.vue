@@ -7,7 +7,9 @@
             <div class="hero-kicker">Lowcode Editor</div>
             <div class="hero-title-row">
               <h1 class="hero-title">{{ pageHeading }}</h1>
-              <Tag :color="isEdit ? 'blue' : 'green'">{{ isEdit ? '编辑模式' : '新建模式' }}</Tag>
+              <Tag :color="isView ? 'gold' : isEdit ? 'blue' : 'green'">
+                {{ isView ? '查看模式' : isEdit ? '编辑模式' : '新建模式' }}
+              </Tag>
             </div>
             <p v-if="pageDescription" class="hero-desc">{{ pageDescription }}</p>
             <div class="hero-meta">
@@ -19,7 +21,7 @@
           </div>
           <div class="hero-actions">
             <Button @click="handleCancel">取消</Button>
-            <Button type="primary" :loading="saving" @click="handleSubmit">保存</Button>
+            <Button v-if="!isView" type="primary" :loading="saving" @click="handleSubmit">保存</Button>
           </div>
         </div>
       </Card>
@@ -179,8 +181,10 @@ onBeforeUnmount(() => {
   loadAbortController = null;
 });
 
+const isView = computed(() => mode.value === 'view' && !!recordId.value);
 const isEdit = computed(() => mode.value === 'edit' && !!recordId.value);
-const pageHeading = computed(() => `${isEdit.value ? '编辑' : '新建'}${pageTitle.value}`);
+const isDetailMode = computed(() => (isEdit.value || isView.value) && !!recordId.value);
+const pageHeading = computed(() => `${isView.value ? '查看' : isEdit.value ? '编辑' : '新建'}${pageTitle.value}`);
 const groupCount = computed(() => formGroups.value.length);
 const fieldCount = computed(() => formGroups.value.reduce((total, group) => total + group.fields.length, 0));
 const layoutSummary = computed(() => {
@@ -489,7 +493,7 @@ async function syncRuntimeState(values: Record<string, any>) {
     const schemaPatches: LowcodeFormSchemaPatch[] = group.fields.map((field) => ({
       fieldName: getFieldKey(field),
       hidden: !evaluateFieldVisibility(field, resolvedValues),
-      disabled: computeFieldReadonly(field, isEdit.value) || computeFieldDisabled(getFieldKey(field), resolvedValues),
+      disabled: computeFieldReadonly(field) || computeFieldDisabled(getFieldKey(field), resolvedValues),
     }));
 
     await sectionRef.updateSchema(schemaPatches as Partial<VbenFormSchema>[]);
@@ -533,12 +537,13 @@ function isSystemReadonlyField(field: ColumnMeta) {
   return SYSTEM_READONLY_FIELDS.has(key);
 }
 
-function computeFieldReadonly(field: ColumnMeta, editMode: boolean): boolean {
+function computeFieldReadonly(field: ColumnMeta): boolean {
   return (
+    isView.value ||
     isSystemReadonlyField(field) ||
     field.readonly === 1 ||
     field.readonly === true ||
-    (editMode && (field.editReadonly === 1 || field.editReadonly === true))
+    (isEdit.value && (field.editReadonly === 1 || field.editReadonly === true))
   );
 }
 
@@ -566,7 +571,7 @@ function buildFieldSchema(field: ColumnMeta, values: Record<string, any>): VbenF
       },
       placeholder: resolvePlaceholder(field, String(component)),
     },
-    disabled: computeFieldReadonly(field, isEdit.value) || computeFieldDisabled(fieldKey, values),
+    disabled: computeFieldReadonly(field) || computeFieldDisabled(fieldKey, values),
     fieldName: fieldKey,
     formItemClass: resolveSpanClass(field),
     hidden: !evaluateFieldVisibility(field, values),
@@ -877,7 +882,7 @@ async function loadPage() {
     formGroups.value = groups;
     allFields.value = groups.flatMap((group) => group.fields);
 
-    const detail = isEdit.value && recordId.value
+    const detail = isDetailMode.value && recordId.value
       ? await fetchDetail({
         id: recordId.value,
         prefix: crudPrefix.value,
@@ -902,6 +907,10 @@ async function loadPage() {
 }
 
 async function handleSubmit() {
+  if (isView.value) {
+    await goBack();
+    return;
+  }
   if (saving.value) return;
   saving.value = true;
   try {

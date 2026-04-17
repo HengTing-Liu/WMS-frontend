@@ -76,9 +76,19 @@
           <template v-else-if="column?.key === 'action'">
             <div class="flex items-center gap-2">
               <template v-for="action in rowActions" :key="action.key">
+                <!-- 查看按钮（含 row_read） -->
+                <Tooltip
+                  v-if="(action.key === 'read' || action.key === 'row_read') && canRenderAction(action)"
+                  title="查看"
+                >
+                  <Button type="link" size="small" class="p-0" @click="handleToolbarAction(action, record)">
+                    <IconifyIcon icon="material-symbols:visibility" class="text-lg" />
+                  </Button>
+                </Tooltip>
+
                 <!-- 编辑按钮（含 row_edit，与 init_meta_data 脚本一致） -->
                 <Tooltip
-                  v-if="(action.key === 'edit' || action.key === 'row_edit') && canRenderAction(action)"
+                  v-else-if="(action.key === 'edit' || action.key === 'row_edit') && canRenderAction(action)"
                   title="编辑"
                 >
                   <Button type="link" size="small" class="p-0" @click="handleToolbarAction(action, record)">
@@ -149,6 +159,7 @@
           </slot>
         </template>
       </WmsDataTable>
+
     </div>
   </Page>
 </template>
@@ -479,6 +490,10 @@ const slots = useSlots();
 
 /** 检查按钮是否有权限渲染（支持逗号分隔多码；兼容前缀与同义后缀，见 permission-utils） */
 function canRenderAction(action: LowcodeAction): boolean {
+  // 元数据显隐：默认显示，仅显式关闭时隐藏
+  if (action.status !== undefined && Number(action.status) !== 1) return false;
+  if (action.showButton === 0 || action.showButton === false || action.showButton === '0') return false;
+
   const codes = expandAllPermissionCodes(action.permission);
   if (codes.length === 0) return true;
   const matched = codes.find((code) => hasAccessByCodes([code]));
@@ -532,6 +547,7 @@ async function handleToolbarAction(action: LowcodeAction, record?: any) {
       },
       handleCreate,
       handleEdit,
+      handleRead,
       handleDelete,
       handleToggle,
       handleExport: () => handleExportAction(action),
@@ -542,6 +558,15 @@ async function handleToolbarAction(action: LowcodeAction, record?: any) {
   } finally {
     actionLoading.value[action.key] = false;
   }
+}
+
+async function handleRead(record: any) {
+  const id = record?.id ?? record?.dictId ?? record?.dictCode;
+  if (id === undefined || id === null || id === '') {
+    message.error('当前记录缺少 ID，无法查看');
+    return;
+  }
+  navigateToLowcodeForm('view', String(id));
 }
 
 /** 驼峰转蛇形 */
@@ -695,7 +720,7 @@ function resolveLowcodeFormRouteName(): string | undefined {
   return undefined;
 }
 
-function navigateToLowcodeForm(mode: 'create' | 'edit', id?: string) {
+function navigateToLowcodeForm(mode: 'create' | 'edit' | 'view', id?: string) {
   const routeName = resolveLowcodeFormRouteName();
   const query = {
     crudPrefix: props.crudPrefix,
@@ -809,6 +834,8 @@ async function init() {
       eventConfig: op.eventConfig,
       confirmMessage: op.confirmMessage,
       confirm: op.operationType === 'confirm' ? '是否确认该操作?' : undefined,
+      status: op.status,
+      showButton: op.showButton,
     }));
 
     if (import.meta.env.DEV && props.tableCode === 'inv_warehouse') {

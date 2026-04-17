@@ -27,8 +27,12 @@
             >
               <SelectOption value="create">create - 新增</SelectOption>
               <SelectOption value="add">add - 添加</SelectOption>
+              <SelectOption value="read">read - 查看</SelectOption>
+              <SelectOption value="row_read">row_read - 行内查看</SelectOption>
               <SelectOption value="edit">edit - 编辑</SelectOption>
+              <SelectOption value="row_edit">row_edit - 行内编辑</SelectOption>
               <SelectOption value="delete">delete - 删除</SelectOption>
+              <SelectOption value="row_delete">row_delete - 行内删除</SelectOption>
               <SelectOption value="toggle">toggle - 切换状态</SelectOption>
               <SelectOption value="export">export - 导出（默认）</SelectOption>
               <SelectOption value="exportSelected">export - 导出选中</SelectOption>
@@ -139,8 +143,12 @@
             <Select v-model:value="eventConfig.builtin.handler">
               <SelectOption value="create">create</SelectOption>
               <SelectOption value="add">add</SelectOption>
+              <SelectOption value="read">read</SelectOption>
+              <SelectOption value="row_read">row_read</SelectOption>
               <SelectOption value="edit">edit</SelectOption>
+              <SelectOption value="row_edit">row_edit</SelectOption>
               <SelectOption value="delete">delete</SelectOption>
+              <SelectOption value="row_delete">row_delete</SelectOption>
               <SelectOption value="toggle">toggle</SelectOption>
               <SelectOption value="export">export</SelectOption>
             </Select>
@@ -280,8 +288,12 @@ const operationCodeSelect = ref<string>('');
 const OPERATION_CODE_MAP: Record<string, string> = {
   create: '新增',
   add: '添加',
+  read: '查看',
+  row_read: '行内查看',
   edit: '编辑',
+  row_edit: '行内编辑',
   delete: '删除',
+  row_delete: '行内删除',
   toggle: '切换状态',
   export: '导出',
   exportSelected: '导出选中',
@@ -295,8 +307,12 @@ function buildPermissionMap(tableCode: string): Record<string, string> {
   return {
     create: `${tableCode}:create`,
     add: `${tableCode}:add`,
+    read: `${tableCode}:query`,
+    row_read: `${tableCode}:query`,
     edit: `${tableCode}:edit`,
+    row_edit: `${tableCode}:edit`,
     delete: `${tableCode}:delete`,
+    row_delete: `${tableCode}:delete`,
     toggle: `${tableCode}:toggle`,
     export: `${tableCode}:export`,
     exportSelected: `${tableCode}:export`,
@@ -321,6 +337,15 @@ function handleOperationCodeChange(value: string) {
     if (!formData.permission || formData.permission.includes(':')) {
       const perm = permMap[value];
       if (perm) formData.permission = perm;
+    }
+    // 内置事件下，跟随操作编码自动同步处理器，避免编码/处理器不一致
+    if (formData.eventType === 'builtin' && value in OPERATION_CODE_MAP) {
+      eventConfig.builtin.handler = value;
+    }
+    // 行内操作编码默认切换为 row 位置
+    if (value.startsWith('row_')) {
+      formData.position = 'row';
+      formData.operationType = 'link';
     }
   }
 }

@@ -98,6 +98,7 @@ export interface TableOperation {
   eventConfig?: string;
   confirmMessage?: string;
   isEnabled?: number;
+  showButton?: number | boolean;
 }
 
 // ==================== 鍓嶇瑙ｆ瀽鍚庣被鍨?====================
@@ -128,7 +129,7 @@ export type EventType = 'builtin' | 'api' | 'download' | 'upload' | 'redirect' |
 
 /** 鍐呯疆鍔ㄤ綔閰嶇疆 */
 export interface BuiltinEventConfig {
-  handler: 'create' | 'edit' | 'delete' | 'toggle' | 'export';
+  handler: 'create' | 'edit' | 'read' | 'delete' | 'toggle' | 'export';
 }
 
 /** API 璋冪敤閰嶇疆 */
@@ -183,6 +184,8 @@ export interface LowcodeAction {
   eventConfig?: string | object;
   confirmMessage?: string;
   confirm?: string;
+  status?: number;
+  showButton?: number | boolean;
 }
 // ==================== 椤甸潰妯℃澘绫诲瀷 ====================
 

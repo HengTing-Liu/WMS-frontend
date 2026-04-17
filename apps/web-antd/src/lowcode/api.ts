@@ -104,7 +104,7 @@ export async function fetchTableOperations(tableCode: string): Promise<TableOper
       res ??
       [];
     const list = Array.isArray(rows) ? rows : [];
-    return list.filter((item: any) => Number(item?.status ?? 1) === 1);
+    return list;
   } catch {
     return [];
   }

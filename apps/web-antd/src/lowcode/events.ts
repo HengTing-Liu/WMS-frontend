@@ -28,6 +28,7 @@ export interface ActionContext {
   };
   handleCreate: () => void;
   handleEdit: (record: any) => void;
+  handleRead: (record: any) => void;
   handleDelete: (id: number | string) => Promise<void>;
   handleToggle: (record: any, enabled: boolean) => Promise<void>;
   handleExport: () => Promise<void>;
@@ -42,6 +43,9 @@ export const BUILTIN_HANDLERS: Record<string, (ctx: ActionContext, record?: any)
   edit: (ctx, record) => ctx.handleEdit(record),
   /** 与 edit 同义，兼容 operation_code = row_edit */
   row_edit: (ctx, record) => ctx.handleEdit(record),
+  read: (ctx, record) => ctx.handleRead(record),
+  /** 与 read 同义，兼容 operation_code = row_read */
+  row_read: (ctx, record) => ctx.handleRead(record),
   delete: (ctx, record) => ctx.handleDelete(record?.id ?? record?.dictId ?? record?.dictCode),
   /** 与 delete 同义，兼容 operation_code = row_delete */
   row_delete: (ctx, record) => ctx.handleDelete(record?.id ?? record?.dictId ?? record?.dictCode),
