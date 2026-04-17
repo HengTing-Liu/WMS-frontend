@@ -56,6 +56,8 @@
 
       <!-- 表格 -->
       <WmsDataTable
+        :scroll="{ y: tableScrollY }"
+        sticky
         :columns="columns"
         :data-source="dataList"
         :loading="loading"
@@ -67,12 +69,12 @@
         @selection-change="onSelectionChange"
       >
         <template #bodyCell="{ column, record, index }">
-          <!-- 序号 -->
+            <!-- 序号 -->
           <template v-if="column?.key === 'seq'">
             {{ (pagination.current - 1) * pagination.pageSize + index + 1 }}
           </template>
 
-          <!-- 操作列 -->
+            <!-- 操作列 -->
           <template v-else-if="column?.key === 'action'">
             <div class="flex items-center gap-2">
               <template v-for="action in rowActions" :key="action.key">
@@ -146,26 +148,25 @@
             </div>
           </template>
 
-          <!-- 状态标签（兼容 1/0 和 true/false，以及 isEnabled/is_enabled 字段名） -->
+            <!-- 状态标签（兼容 1/0 和 true/false，以及 isEnabled/is_enabled 字段名） -->
           <template v-else-if="column?.key === 'isEnabled'">
             <Tag :color="isEnabled(record.isEnabled ?? record.is_enabled) ? 'success' : 'default'">
               {{ isEnabled(record.isEnabled ?? record.is_enabled) ? '启用' : '停用' }}
             </Tag>
           </template>
 
-          <!-- 默认单元格：父级可覆盖；未覆盖时显示字段值（避免仅写了 #bodyCell 中 action 分支导致数据列全空） -->
-          <slot v-else name="bodyCell" v-bind="{ column, record, index }">
-            {{ formatDefaultCell(record, column) }}
-          </slot>
-        </template>
+            <!-- 默认单元格：父级可覆盖；未覆盖时显示字段值（避免仅写了 #bodyCell 中 action 分支导致数据列全空） -->
+            <slot v-else name="bodyCell" v-bind="{ column, record, index }">
+              {{ formatDefaultCell(record, column) }}
+            </slot>
+          </template>
       </WmsDataTable>
-
     </div>
   </Page>
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onActivated, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
 import {
@@ -247,6 +248,9 @@ const searchQueryModes = ref<Record<string, 'eq' | 'like'>>({});
 const actionLoading = ref<Record<string, boolean>>({});
 const router = useRouter();
 const route = useRoute();
+
+// 表格滚动高度（固定表头）
+const tableScrollY = 'calc(100vh - 280px)';
 
 // 分页
 const pagination = reactive({

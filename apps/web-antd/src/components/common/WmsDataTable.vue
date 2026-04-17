@@ -7,6 +7,8 @@
       :pagination="false"
       :row-key="rowKey"
       :row-selection="rowSelection"
+      :scroll="scroll"
+      :sticky="sticky"
     >
       <template #bodyCell="slotProps">
         <slot name="bodyCell" v-bind="slotProps" />
@@ -48,6 +50,8 @@ interface Props {
   rowKey?: string;
   enableSelection?: boolean;
   selectedRowKeys?: Key[];
+  scroll?: { x?: number | string; y?: number | string };
+  sticky?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {

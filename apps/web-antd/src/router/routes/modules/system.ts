@@ -100,7 +100,7 @@ const routes: RouteRecordRaw[] = [
             },
             name: 'OperLog',
             path: '/log/oper',
-            component: () => import('#/views/system/operlog/index.vue'),
+            component: () => import('#/views/system/operlog/lowcode-index.vue'),
           },
           {
             meta: {
