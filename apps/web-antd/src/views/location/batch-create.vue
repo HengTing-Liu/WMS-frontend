@@ -226,7 +226,7 @@ import { Page } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
 
-import { getLocationTree, batchCreateContainers } from '#/api';
+import { getTree as getLocationTree, batchCreate as batchCreateContainers } from '#/api/wms/location';
 
 const router = useRouter();
 const formRef = ref();

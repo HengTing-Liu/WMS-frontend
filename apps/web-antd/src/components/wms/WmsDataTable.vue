@@ -21,9 +21,14 @@
       :scroll="scroll"
       @change="handleTableChange"
     >
-      <!-- 透传所有具名插槽到 Table -->
+      <!-- 透传普通插槽 -->
       <template v-for="(_, name) in slots" #[name]="slotData: any" :key="name">
         <slot :name="name" v-bind="slotData" />
+      </template>
+
+      <!-- 透传 bodyCell 作用域插槽 -->
+      <template v-if="slots.bodyCell" #bodyCell="slotData">
+        <slot name="bodyCell" v-bind="slotData" />
       </template>
     </Table>
   </Card>

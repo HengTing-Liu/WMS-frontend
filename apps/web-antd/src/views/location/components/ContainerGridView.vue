@@ -56,10 +56,6 @@
             <IconifyIcon icon="material-symbols:folder" />
             <span>{{ container.children.length }} {{ $t('page.location.type.box') }}</span>
           </div>
-          <div v-if="container.gridConfig?.length" class="stat">
-            <IconifyIcon icon="material-symbols:grid-view" />
-            <span>{{ container.gridConfig.length }} {{ $t('page.location.gridConfig') }}</span>
-          </div>
         </div>
 
         <!-- 快捷操作 -->

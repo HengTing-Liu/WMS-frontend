@@ -29,6 +29,21 @@ export function expandPermissionVariants(code: string): string[] {
     // 物料模块兼容：meta 用 sys:material:*，菜单用 wms:base:material:*
     [/^sys:material:/, 'wms:base:material:'],
     [/^wms:sys:material:/, 'wms:base:material:'],
+    // 库位模块兼容：meta 用 inv_location:* / inv:location:*，菜单用 wms:base:location:*
+    [/^inv_location:/, 'wms:base:location:'],
+    [/^inv:location:/, 'wms:base:location:'],
+    [/^wms:inv_location:/, 'wms:base:location:'],
+    [/^wms:inv:location:/, 'wms:base:location:'],
+    // 仓库模块兼容：meta 用 inv_warehouse:* / inv:warehouse:*，菜单用 wms:base:warehouse:*
+    [/^inv_warehouse:/, 'wms:base:warehouse:'],
+    [/^inv:warehouse:/, 'wms:base:warehouse:'],
+    [/^wms:inv_warehouse:/, 'wms:base:warehouse:'],
+    [/^wms:inv:warehouse:/, 'wms:base:warehouse:'],
+    // 仓库收货人模块兼容
+    [/^inv_warehouse_receiver:/, 'wms:base:warehouseReceiver:'],
+    [/^inv:warehouseReceiver:/, 'wms:base:warehouseReceiver:'],
+    [/^wms:inv_warehouse_receiver:/, 'wms:base:warehouseReceiver:'],
+    [/^wms:inv:warehouseReceiver:/, 'wms:base:warehouseReceiver:'],
   ];
   for (const c of [...out]) {
     for (const [from, to] of prefixPairs) {

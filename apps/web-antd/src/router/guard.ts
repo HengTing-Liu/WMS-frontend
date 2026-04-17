@@ -66,10 +66,10 @@ function setupAccessGuard(router: Router) {
     // ---- 已登录，访问登录页 -> 跳首页 ----
     if (coreRouteNames.includes(to.name as string) && to.path === LOGIN_PATH) {
       if (accessStore.accessToken) {
+        // 优先使用前端配置的首页，不依赖后端用户 homePath
         return (
-          userStore.userInfo?.homePath
+          preferences.app.defaultHomePath
           || accessStore.getFirstMenuPath?.()
-          || preferences.app.defaultHomePath
         );
       }
       return true;
@@ -197,6 +197,18 @@ function setupAccessGuard(router: Router) {
       };
     }
 
+    // 优先使用配置的后台首页（不依赖后端菜单顺序）
+    const finalPath = preferences.app.defaultHomePath;
+    const finalRoutes = router.getRoutes();
+    const finalExists = finalRoutes.some(
+      (r) => r.path === finalPath || r.name === finalPath
+    );
+    if (finalExists) {
+      accessStore.setFirstMenuPath(finalPath);
+      return { path: finalPath, replace: true };
+    }
+
+    // 如果配置的首页不存在，再尝试后端菜单的第一个路径
     const firstPath = getFirstMenuPath(accessibleMenus);
 
     // 验证 firstPath 是否真的在 Vue Router 里（不是 localStorage 里残留的旧路径）
@@ -209,17 +221,6 @@ function setupAccessGuard(router: Router) {
         accessStore.setFirstMenuPath(firstPath);
         return { path: firstPath, replace: true };
       }
-    }
-
-    // firstPath 不存在，用 userInfo.homePath 或兜底，但必须验证存在
-    const finalPath =
-      userInfo.homePath || preferences.app.defaultHomePath;
-    const finalRoutes = router.getRoutes();
-    const finalExists = finalRoutes.some(
-      (r) => r.path === finalPath || r.name === finalPath
-    );
-    if (finalExists) {
-      return { path: finalPath, replace: true };
     }
 
     //兜底路径也不存在：回到登录页

@@ -328,6 +328,7 @@ const columns = computed<any[]>(() => {
   // 优先使用静态列配置
   if (props.staticColumns.length) return props.staticColumns;
 
+  console.log('[LowcodePage-v2] computing columns, metaColumns.length:', metaColumns.value.length);
   if (!metaColumns.value.length) return [];
 
   const cols: any[] = [
@@ -372,6 +373,7 @@ const columns = computed<any[]>(() => {
     cols.push({ title: '操作', key: 'action', width: actionWidth, align: 'center', fixed: 'right' });
   }
 
+  console.log('[LowcodePage] computed columns count:', cols.length, cols.map(c => c.key || c.dataIndex));
   return cols;
 });
 
@@ -780,6 +782,7 @@ async function init() {
   try {
     // 加载 meta 配置（字段 + 操作按钮）
     const { columns: metaCols, operations, tableMeta } = await fetchPageMeta(props.tableCode);
+    console.log('[LowcodePage] fetchPageMeta result:', { tableCode: props.tableCode, metaColCount: metaCols?.length, opCount: operations?.length });
     metaColumns.value = metaCols;
     currentTableMeta.value = tableMeta ?? null;
     const configuredPageSize = Number(tableMeta?.pageSize);

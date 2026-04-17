@@ -7,10 +7,12 @@
           v-for="field in displayedFields"
           :key="field.key"
           :label="field.label"
+          :for="`search-${field.key}`"
           class="search-field-item"
         >
           <div v-if="field.type === 'input'" class="input-with-mode">
             <a-input
+              :id="`search-${field.key}`"
               v-model:value="formModel[field.key]"
               :placeholder="`请输入${field.label}`"
               @press-enter="handleSearch"
@@ -25,6 +27,7 @@
           </div>
           <a-select
             v-else-if="field.type === 'select'"
+            :id="`search-${field.key}`"
             v-model:value="formModel[field.key]"
             :placeholder="`请选择${field.label}`"
             :options="getFilteredOptions(field)"
@@ -37,6 +40,7 @@
           />
           <a-switch
             v-else-if="field.type === 'switch'"
+            :id="`search-${field.key}`"
             v-model:checked="formModel[field.key]"
             :checked-children="field.options?.[0]?.label || '启用'"
             :un-checked-children="field.options?.[1]?.label || '停用'"

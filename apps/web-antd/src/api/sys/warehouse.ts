@@ -62,7 +62,7 @@ function normalizeWarehouseRow(row: any): WarehouseResult {
 }
 
 export async function listWarehousePage(params: WarehouseQuery) {
-  const res = await requestClient.get('/base/warehouse/list', { params });
+  const res = await requestClient.get('/api/wms/warehouse/list', { params });
   const rawRows = res?.rows || res?.list || res?.data?.rows || res?.data?.list || [];
   return {
     rows: Array.isArray(rawRows) ? rawRows.map(normalizeWarehouseRow) : [],
@@ -71,7 +71,7 @@ export async function listWarehousePage(params: WarehouseQuery) {
 }
 
 export async function getWarehouseDetail(id: number): Promise<WarehouseResult> {
-  const res = await requestClient.get(`/base/warehouse/${id}`);
+  const res = await requestClient.get(`/api/wms/warehouse/${id}`);
   const data = res?.data || res;
   return normalizeWarehouseRow(data);
 }
@@ -85,7 +85,7 @@ export async function createWarehouse(data: Partial<WarehouseResult>) {
     erp_warehouse_code, erp_location_code,
     is_enabled, create_by, create_time, update_by, update_time, ...rest
   } = data as any;
-  return requestClient.post('/base/warehouse', { ...rest });
+  return requestClient.post('/api/wms/warehouse', { ...rest });
 }
 
 export async function updateWarehouse(data: Partial<WarehouseResult>) {
@@ -100,19 +100,19 @@ export async function updateWarehouse(data: Partial<WarehouseResult>) {
     erp_warehouse_code, erp_location_code,
     is_enabled, create_by, create_time, update_by, update_time, ...rest
   } = data as any;
-  return requestClient.put(`/base/warehouse/${id}`, { ...rest });
+  return requestClient.put(`/api/wms/warehouse/${id}`, { ...rest });
 }
 
 export async function toggleWarehouseStatus(id: number, enabled: number) {
-  return requestClient.patch(`/base/warehouse/${id}/status`, null, { params: { enabled } });
+  return requestClient.patch(`/api/wms/warehouse/${id}/status`, null, { params: { enabled } });
 }
 
 export async function deleteWarehouse(id: number) {
-  return requestClient.delete(`/base/warehouse/${id}`);
+  return requestClient.delete(`/api/wms/warehouse/${id}`);
 }
 
 export async function exportWarehouse(params: WarehouseQuery) {
-  return requestClient.post('/base/warehouse/export', params, {
+  return requestClient.post('/api/wms/warehouse/export', params, {
     responseType: 'blob',
   });
 }

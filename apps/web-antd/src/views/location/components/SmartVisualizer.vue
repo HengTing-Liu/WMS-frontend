@@ -181,7 +181,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [container: LocationApi.Container];
   refresh: [];
-  updateGrid: [gridConfig: LocationApi.GridPosition[]];
 }>();
 
 const router = useRouter();
@@ -249,11 +248,6 @@ const handleBatchCreate = () => {
 // 子容器选择
 const handleChildSelect = (container: LocationApi.Container) => {
   emit('select', container);
-};
-
-// 更新网格
-const handleUpdateGrid = (gridConfig: LocationApi.GridPosition[]) => {
-  emit('updateGrid', gridConfig);
 };
 </script>
 

@@ -149,10 +149,27 @@ export async function fetchPageMeta(tableCode: string) {
 
 // ==================== 闁氨鏁?CRUD 閹恒儱褰?====================
 
-/** 閺嶈宓佺悰銊х椽閻焦甯归弬?CRUD 閹恒儱褰涢崜宥囩磻 */
-export function inferCrudPrefix(tableCode: string, tableMeta?: TableMeta | null): string {
-  if (tableMeta?.apiPrefix) return tableMeta.apiPrefix;
-  return `/api/wms/crud/${tableCode}`;
+/** 列表数据 CRUD 接口前缀推断 */
+export function inferCrudPrefix(tableCode: string): string {
+  const entityMap: Record<string, string> = {
+    // WMS基础表
+    WMS0010: '/api/base/warehouse',
+    WMS0030: '/api/base/material',
+    WMS0040: '/api/base/basicData',
+    // 库存相关表路由映射
+    inv_warehouse: '/api/wms/crud/inv_warehouse',
+    inv_warehouse_receiver: '/api/wms/crud/inv_warehouse_receiver',
+    inv_location: '/api/wms/crud/inv_location',
+    sys_user: '/api/wms/crud/sys_user',
+    // 物料相关表和其他业务表
+    inv_material: '/api/wms/crud/inv_material',
+  };
+  if (entityMap[tableCode]) return entityMap[tableCode];
+  // 系统表兜底
+  if (tableCode.startsWith('sys_')) {
+    return `/api/wms/crud/${tableCode}`;
+  }
+  return `/api/base/${tableCode.replace(/^WMS\d+$/, (m) => m.replace(/^WMS/, '').toLowerCase())}`;
 }
 
 /** 闁氨鏁ら崚妤勩€冮弻銉嚄 */

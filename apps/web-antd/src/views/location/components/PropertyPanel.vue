@@ -82,17 +82,6 @@
           </FormItem>
         </Card>
 
-        <!-- 网格配置（仅冻存盒） -->
-        <Card v-if="container?.type === 'box'" size="small" :title="$t('page.location.gridConfig')" class="section-card">
-          <FormItem :label="$t('page.location.gridRows')" name="gridRows">
-            <InputNumber v-model:value="formData.gridRows" :min="1" :max="26" style="width: 100%" />
-          </FormItem>
-
-          <FormItem :label="$t('page.location.gridCols')" name="gridCols">
-            <InputNumber v-model:value="formData.gridCols" :min="1" :max="50" style="width: 100%" />
-          </FormItem>
-        </Card>
-
         <!-- 描述 -->
         <Card size="small" :title="$t('page.location.description')" class="section-card">
           <FormItem name="description">
@@ -143,7 +132,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   save: [data: Partial<LocationApi.Container>];
-  updateGrid: [gridConfig: LocationApi.GridPosition[]];
 }>();
 
 // 表单引用

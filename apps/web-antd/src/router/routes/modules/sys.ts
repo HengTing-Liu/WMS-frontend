@@ -19,7 +19,7 @@ const routes: RouteRecordRaw[] = [
       },
 
       {
-        meta: { title: '库位管理' , keepAlive: true,},
+        meta: { title: '库位档案', keepAlive: true, fullPathKey: false },
         name: 'BaseLocation',
         path: 'location',
         component: () => import('#/views/sys/location/index.vue'),

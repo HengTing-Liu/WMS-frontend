@@ -117,6 +117,8 @@
       </Row>
       <Row :gutter="16">
         <Col :span="8"><FormItem label="唯一" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.isUnique" /></FormItem></Col>
+      </Row>
+      <Row :gutter="16">
         <Col :span="8"><FormItem label="可搜索" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.searchable" /></FormItem></Col>
       </Row>
       <Row :gutter="16">
