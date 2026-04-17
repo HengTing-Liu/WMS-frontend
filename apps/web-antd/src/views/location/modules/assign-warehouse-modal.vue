@@ -214,7 +214,6 @@ const handleSubmit = async () => {
   }
 
   confirmLoading.value = true;
-  setModalProps({ confirmLoading: true });
 
   try {
     const res = await assignWarehouse({

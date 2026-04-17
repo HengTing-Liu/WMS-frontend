@@ -30,11 +30,7 @@
             <span class="label">{{ $t('page.location.containerType') }}：</span>
             <Tag :color="getTypeColor(currentNode.locationType)">{{ getTypeLabel(currentNode.locationType) }}</Tag>
           </div>
-          <div class="stat-item">
-            <span class="label">{{ $t('page.location.containerCode') }}：</span>
-            <span>{{ currentNode.locationNo }}</span>
-          </div>
-          <div v-if="hasCapacity" class="stat-item">
+          <div v-if="currentNode?.occupancyRate !== undefined" class="stat-item">
             <span class="label">{{ $t('page.location.occupancyRate') }}：</span>
             <Progress
               :percent="occupancyRate"
@@ -95,14 +91,8 @@ const router = useRouter();
 const breadcrumb = ref<LocationApi.Container[]>([]);
 
 // 计算属性
-const hasCapacity = computed(() => {
-  return props.currentNode?.capacityTotal !== undefined;
-});
-
 const occupancyRate = computed(() => {
-  if (!props.currentNode?.capacityTotal) return 0;
-  const rate = ((props.currentNode.capacityUsed || 0) / props.currentNode.capacityTotal) * 100;
-  return Math.round(rate * 10) / 10;
+  return Math.round((props.currentNode?.occupancyRate || 0) * 10) / 10;
 });
 
 // 监听 currentNode 变化，更新面包屑

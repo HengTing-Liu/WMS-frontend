@@ -123,8 +123,6 @@
       "storageModePlaceholder": "请选择存储模式",
       "locationSortNo": "排序号",
       "locationFullpathName": "全路径名称",
-      "capacityTotal": "总容量",
-      "capacityUsed": "已用容量",
       "isUse": "是否占用"
     },
     "wms": {
@@ -215,9 +213,6 @@
       "parentLocation": "上级库位",
       "parentLocationPlaceholder": "请选择上级库位（可选）",
       "parentLocationTip": "不选择则为根节点",
-      "locationNo": "库位编码",
-      "locationNoPlaceholder": "请输入库位编码",
-      "locationNoRequired": "请输入库位编码",
       "locationName": "库位名称",
       "locationNamePlaceholder": "请输入库位名称",
       "locationNameRequired": "请输入库位名称",
@@ -256,7 +251,6 @@
         "idle": "空闲"
       },
       "columns": {
-        "locationNo": "库位编码",
         "locationName": "库位名称",
         "locationType": "库位类型",
         "storageMode": "存储模式",

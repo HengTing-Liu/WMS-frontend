@@ -435,8 +435,6 @@
       "containers": "個のコンテナ",
       "locationNameRequired": "コンテナ名を入力してください",
       "locationNameLength": "コンテナ名は1～50文字です",
-      "locationNoRequired": "コンテナコードを入力してください",
-      "locationNoLength": "コンテナコードは1～50文字です",
       "locationTypeRequired": "コンテナタイプを選択してください",
       "selectContainer": "コンテナを選択してください",
       "nameRequired": "コンテナ名を入力してください",

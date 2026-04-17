@@ -50,8 +50,6 @@ export interface LocationTreeNode {
   isUse?: number;
   locationSortNo?: string;
   locationFullpathName?: string;
-  capacityTotal?: number;
-  capacityUsed?: number;
   occupancyRate?: number;
   remarks?: string;
   children?: LocationTreeNode[];
@@ -200,13 +198,13 @@ export interface AssignWarehouseRequest {
 }
 
 export function initAssignWarehouse(locationId: number, containerIds?: number[]) {
-  return requestClient.get<AssignWarehouseInitResponse>('/api/wms/location/assignWarehouse/init', {
+  return requestClient.get<AssignWarehouseInitResponse>('/api/wms/location/assign-warehouse/init', {
     params: { locationId, containerIds },
   });
 }
 
 export function assignWarehouse(data: AssignWarehouseRequest) {
-  return requestClient.put('/api/wms/location/assignWarehouse', data);
+  return requestClient.put('/api/wms/location/assign-warehouse', data);
 }
 
 // ========== 占用率统计 ==========
@@ -215,8 +213,6 @@ export interface OccupancyResponse {
   locationId: number;
   locationName: string;
   warehouseCode: string;
-  capacityTotal: number;
-  capacityUsed: number;
   capacityFree: number;
   occupancyRate: number;
   storageMode: string;

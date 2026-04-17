@@ -10,6 +10,7 @@ import {
   suggestLocationCode,
   type LocationTreeNode,
 } from '#/api/sys/location';
+import { listWarehouseSimpleForLocation } from '#/api/sys/warehouse';
 import { $t } from '@vben/locales';
 
 const props = defineProps<{
@@ -26,17 +27,30 @@ const emit = defineEmits<{
 
 const loading = ref(false);
 const formRef = ref();
+const warehouseLoading = ref(false);
+const modalWarehouseOptions = ref<Array<{ label: string; value: string }>>([]);
 
 const formState = ref({
   warehouseCode: '' as string | undefined,
   parentId: undefined as number | undefined,
-  locationNo: '',
   locationName: '',
   locationType: undefined as string | undefined,
   storageMode: undefined as string | undefined,
   specification: '',
   remarks: '',
 });
+
+// 加载仓库下拉数据（用于弹窗内的仓库选择）
+async function loadModalWarehouseOptions() {
+  warehouseLoading.value = true;
+  try {
+    modalWarehouseOptions.value = await listWarehouseSimpleForLocation();
+  } catch {
+    modalWarehouseOptions.value = [];
+  } finally {
+    warehouseLoading.value = false;
+  }
+}
 
 const locationTypeOptions = [
   { label: $t('page.wms.location.locationTypeOptions.STORAGE'), value: 'STORAGE' },
@@ -54,66 +68,11 @@ const title = computed(() => (props.mode === 'add' ? $t('page.wms.location.addTi
 
 const rules = {
   warehouseCode: [{ required: true, message: $t('page.wms.location.warehouseRequired'), trigger: 'change' }],
-  locationNo: [{ required: true, message: $t('page.wms.location.locationNoRequired'), trigger: 'blur' }],
   locationName: [{ required: true, message: $t('page.wms.location.locationNameRequired'), trigger: 'blur' }],
   locationType: [{ required: true, message: $t('page.wms.location.locationTypeRequired'), trigger: 'change' }],
 };
 
-// 自动生成编码
-const autoGeneratingCode = ref(false);
-const parentPathCache = ref<Record<number, string>>({});
 
-function getParentPath(): string {
-  if (!formState.value.parentId) return '';
-  return parentPathCache.value[formState.value.parentId] || '';
-}
-
-async function handleSuggestCode() {
-  if (!formState.value.warehouseCode) {
-    message.warning($t('page.wms.location.suggestCodeTip'));
-    return;
-  }
-  autoGeneratingCode.value = true;
-  try {
-    const result = await suggestLocationCode({
-      warehouseCode: formState.value.warehouseCode,
-      parentId: formState.value.parentId,
-      locationType: formState.value.locationType,
-    });
-    if (result.suggestedCode) {
-      formState.value.locationNo = result.suggestedCode;
-      // 缓存父节点路径
-      if (result.fullPath) {
-        parentPathCache.value[formState.value.parentId!] = result.fullPath;
-      }
-      message.success(
-        $t('page.wms.location.suggestCodeSuccess', {
-          code: result.suggestedCode,
-          level: result.currentLevel,
-        })
-      );
-    }
-  } catch {
-    message.error($t('page.wms.location.suggestCodeFailed'));
-  } finally {
-    autoGeneratingCode.value = false;
-  }
-}
-
-// 监听关键字段变化，自动重新生成编码
-watch(
-  [() => formState.value.warehouseCode, () => formState.value.parentId, () => formState.value.locationType],
-  async ([newWarehouse, newParentId, newType]) => {
-    if (props.mode === 'add' && props.visible && newWarehouse && newType) {
-      // 防抖延迟，避免频繁请求
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      // 仅当用户尚未手动修改编码时才自动更新
-      if (!formState.value.locationNo || formState.value.locationNo === formState.value._lastGenerated) {
-        await handleSuggestCode();
-      }
-    }
-  }
-);
 
 // 父级库位树（用于新增时选择父节点）
 const parentTreeLoading = ref(false);
@@ -127,7 +86,6 @@ watch(
         formState.value = {
           warehouseCode: props.record.warehouseCode || '',
           parentId: props.record.parentId,
-          locationNo: props.record.locationNo || '',
           locationName: props.record.locationName || '',
           locationType: props.record.locationType,
           storageMode: props.record.storageMode,
@@ -139,13 +97,13 @@ watch(
         formState.value = {
           warehouseCode: props.warehouseOptions?.[0]?.value ?? '',
           parentId: undefined,
-          locationNo: '',
           locationName: '',
           locationType: undefined,
           storageMode: undefined,
           specification: '',
           remarks: '',
         };
+        await loadModalWarehouseOptions();
         await loadParentTree();
       }
     }
@@ -269,33 +227,11 @@ async function handleSubmit() {
             <span style="font-size: 12px">📁</span>
           </template>
           <template #title="{ dataRef }">
-            {{ dataRef.locationName }} ({{ dataRef.locationNo }})
+            {{ dataRef.locationName }}
           </template>
         </Tree>
         <div style="font-size: 12px; color: #999; margin-top: 4px">
           {{ $t('page.wms.location.parentLocationTip') }}
-        </div>
-      </Form.Item>
-
-      <Form.Item :label="$t('page.wms.location.locationNo')" name="locationNo">
-        <div class="location-no-input-group">
-          <Input
-            v-model:value="formState.locationNo"
-            :placeholder="$t('page.wms.location.locationNoPlaceholder')"
-            :disabled="mode === 'edit'"
-            class="location-no-input"
-          />
-          <Button
-            v-if="mode === 'add'"
-            :loading="autoGeneratingCode"
-            size="small"
-            @click="handleSuggestCode"
-          >
-            {{ $t('page.wms.location.autoGenerate') }}
-          </Button>
-        </div>
-        <div v-if="formState.locationNo && formState.parentId" class="location-no-hint">
-          {{ $t('page.wms.location.parentPath') }}: {{ getParentPath() }}
         </div>
       </Form.Item>
 
@@ -333,19 +269,4 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
-.location-no-input-group {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.location-no-input {
-  flex: 1;
-}
-.location-no-hint {
-  font-size: 12px;
-  color: var(--text-color-secondary, #999);
-  margin-top: 4px;
-  line-height: 1.4;
-  word-break: break-all;
-}
 </style>

@@ -15,12 +15,10 @@
         </div>
         
         <div class="card-info">
-          <div class="name">{{ item.locationName }}</div>          
-          <div class="code">{{ item.locationNo }}</div>
+          <div class="name">{{ item.locationName }}</div>
           <div class="stats">
-            <span v-if="item.capacityTotal">
-              {{ item.capacityUsed || 0 }}/{{ item.capacityTotal }} 
-              ({{ getOccupancyRate(item) }}%)
+            <span v-if="item.occupancyRate !== undefined">
+              {{ getOccupancyRate(item) }}%
             </span>
             <span v-else-if="item.children?.length">
               {{ item.children.length }} {{ $t('page.location.subItems') }}
@@ -71,9 +69,7 @@ const getItemIcon = (item: LocationApi.Container) => {
 
 // 计算占用率
 const getOccupancyRate = (item: LocationApi.Container) => {
-  if (!item.capacityTotal || item.capacityTotal === 0) return 0;
-  const rate = ((item.capacityUsed || 0) / item.capacityTotal) * 100;
-  return Math.round(rate);
+  return Math.round(item.occupancyRate || 0);
 };
 
 // 占用率样式

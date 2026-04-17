@@ -23,10 +23,9 @@
         <!-- 信息区域 -->
         <div class="info-wrapper">
           <div class="name">{{ item.locationName }}</div>
-          <div class="code">{{ item.locationNo }}</div>
           <div class="stats">
             <span class="capacity">
-              {{ item.capacityUsed || 0 }} / {{ item.capacityTotal || 0 }}
+              {{ item.occupancyRate || 0 }}%
             </span>
           </div>
         </div>
@@ -58,9 +57,7 @@ const getFridgeImage = (item: LocationApi.Container) => {
 
 // 计算占用率
 const getOccupancyRate = (item: LocationApi.Container) => {
-  if (!item.capacityTotal || item.capacityTotal === 0) return 0;
-  const rate = ((item.capacityUsed || 0) / item.capacityTotal) * 100;
-  return Math.round(rate);
+  return Math.round(item.occupancyRate || 0);
 };
 
 // 占用率样式类

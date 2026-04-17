@@ -76,6 +76,20 @@ export async function getWarehouseDetail(id: number): Promise<WarehouseResult> {
   return normalizeWarehouseRow(data);
 }
 
+/**
+ * 根据仓库编码获取仓库详情
+ */
+export async function getWarehouseByCode(warehouseCode: string): Promise<WarehouseResult | null> {
+  const res = await requestClient.get('/api/wms/warehouse/list', {
+    params: { warehouseCode, pageNum: 1, pageSize: 1 },
+  });
+  const rows = res?.rows || res?.data?.rows || res?.data?.list || res?.list || [];
+  if (Array.isArray(rows) && rows.length > 0) {
+    return normalizeWarehouseRow(rows[0]);
+  }
+  return null;
+}
+
 export async function createWarehouse(data: Partial<WarehouseResult>) {
   // 移除 snake_case 字段，避免后端接收参数混乱
   const {
@@ -114,5 +128,39 @@ export async function deleteWarehouse(id: number) {
 export async function exportWarehouse(params: WarehouseQuery) {
   return requestClient.post('/api/wms/warehouse/export', params, {
     responseType: 'blob',
+  });
+}
+
+/**
+ * 查询仓库列表（简单列表，用于下拉框选择）
+ * 格式：erp_company_name + warehouse_type + ：+ warehouse_location + warehouse_name + （ + temperature_zone + / + quality_zone + ) + _ + warehouse_code
+ */
+export async function listWarehouseSimpleForLocation(): Promise<Array<{ label: string; value: string }>> {
+  const res = await requestClient.get('/api/wms/warehouse/list', {
+    params: { pageNum: 1, pageSize: 1000, isEnabled: 1 },
+  });
+  const rows = res?.rows || res?.data?.rows || res?.data?.list || res?.list || [];
+  return (Array.isArray(rows) ? rows : []).map((row: any) => {
+    const warehouseCode = row.warehouse_code ?? row.warehouseCode ?? '';
+    const warehouseName = row.warehouse_name ?? row.warehouseName ?? '';
+    const warehouseLocation = row.warehouse_location ?? row.warehouseLocation ?? '';
+    const warehouseType = row.warehouse_type ?? row.warehouseType ?? '';
+    const erpCompanyName = row.erp_company_name ?? row.erpCompanyName ?? '';
+    const temperatureZone = row.temperature_zone ?? row.temperatureZone ?? '';
+    const qualityZone = row.quality_zone ?? row.qualityZone ?? '';
+
+    // 拼接温区和质量区信息
+    const zones: string[] = [];
+    if (temperatureZone) zones.push(temperatureZone);
+    if (qualityZone) zones.push(qualityZone);
+    const zoneSuffix = zones.length > 0 ? `（${zones.join('/')}）` : '';
+
+    // erp_company_name + warehouse_type + ：+ warehouse_location + warehouse_name + （ + temperature_zone + / + quality_zone + ) + _ + warehouse_code
+    const label = `${erpCompanyName}${warehouseType}：${warehouseLocation}${warehouseName}${zoneSuffix}_${warehouseCode}`;
+
+    return {
+      label,
+      value: warehouseCode,
+    };
   });
 }

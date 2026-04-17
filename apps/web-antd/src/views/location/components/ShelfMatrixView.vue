@@ -53,9 +53,7 @@ const emit = defineEmits<{
 
 // 计算占用率
 const getOccupancyRate = (item: LocationApi.Container) => {
-  if (!item.capacityTotal || item.capacityTotal === 0) return 0;
-  const rate = ((item.capacityUsed || 0) / item.capacityTotal) * 100;
-  return Math.round(rate);
+  return Math.round(item.occupancyRate || 0);
 };
 
 // 占用率样式

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <Modal
     v-model:open="visible"
     :title="modalTitle"

@@ -39,6 +39,7 @@
           </template>
         </div>
         <div v-if="visibleToolbarActions.length || !!slots.toolbarExtra" class="flex gap-2">
+          <slot name="toolbarExtra" />
           <template v-for="action in visibleToolbarActions" :key="action.key">
             <Button
               :danger="isDangerButton(action)"
@@ -50,7 +51,6 @@
               {{ action.label }}
             </Button>
           </template>
-          <slot name="toolbarExtra" />
         </div>
       </div>
 
@@ -237,12 +237,16 @@ const emit = defineEmits<{
   (e: 'delete', id: number | string): void;
   (e: 'toggle', record: Record<string, any>, enabled: boolean): void;
   (e: 'formSuccess', record: Record<string, any>): void;
+  (e: 'selectionChange', keys: any[]): void;
 }>();
 
 // ==================== 状态 ====================
 const loading = ref(false);
 const dataList = ref<any[]>([]);
 const selectedRowKeys = ref<any[]>([]);
+const selectedRows = computed(() =>
+  dataList.value.filter((row) => selectedRowKeys.value.includes(row.id))
+);
 const searchForm = reactive<Record<string, any>>({});
 const searchQueryModes = ref<Record<string, 'eq' | 'like'>>({});
 const actionLoading = ref<Record<string, boolean>>({});
@@ -715,6 +719,7 @@ function onPageChange({ page, pageSize }: { page: number; pageSize: number }) {
 
 function onSelectionChange(keys: any[]) {
   selectedRowKeys.value = keys;
+  emit('selectionChange', keys);
 }
 
 function resolveLowcodeFormRouteName(): string | undefined {
@@ -880,6 +885,8 @@ defineExpose({
   handleEdit,
   dataList,
   pagination,
+  selectedRowKeys,
+  selectedRows,
 });
 </script>
 

@@ -299,9 +299,6 @@
         "parentLocation": "Parent Location",
         "parentLocationPlaceholder": "Select parent location (optional)",
         "parentLocationTip": "Leave empty for root node",
-        "locationNo": "Location Code",
-        "locationNoPlaceholder": "Enter location code",
-        "locationNoRequired": "Please enter location code",
         "locationName": "Location Name",
         "locationNamePlaceholder": "Enter location name",
         "locationNameRequired": "Please enter location name",
@@ -346,7 +343,6 @@
           "idle": "Idle"
         },
         "columns": {
-          "locationNo": "Location Code",
           "locationName": "Location Name",
           "locationType": "Location Type",
           "warehouseName": "Warehouse",
@@ -634,9 +630,6 @@
       "parentLocation": "Parent Location",
       "parentLocationPlaceholder": "Select parent location (optional)",
       "parentLocationTip": "Leave empty for root node",
-      "locationNo": "Location Code",
-      "locationNoPlaceholder": "Enter location code",
-      "locationNoRequired": "Please enter location code",
       "locationName": "Location Name",
       "locationNamePlaceholder": "Enter location name",
       "locationNameRequired": "Please enter location name",
@@ -681,7 +674,6 @@
         "idle": "Idle"
       },
       "columns": {
-        "locationNo": "Location Code",
         "locationName": "Location Name",
         "locationType": "Location Type",
         "warehouseName": "Warehouse",

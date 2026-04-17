@@ -66,20 +66,7 @@
           />
         </FormItem>
 
-        <FormItem :label="$t('page.location.containerCode')" name="locationNo">
-          <Input
-            v-model:value="formData.locationNo"
-            :placeholder="$t('page.location.enterCode')"
-            :maxlength="50"
-            show-count
-          >
-            <template #suffix>
-              <Button type="link" size="small" :loading="suggestLoading" @click="handleSuggestCode">
-                {{ $t('page.location.autoGenerate') }}
-              </Button>
-            </template>
-          </Input>
-        </FormItem>
+
       </template>
 
       <!-- 新建存储分区模式 -->
@@ -314,10 +301,6 @@
           <Input :value="parentNodeName" disabled />
         </FormItem>
 
-        <FormItem :label="$t('page.location.containerCode')">
-          <Input :value="formData.locationNo" disabled />
-        </FormItem>
-
         <FormItem :label="$t('page.location.containerType')">
           <Input :value="formData.locationType" disabled />
         </FormItem>
@@ -452,7 +435,6 @@ const formData = reactive<{
   parentId: number | null;
   locationType: string;
   locationName: string;
-  locationNo: string;
   quantity: number;
   prefix: string;
   startSerial: number;
@@ -464,7 +446,6 @@ const formData = reactive<{
   parentId: null,
   locationType: '',
   locationName: '',
-  locationNo: '',
   quantity: 1,
   prefix: '',
   startSerial: 1,
@@ -522,9 +503,7 @@ const rules = computed(() => {
         { required: true, message: $t('page.location.enterName'), trigger: 'blur' },
         { min: 1, max: 50, message: $t('page.location.nameLength'), trigger: 'blur' },
       ],
-      locationNo: [
-        { required: true, message: $t('page.location.enterCode'), trigger: 'blur' },
-      ],
+
     });
   } else if (mode.value === 'partition') {
     Object.assign(baseRules, {
@@ -586,8 +565,6 @@ const handleSuggestCode = async () => {
       parentId: formData.parentId || undefined,
       locationType: formData.locationType,
     });
-    formData.locationNo = result.suggestedCode;
-
     // 如果前缀为空，自动设置
     if (!formData.prefix && result.codePrefix) {
       formData.prefix = result.codePrefix;
@@ -658,7 +635,6 @@ const open = async (options: {
     parentId: options.parentId || null,
     locationType: '',
     locationName: '',
-    locationNo: '',
     quantity: 1,
     prefix: '',
     startSerial: 1,
@@ -693,7 +669,6 @@ const open = async (options: {
         parentId: detail.parentId || null,
         locationType: detail.locationType || '',
         locationName: detail.locationName || '',
-        locationNo: detail.locationNo || '',
         storageMode: detail.storageMode || '',
         specification: detail.specification || '',
         remarks: detail.remarks || '',
@@ -717,7 +692,6 @@ const open = async (options: {
       parentId: options.row.parentId || null,
       locationType: options.row.locationType || '',
       locationName: options.row.locationName || '',
-      locationNo: options.row.locationNo || '',
       storageMode: options.row.storageMode || '',
       specification: options.row.specification || '',
       remarks: options.row.remarks || '',
@@ -745,7 +719,6 @@ const handleSubmit = async () => {
         parentId: null,
         locationType: formData.locationType,
         locationName: formData.locationName,
-        locationNo: formData.locationNo,
         remarks: formData.remarks,
       });
       message.success($t('page.message.addSuccess'));
@@ -757,7 +730,6 @@ const handleSubmit = async () => {
         quantity: formData.quantity,
         codeRule: 'SEQUENCE',
         startSerialNo: formData.startSerial,
-        locationNoPrefix: formData.prefix,
         locationNamePrefix: formData.prefix,
       };
 
@@ -775,7 +747,6 @@ const handleSubmit = async () => {
         specification: formData.storageMode === 'Exclusive' ? formData.specification : '1x1',
         codeRule: 'SEQUENCE',
         startSerialNo: formData.startSerial,
-        locationNoPrefix: formData.prefix,
         locationNamePrefix: formData.prefix,
         // 独占模式需要同时创建子节点
         createChildren: formData.storageMode === 'Exclusive',

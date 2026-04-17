@@ -6,7 +6,7 @@
         <span class="box-title">{{ box.locationName }}</span>
         <span class="box-spec">{{ box.specification }}</span>
         <span class="box-stats">
-          占用: {{ getOccupancyRate(box) }}% ({{ box.capacityUsed || 0 }}/{{ box.capacityTotal || 0 }})
+          占用: {{ getOccupancyRate(box) }}%
         </span>
       </div>
 
@@ -103,9 +103,9 @@ const getGridCols = (box: LocationApi.Container) => {
 
 const getWell = (box: LocationApi.Container, row: string, col: number) => {
   if (!box.children) return null;
-  // 使用 locationNo 匹配（编码唯一不变）
+  // 使用 locationName 匹配孔位坐标
   const wellNo = `${row}${col.toString().padStart(2, '0')}`;
-  return box.children.find(w => w.locationNo === wellNo);
+  return box.children.find(w => w.locationName === wellNo);
 };
 
 // 判断孔位是否已占用
@@ -137,8 +137,7 @@ const handleWellClick = (box: LocationApi.Container, row: string, col: number) =
 };
 
 const getOccupancyRate = (box: LocationApi.Container) => {
-  if (!box.capacityTotal) return 0;
-  return Math.round(((box.capacityUsed || 0) / box.capacityTotal) * 100);
+  return Math.round(box.occupancyRate || 0);
 };
 </script>
 

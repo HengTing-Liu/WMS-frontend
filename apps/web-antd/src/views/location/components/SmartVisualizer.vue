@@ -26,7 +26,7 @@
           </div>
           <div class="stat-item">
             <span class="label">{{ $t('page.location.containerCode') }}：</span>
-            <span>{{ currentNode.locationNo }}</span>
+            <span>{{ currentNode.locationName }}</span>
           </div>
           <div class="stat-item">
             <span class="label">{{ $t('page.common.count') }}：</span>
@@ -58,7 +58,7 @@
               </div>
               <div class="detail-item">
                 <span class="label">{{ $t('page.location.holeCode') }}：</span>
-                <span>{{ currentNode?.locationNo }}</span>
+                <span>{{ currentNode?.locationName }}</span>
               </div>
               <div class="detail-item">
                 <span class="label">{{ $t('page.common.status') }}：</span>

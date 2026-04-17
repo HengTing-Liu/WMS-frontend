@@ -119,7 +119,6 @@ export interface BatchCreateRequest {
   codeRule?: string;
   prefix?: string;
   startSerial?: number;
-  locationNoPrefix?: string;
   locationNamePrefix?: string;
   startSerialNo?: number;
   createChildren?: boolean;
@@ -175,8 +174,6 @@ export interface LocationTreeNode {
   isUse?: number;
   locationSortNo?: string;
   locationFullpathName?: string;
-  capacityTotal?: number;
-  capacityUsed?: number;
   occupancyRate?: number;
   remarks?: string;
   children?: LocationTreeNode[];
