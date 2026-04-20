@@ -410,10 +410,10 @@
   "system": {
     "serial": {
       "title": "流水号规则",
-      "ruleCode": "规则编码",
-      "ruleName": "规则名称",
-      "ruleCodePlaceholder": "请输入规则编码，如 ORDER_NO",
-      "ruleNamePlaceholder": "请输入规则名称",
+      "ruleCode": "应用范围说明",
+      "ruleName": "流水号名称",
+      "ruleCodePlaceholder": "请输入应用范围说明",
+      "ruleNamePlaceholder": "请输入流水号名称",
       "prefix": "前缀",
       "prefixPlaceholder": "例如：ORD",
       "dateFormat": "日期格式",
@@ -436,6 +436,8 @@
       "everyDay": "每天",
       "everyMonth": "每月",
       "everyYear": "每年",
+      "applyFormField": "应用表单字段",
+      "applyFormFieldPlaceholder": "指定该流水号应用在哪个表单字段，如 locationSortNo",
       "description": "描述",
       "preview": "预览",
       "example": "示例",

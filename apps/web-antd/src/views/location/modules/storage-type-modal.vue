@@ -38,10 +38,6 @@
         />
       </FormItem>
 
-      <FormItem label="库位编码" name="locationSortNo">
-        <Input :value="formData.locationSortNo" disabled placeholder="自动生成" />
-      </FormItem>
-
       <FormItem label="库位名称" name="locationName">
         <Input v-model:value="formData.locationName" placeholder="请输入库位名称" :maxlength="100" />
       </FormItem>
@@ -66,7 +62,6 @@ import {
 import type { FormInstance } from 'ant-design-vue/es/form';
 
 import { add as addLocation, suggestCode } from '#/api/wms/location';
-import { generateSerialNumber } from '#/api/system/serial-number';
 import { listWarehouseSimpleForLocation } from '#/api/sys/warehouse';
 import { listDictDataPage } from '#/api/sys/dict';
 
@@ -147,7 +142,6 @@ const formRef = ref<FormInstance>();
 const formData = reactive({
   warehouseCode: '' as string,
   locationType: '',
-  locationSortNo: '',
   locationName: '',
   remarks: '',
   internalSerialNo: 1,
@@ -199,7 +193,6 @@ async function handleSubmit() {
       warehouseCode: formData.warehouseCode,
       locationType: formData.locationType,
       locationGrade: '存储对象',
-      locationSortNo: formData.locationSortNo,
       locationName: formData.locationName,
       remarks: formData.remarks || '',
       parentId: null, // 根节点
@@ -208,7 +201,6 @@ async function handleSubmit() {
     };
 
     await addLocation(payload);
-    message.success('新建存储对象成功');
     visible.value = false;
     emit('success');
   } catch (e: any) {
@@ -223,19 +215,6 @@ function handleCancel() {
   visible.value = false;
 }
 
-// 生成库位编码
-async function loadLocationSortNo() {
-  try {
-    const res = await generateSerialNumber('location_sort_no_object');
-    const sortNo = res?.data ?? res;
-    if (sortNo) {
-      formData.locationSortNo = sortNo;
-    }
-  } catch (e) {
-    console.error('[StorageTypeModal] 生成库位编码失败', e);
-  }
-}
-
 // 重置表单
 watch(visible, (val) => {
   if (val) {
@@ -244,7 +223,6 @@ watch(visible, (val) => {
       Object.assign(formData, {
         warehouseCode: '',
         locationType: '',
-        locationSortNo: '',
         locationName: '',
         remarks: '',
         internalSerialNo: 1,
@@ -252,7 +230,6 @@ watch(visible, (val) => {
       });
       loadWarehouseList();
       loadLocationTypeOptions();
-      loadLocationSortNo();
     });
   }
 });

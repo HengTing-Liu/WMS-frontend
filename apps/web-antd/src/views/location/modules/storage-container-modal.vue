@@ -293,7 +293,6 @@ async function handleSubmit() {
     }
 
     await batchCreate(payload);
-    message.success(`新建 ${formData.quantity} 个存储容器成功`);
     visible.value = false;
     emit('success');
   } catch (e: any) {

@@ -5,20 +5,38 @@
     :page-title="$t('page.wms.location.listTitle')"
     :page-desc="$t('page.wms.location.listDescription')"
     :enable-selection="true"
+    :show-table="viewMode === 'list'"
     crud-prefix="/api/wms/crud/inv_location"
+    :default-sort="{ orderByColumn: 'locationSortNo', isAsc: 'asc' }"
     @form-success="handleFormSuccess"
     @selection-change="handleSelectionChange"
   >
+    <template #toolbarLeft>
+      <Button
+        :type="viewMode === 'list' ? 'primary' : 'default'"
+        @click="viewMode = 'list'"
+      >
+        <template #icon><IconifyIcon icon="material-symbols:format-list-bulleted" /></template>
+        列表视图
+      </Button>
+      <Button
+        :type="viewMode === 'hierarchy' ? 'primary' : 'default'"
+        @click="switchToHierarchyView"
+      >
+        <template #icon><IconifyIcon icon="material-symbols:account-tree" /></template>
+        层级视图
+      </Button>
+    </template>
     <template #toolbarExtra>
       <Button type="primary" @click="showStorageTypeModal = true">
         <template #icon><IconifyIcon icon="material-symbols:add" /></template>
         新建对象
       </Button>
-      <Button @click="handleAddStorageSection" :disabled="!selectedNodeId">
+      <Button v-if="viewMode === 'list' && !isContainerOrPosition" @click="handleAddStorageSection" :disabled="!selectedNodeId">
         <template #icon><IconifyIcon icon="material-symbols:playlist-add" /></template>
         新建分区
       </Button>
-      <Button @click="handleAddStorageContainer" :disabled="!selectedNodeId">
+      <Button v-if="viewMode === 'list' && !isContainerOrPosition" @click="handleAddStorageContainer" :disabled="!canAddContainer">
         <template #icon><IconifyIcon icon="material-symbols:inventory-2" /></template>
         新建容器
       </Button>
@@ -65,6 +83,39 @@
           <template #icon><IconifyIcon icon="material-symbols:delete" class="text-lg" /></template>
         </Button>
       </Popconfirm>
+    </template>
+
+    <!-- 层级视图内容（放在 LowcodePage content slot 中，替代数据表格区域） -->
+    <template #content>
+      <div v-if="viewMode === 'hierarchy'" class="hierarchy-view-container">
+        <div class="hierarchy-header">
+          <span class="hierarchy-title">库位层级结构</span>
+          <div class="hierarchy-actions">
+            <Button size="small" @click="expandAll">全部展示</Button>
+            <Button size="small" @click="collapseAll">全部折叠</Button>
+            <Button size="small" type="default" @click="viewMode = 'list'">返回列表</Button>
+          </div>
+        </div>
+        <div v-if="hierarchyLoading" class="hierarchy-loading">
+          <Spin />
+        </div>
+        <div v-else-if="hierarchyData.length === 0" class="hierarchy-empty">
+          暂无数据
+        </div>
+        <div v-else class="location-hierarchy">
+          <HierarchyNode
+            v-for="root in hierarchyData"
+            :key="root.id"
+            :node="root"
+            :level="0"
+            @add-section="onHierarchyAddSection"
+            @add-container="onHierarchyAddContainer"
+            @edit="onHierarchyEdit"
+            @delete="onHierarchyDelete"
+            @assign-warehouse="onHierarchyAssignWarehouse"
+          />
+        </div>
+      </div>
     </template>
   </LowcodePage>
 
@@ -117,11 +168,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { Button, Popconfirm, message } from 'ant-design-vue';
+import { ref, computed, provide } from 'vue';
+import { Button, Popconfirm, Modal, message, Spin } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 
 import LowcodePage from '#/lowcode/LowcodePage.vue';
+import HierarchyNode from './modules/HierarchyNode.vue';
+import { getLocationTree } from '#/api/sys/location';
+import type { LocationTreeNode } from '#/api/sys/location';
 import StorageTypeModal from '#/views/location/modules/storage-type-modal.vue';
 import StorageSectionModal from '#/views/location/modules/storage-section-modal.vue';
 import StorageContainerModal from '#/views/location/modules/storage-container-modal.vue';
@@ -129,8 +183,48 @@ import LocationEditModal from './modules/location-edit-modal.vue';
 import LocationPreviewModal from './modules/location-preview-modal.vue';
 import AssignWarehouseModal from '#/views/location/modules/assign-warehouse-modal.vue';
 import { checkLocationCanDelete, deleteLocationRecursive } from '#/api/sys/location';
+import { requestClient } from '#/api/request';
 
 const lowcodePageRef = ref<InstanceType<typeof LowcodePage> | null>(null);
+
+// 视图切换
+const viewMode = ref<'list' | 'hierarchy'>('list');
+
+// 层级视图数据
+const hierarchyLoading = ref(false);
+const hierarchyData = ref<LocationTreeNode[]>([]);
+const expandTick = ref(0);
+const expandAllValue = ref(true);
+provide('hierarchyExpand', { tick: expandTick, value: expandAllValue });
+
+async function switchToHierarchyView() {
+  viewMode.value = 'hierarchy';
+  if (hierarchyData.value.length === 0) {
+    await loadHierarchyData();
+  }
+}
+
+async function loadHierarchyData() {
+  hierarchyLoading.value = true;
+  try {
+    const data = await getLocationTree({ maxLevel: 5 });
+    hierarchyData.value = Array.isArray(data) ? data : [];
+  } catch (e) {
+    hierarchyData.value = [];
+  } finally {
+    hierarchyLoading.value = false;
+  }
+}
+
+function expandAll() {
+  expandAllValue.value = true;
+  expandTick.value++;
+}
+
+function collapseAll() {
+  expandAllValue.value = false;
+  expandTick.value++;
+}
 
 // 弹窗显示状态
 const showStorageTypeModal = ref(false);
@@ -161,11 +255,56 @@ const pendingDeleteRecord = ref<any>(null);
 const selectedNodeId = ref<number | null>(null);
 const selectedNodeName = ref('');
 const selectedWarehouseCode = ref('');
+const selectedLocationGrade = ref<string | null>(null);
+const selectedNodeChildCount = ref<number>(0);
+const selectedNodeChildCountLoading = ref(false);
+
+// 库位等级常量
+const LOCATION_GRADE = {
+  TYPE: 'Type', // 存储对象
+  TYPE_SECTION: 'TypeSection', // 存储分区
+  CONTAINER: 'Container', // 存储容器
+  CONTAINER_POSITION: 'ContainerPosition', // 存储孔位
+} as const;
+
+// 检查选中节点是否有下级分区
+async function checkSelectedNodeChildCount(nodeId: number) {
+  selectedNodeChildCountLoading.value = true;
+  try {
+    const res = await requestClient.get<number>('/api/wms/crud/inv_location/tree/count', {
+      params: {
+        parentColumn: 'parent_id',
+        parentValue: nodeId,
+      },
+    });
+    selectedNodeChildCount.value = res;
+  } catch {
+    selectedNodeChildCount.value = 0;
+  } finally {
+    selectedNodeChildCountLoading.value = false;
+  }
+}
+
+// 当前选中节点是否为存储容器或存储孔位
+const isContainerOrPosition = computed(() => {
+  if (!selectedLocationGrade.value) return false;
+  return ['Container', '存储容器', 'ContainerPosition', '存储孔位'].includes(selectedLocationGrade.value);
+});
+
+// 新建容器按钮可用条件：选中存储分区（TypeSection）且为末级（没有下级分区）
+const canAddContainer = computed(() => {
+  if (!selectedNodeId.value) return false;
+  if (selectedLocationGrade.value !== LOCATION_GRADE.TYPE_SECTION) return false;
+  return selectedNodeChildCount.value === 0;
+});
 
 // 新建存储对象成功
 function handleStorageTypeSuccess() {
   message.success('新建存储对象成功');
   lowcodePageRef.value?.reload();
+  if (viewMode.value === 'hierarchy') {
+    loadHierarchyData();
+  }
 }
 
 // 新建存储分区
@@ -181,6 +320,9 @@ function handleAddStorageSection() {
 function handleStorageSectionSuccess() {
   message.success('新建存储分区成功');
   lowcodePageRef.value?.reload();
+  if (viewMode.value === 'hierarchy') {
+    loadHierarchyData();
+  }
 }
 
 // 新建存储容器
@@ -196,6 +338,85 @@ function handleAddStorageContainer() {
 function handleStorageContainerSuccess() {
   message.success('新建存储容器成功');
   lowcodePageRef.value?.reload();
+  if (viewMode.value === 'hierarchy') {
+    loadHierarchyData();
+  }
+}
+
+// 层级视图：节点上点击新建分区
+function onHierarchyAddSection(node: LocationTreeNode) {
+  selectedNodeId.value = node.id ?? null;
+  selectedNodeName.value = node.locationName ?? '';
+  selectedWarehouseCode.value = node.warehouseCode ?? '';
+  selectedLocationGrade.value = node.locationGrade ?? null;
+  showStorageSectionModal.value = true;
+}
+
+// 层级视图：节点上点击新建容器
+function onHierarchyAddContainer(node: LocationTreeNode) {
+  selectedNodeId.value = node.id ?? null;
+  selectedNodeName.value = node.locationName ?? '';
+  selectedWarehouseCode.value = node.warehouseCode ?? '';
+  selectedLocationGrade.value = node.locationGrade ?? null;
+  showStorageContainerModal.value = true;
+}
+
+// 层级视图：节点上点击编辑
+function onHierarchyEdit(node: LocationTreeNode) {
+  selectedLocationRecord.value = node;
+  showEditLocationModal.value = true;
+}
+
+// 层级视图：节点上点击删除
+async function onHierarchyDelete(node: LocationTreeNode) {
+  if (!node.id) {
+    message.warning('记录ID不存在');
+    return;
+  }
+  deleteLoadingIds.value.add(node.id);
+  try {
+    const result = await checkLocationCanDelete(node.id);
+    if (!result.canDelete) {
+      message.warning(result.message || '该库位已被占用，无法删除');
+      return;
+    }
+    const childCount = result.childCount || 0;
+    const title = childCount > 0
+      ? `确定要删除该库位及下级所有库位吗（共${childCount}个下级库位）？删除后数据不可恢复。`
+      : '确定要删除该库位吗？删除后数据不可恢复。';
+
+    Modal.confirm({
+      title,
+      okText: '确认删除',
+      cancelText: '取消',
+      async onOk() {
+        deletingIds.value.add(node.id!);
+        try {
+          await deleteLocationRecursive(node.id!);
+          message.success('删除成功');
+          lowcodePageRef.value?.reload();
+          if (viewMode.value === 'hierarchy') {
+            await loadHierarchyData();
+          }
+        } catch (error: any) {
+          message.error(error?.message || '删除失败');
+        } finally {
+          deletingIds.value.delete(node.id!);
+        }
+      },
+    });
+  } catch (error: any) {
+    message.error(error?.message || '检查删除状态失败');
+  } finally {
+    deleteLoadingIds.value.delete(node.id);
+  }
+}
+
+// 层级视图：节点上点击分配仓库
+function onHierarchyAssignWarehouse(node: LocationTreeNode) {
+  selectedNodeId.value = node.id ?? null;
+  selectedContainerIds.value = [];
+  assignWarehouseModalRef.value?.open();
 }
 
 // 编辑库位 (Story 15-05)
@@ -239,7 +460,7 @@ async function checkBeforeDelete(record: any) {
   }
 }
 
-// 执行删���（Story 15-06）
+// 执行删除（Story 15-06）
 async function handleDeleteLocation(record: any) {
   if (!record?.id) {
     message.warning('记录ID不存在');
@@ -251,6 +472,9 @@ async function handleDeleteLocation(record: any) {
     await deleteLocationRecursive(record.id);
     message.success('删除成功');
     lowcodePageRef.value?.reload();
+    if (viewMode.value === 'hierarchy') {
+      loadHierarchyData();
+    }
   } catch (error: any) {
     message.error(error?.message || '删除失败');
   } finally {
@@ -287,9 +511,24 @@ function handlePreviewLocation(record: any) {
 }
 
 // 选中项变化
-function handleSelectionChange(keys: any[]) {
+function handleSelectionChange(keys: any[], records?: any[]) {
   if (keys.length > 0) {
     selectedNodeId.value = keys[0];
+    // 保存选中记录的 locationGrade
+    if (records && records.length > 0) {
+      const selectedRecord = records[0];
+      selectedLocationGrade.value = selectedRecord?.locationGrade ?? null;
+      selectedNodeName.value = selectedRecord?.locationName ?? '';
+      selectedWarehouseCode.value = selectedRecord?.warehouseCode ?? '';
+      // 检查是否有下级分区
+      checkSelectedNodeChildCount(keys[0]);
+    }
+  } else {
+    selectedNodeId.value = null;
+    selectedLocationGrade.value = null;
+    selectedNodeName.value = '';
+    selectedWarehouseCode.value = '';
+    selectedNodeChildCount.value = 0;
   }
 }
 </script>
@@ -297,5 +536,51 @@ function handleSelectionChange(keys: any[]) {
 <style scoped>
 .action-icon-btn :deep(.ant-btn-link-content) {
   font-size: 0;
+}
+
+.hierarchy-view-container {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.hierarchy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.hierarchy-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #262626;
+}
+
+.hierarchy-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.hierarchy-loading,
+.hierarchy-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #8c8c8c;
+}
+
+.location-hierarchy {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  padding: 16px;
+  max-height: calc(100vh - 320px);
+  overflow-y: auto;
 }
 </style>

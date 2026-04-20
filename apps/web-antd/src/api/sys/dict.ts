@@ -90,7 +90,7 @@ function normalizeDictDataRow(row: any): DictDataResult {
     dictCode: row?.dict_code ?? row?.dictCode,
     dictLabel: row?.dict_label ?? row?.dictLabel,
     dictValue: row?.dict_value ?? row?.dictValue,
-    sortOrder: row?.dict_sort ?? row?.sort_order ?? row?.sortOrder ?? 0,
+    sortOrder: row?.dict_sort ?? row?.dictSort ?? row?.sort_order ?? row?.sortOrder ?? 0,
     languageType: row?.language_type ?? row?.languageType,
     isEnabled,
     isDeleted: Number(row?.is_deleted ?? row?.isDeleted ?? 0),

@@ -80,20 +80,20 @@ export interface LocationBindStatus {
 }
 
 export async function checkLocationBind(id: number): Promise<LocationBindStatus> {
-  const res = await requestClient.get<LocationBindStatus>(`/wms/location/check-bind/${id}`);
+  const res = await requestClient.get<LocationBindStatus>(`/api/wms/location/check-bind/${id}`);
   return res?.data || res || { isBound: false };
 }
 
 /** 更新库位（部分更新） */
 export async function updateLocationById(id: number, data: Record<string, any>) {
-  return requestClient.put(`/wms/location/update`, { id, ...data });
+  return requestClient.put(`/api/wms/location/update`, { id, ...data });
 }
 
 // ========== Story 15-06: 删除库位 API ==========
 
 /** 级联删除库位（及其下级所有库位） */
 export async function deleteLocationRecursive(id: number) {
-  return requestClient.delete(`/wms/location/deleteRecursive/${id}`);
+  return requestClient.delete(`/api/wms/location/deleteRecursive/${id}`);
 }
 
 /** 检查库位是否可以删除 */
@@ -102,7 +102,7 @@ export async function checkLocationCanDelete(id: number): Promise<{
   childCount: number;
   message?: string;
 }> {
-  const res = await requestClient.get<any>(`/wms/location/check-delete/${id}`);
+  const res = await requestClient.get<any>(`/api/wms/location/check-delete/${id}`);
   return res?.data || { canDelete: true, childCount: 0 };
 }
 
@@ -128,7 +128,7 @@ export interface BatchCreateRequest {
 }
 
 export async function batchCreateLocation(data: BatchCreateRequest) {
-  return requestClient.post('/wms/location/batch-create', data);
+  return requestClient.post('/api/wms/location/batch-create', data);
 }
 
 export interface LocationCodeSuggestion {
@@ -148,7 +148,7 @@ export async function suggestLocationCode(params: {
   parentId?: number;
   locationType?: string;
 }): Promise<LocationCodeSuggestion> {
-  const res = await requestClient.get<LocationCodeSuggestion>('/wms/location/suggestCode', { params });
+  const res = await requestClient.get<LocationCodeSuggestion>('/api/wms/location/suggestCode', { params });
   return res?.data || res;
 }
 
@@ -203,19 +203,19 @@ export type LocationApi = {
 
 // 查询库位树
 export async function getLocationTree(params: LocationTreeQuery) {
-  const res = await requestClient.get<LocationTreeNode[]>('/wms/location/tree', { params });
+  const res = await requestClient.get<LocationTreeNode[]>('/api/wms/location/tree', { params });
   return res?.data || res || [];
 }
 
 // 查询子节点
 export async function getLocationChildren(parentId: number) {
-  const res = await requestClient.get<LocationTreeNode[]>(`/wms/location/children/${parentId}`);
+  const res = await requestClient.get<LocationTreeNode[]>(`/api/wms/location/children/${parentId}`);
   return res?.data || res || [];
 }
 
 // 查询库位列表（分页）
 export async function listLocationPage(params: any) {
-  return requestClient.get('/wms/location/list', { params });
+  return requestClient.get('/api/wms/location/list', { params });
 }
 
 // 创建库位（带父节点）
