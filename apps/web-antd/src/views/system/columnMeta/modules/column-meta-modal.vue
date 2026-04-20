@@ -422,6 +422,8 @@
       <div class="lookup-tip">
         配置后此字段将成为“虚拟联表列”，运行时由后端 LEFT JOIN 获取显示值。
         <br />填写关联表 tableCode + 匹配字段 + 展示字段；当前表外键可留空（默认取字段编码的 snake_case）。
+        <br /><strong>展示字段支持多字段拼接</strong>：用英文逗号 <code>,</code> 分隔多个字段（例如
+        <code>warehouse_code,warehouse_name</code>），后端会用 <code>❤</code> 拼接成一列展示。
       </div>
       <Row :gutter="16">
         <Col :span="12">
@@ -438,7 +440,11 @@
       <Row :gutter="16">
         <Col :span="12">
           <FormItem label="展示字段" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
-            <Input v-model:value="formData.refTargetField" allow-clear placeholder="如 warehouse_name" />
+            <Input
+              v-model:value="formData.refTargetField"
+              allow-clear
+              placeholder="单个: warehouse_name ；多字段拼接: warehouse_code,warehouse_name"
+            />
           </FormItem>
         </Col>
         <Col :span="12">

@@ -53,10 +53,10 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/lowcode/LowcodeFormPage.vue'),
       },
       {
-        meta: { title: '序列号规则' },
+        meta: { title: '流水号规则', keepAlive: true, fullPathKey: false },
         name: 'SysSerial',
         path: 'serial',
-        component: () => import('#/views/system/serial/index.vue'),
+        component: () => import('#/views/system/serial/lowcode-index.vue'),
       },
     ],
   },

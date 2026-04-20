@@ -13,8 +13,9 @@
     <Alert type="info" show-icon class="mb-16">
       <template #message>
         批量为当前表添加<strong>关联表虚拟列</strong>。
-        第一步选择外键 + 关联表 + 匹配字段（一次配置关联关系）；
-        第二步勾选需要展示的多个字段，提交后后端一次性插入多条字段元数据。
+        第一步选择外键 + 关联表 + 匹配字段；
+        第二步勾选需要展示的字段，每一行可以选 1 个字段（普通列），也可以多选多个字段（自动用
+        <code>❤</code> 拼接成一列），提交后后端一次性插入多条字段元数据。
       </template>
     </Alert>
 
@@ -123,14 +124,17 @@
           >
             <strong>全选</strong>（已选 {{ selectedCount }} / 共 {{ candidateFields.length }}）
           </Checkbox>
-          <Input.Search v-model:value="keyword" placeholder="搜索字段" allow-clear class="search" />
+          <Space>
+            <Button size="small" @click="addConcatRow">+ 新增拼接列</Button>
+            <Input.Search v-model:value="keyword" placeholder="搜索字段" allow-clear class="search" />
+          </Space>
         </div>
 
         <Table
           :columns="targetColumns"
           :data-source="filteredFields"
           :pagination="false"
-          row-key="refTargetField"
+          row-key="rowKey"
           size="small"
           :scroll="{ y: 360 }"
         >
@@ -139,14 +143,44 @@
               <Checkbox v-model:checked="record.selected" @change="() => applyDefaults(record as CandidateField)" />
             </template>
             <template v-else-if="column.key === 'refTargetField'">
-              <span class="mono">{{ record.refTargetField }}</span>
+              <Select
+                :value="(record as CandidateField).refTargetFields"
+                mode="multiple"
+                size="small"
+                style="min-width: 240px; width: 100%;"
+                placeholder="选 1 个普通列，选 多 个自动拼接"
+                option-filter-prop="label"
+                :max-tag-count="3"
+                @change="(v: any) => handleTargetFieldsChange(record as CandidateField, v as string[])"
+              >
+                <SelectOption
+                  v-for="opt in refSnakeFieldOptions"
+                  :key="opt.value"
+                  :value="opt.value"
+                  :label="opt.label"
+                >
+                  {{ opt.label }}
+                </SelectOption>
+              </Select>
+              <Tag v-if="(record as CandidateField).refTargetFields.length > 1" color="gold" class="ml-8">
+                拼接（❤）
+              </Tag>
               <Tag v-if="record.conflict" color="red" class="ml-8">编码冲突</Tag>
             </template>
             <template v-else-if="column.key === 'field'">
-              <Input v-model:value="record.field" size="small" :status="record.conflict ? 'error' : undefined" />
+              <Input
+                v-model:value="record.field"
+                size="small"
+                :status="record.conflict ? 'error' : undefined"
+                @change="() => { (record as CandidateField).manualField = true; }"
+              />
             </template>
             <template v-else-if="column.key === 'title'">
-              <Input v-model:value="record.title" size="small" />
+              <Input
+                v-model:value="record.title"
+                size="small"
+                @change="() => { (record as CandidateField).manualTitle = true; }"
+              />
             </template>
             <template v-else-if="column.key === 'flags'">
               <Space size="small">
@@ -154,6 +188,17 @@
                 <Tooltip title="可搜索"><Switch v-model:checked="record.searchable" size="small" /></Tooltip>
                 <Tooltip title="可排序"><Switch v-model:checked="record.sortable" size="small" /></Tooltip>
               </Space>
+            </template>
+            <template v-else-if="column.key === 'ops'">
+              <Button
+                v-if="(record as CandidateField).custom"
+                size="small"
+                type="link"
+                danger
+                @click="removeRow(record as CandidateField)"
+              >
+                删除
+              </Button>
             </template>
           </template>
         </Table>
@@ -166,6 +211,7 @@
 import { computed, reactive, ref, watch } from 'vue';
 import {
   Alert,
+  Button,
   Checkbox,
   Col,
   Form,
@@ -199,7 +245,8 @@ const step = ref<1 | 2>(1);
 type LocalFieldOption = { value: string; label: string };
 type RefTableOption = { tableCode: string; tableName: string };
 type CandidateField = {
-  refTargetField: string;
+  rowKey: string;
+  refTargetFields: string[];
   refTargetLabel: string;
   selected: boolean;
   field: string;
@@ -208,7 +255,16 @@ type CandidateField = {
   searchable: boolean;
   sortable: boolean;
   conflict: boolean;
+  custom: boolean;
+  manualField: boolean;
+  manualTitle: boolean;
 };
+
+let rowSeq = 0;
+function nextRowKey(prefix = 'row') {
+  rowSeq += 1;
+  return `${prefix}_${rowSeq}`;
+}
 
 const state = reactive({
   refLocalField: '',
@@ -332,7 +388,11 @@ const filteredFields = computed(() => {
   const kw = keyword.value.trim().toLowerCase();
   if (!kw) return candidateFields.value;
   return candidateFields.value.filter(
-    (f) => f.refTargetField.toLowerCase().includes(kw) || (f.refTargetLabel || '').toLowerCase().includes(kw),
+    (f) =>
+      f.refTargetFields.join(',').toLowerCase().includes(kw) ||
+      (f.refTargetLabel || '').toLowerCase().includes(kw) ||
+      (f.field || '').toLowerCase().includes(kw) ||
+      (f.title || '').toLowerCase().includes(kw),
   );
 });
 
@@ -351,7 +411,8 @@ function buildCandidates() {
     .map((f) => {
       const virtualField = computeVirtualField(localPrefix, f.snake, f.field);
       const row: CandidateField = {
-        refTargetField: f.snake,
+        rowKey: nextRowKey('pre'),
+        refTargetFields: [f.snake],
         refTargetLabel: f.title,
         selected: false,
         field: virtualField,
@@ -360,9 +421,78 @@ function buildCandidates() {
         searchable: defaultFlags.searchable,
         sortable: defaultFlags.sortable,
         conflict: false,
+        custom: false,
+        manualField: false,
+        manualTitle: false,
       };
       return reactive(row) as CandidateField;
     });
+  recomputeConflicts();
+}
+
+/**
+ * 多选字段变化时：
+ * 1. 更新 refTargetFields
+ * 2. 若字段名/标题未被用户手工改过，自动用第一个字段重新生成
+ * 3. 重新计算冲突
+ */
+function handleTargetFieldsChange(record: CandidateField, fields: string[]) {
+  const cleaned = Array.from(new Set((fields || []).filter((x) => !!x)));
+  record.refTargetFields = cleaned;
+  if (cleaned.length === 0) {
+    record.selected = false;
+    recomputeConflicts();
+    return;
+  }
+  const first = cleaned[0];
+  const firstRaw = refFieldsRaw.value.find((f) => f.snake === first);
+  const localPrefix = stripSuffix(state.refLocalField || '', ['_code', '_id', '_no']);
+  if (!record.manualField && firstRaw) {
+    record.field = computeVirtualField(localPrefix, firstRaw.snake, firstRaw.field);
+  }
+  if (!record.manualTitle) {
+    if (cleaned.length === 1 && firstRaw?.title) {
+      record.title = firstRaw.title;
+    } else if (cleaned.length > 1) {
+      // 多字段：用标题用 ❤ 拼接作为默认（用户仍可改）
+      const titles = cleaned
+        .map((snake) => refFieldsRaw.value.find((f) => f.snake === snake)?.title || snake)
+        .filter(Boolean);
+      record.title = titles.join('❤');
+    }
+  }
+  // 拼接列默认打开列表显示
+  if (!record.selected && record.custom) {
+    record.selected = true;
+    applyDefaults(record);
+  }
+  recomputeConflicts();
+}
+
+/**
+ * 新增一个空白拼接行，让用户从关联表字段里多选组合。
+ */
+function addConcatRow() {
+  const row: CandidateField = {
+    rowKey: nextRowKey('cat'),
+    refTargetFields: [],
+    refTargetLabel: '',
+    selected: true,
+    field: '',
+    title: '',
+    showInList: defaultFlags.showInList,
+    searchable: defaultFlags.searchable,
+    sortable: defaultFlags.sortable,
+    conflict: false,
+    custom: true,
+    manualField: false,
+    manualTitle: false,
+  };
+  candidateFields.value = [reactive(row) as CandidateField, ...candidateFields.value];
+}
+
+function removeRow(record: CandidateField) {
+  candidateFields.value = candidateFields.value.filter((f) => f.rowKey !== record.rowKey);
   recomputeConflicts();
 }
 
@@ -386,10 +516,18 @@ function recomputeConflicts() {
   const selectedCamels = new Map<string, number>();
   for (const f of candidateFields.value) {
     if (!f.selected) continue;
+    if (!f.field) continue;
     selectedCamels.set(f.field, (selectedCamels.get(f.field) || 0) + 1);
   }
   for (const f of candidateFields.value) {
-    f.conflict = f.selected && (camelSet.has(f.field) || (selectedCamels.get(f.field) || 0) > 1);
+    const fieldEmpty = !f.field || !f.field.trim();
+    const targetsEmpty = !f.refTargetFields || f.refTargetFields.length === 0;
+    f.conflict =
+      f.selected &&
+      (fieldEmpty ||
+        targetsEmpty ||
+        camelSet.has(f.field) ||
+        (selectedCamels.get(f.field) || 0) > 1);
   }
 }
 
@@ -436,10 +574,11 @@ watch(
 // ---------- Table columns ----------
 const targetColumns = computed<TableColumnsType>(() => [
   { title: '', key: 'selected', width: 56, fixed: 'left' },
-  { title: '关联表字段', key: 'refTargetField', width: 200 },
-  { title: '虚拟字段编码(camelCase)', key: 'field', width: 220 },
-  { title: '显示标题', key: 'title', width: 200 },
-  { title: '默认开关', key: 'flags', width: 180 },
+  { title: '关联表字段（多选自动拼接）', key: 'refTargetField', width: 320 },
+  { title: '虚拟字段编码(camelCase)', key: 'field', width: 200 },
+  { title: '显示标题', key: 'title', width: 180 },
+  { title: '默认开关', key: 'flags', width: 160 },
+  { title: '操作', key: 'ops', width: 70 },
 ]);
 
 // ---------- handlers ----------
@@ -494,7 +633,7 @@ async function submit() {
     width: 140,
     refTableCode: state.refTableCode,
     refMatchField: state.refMatchField,
-    refTargetField: f.refTargetField,
+    refTargetField: f.refTargetFields.join(','),
     refLocalField: localFieldFinal,
   }));
   try {
