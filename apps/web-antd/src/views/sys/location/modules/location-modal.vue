@@ -6,7 +6,6 @@ import {
   createLocationWithParent,
   updateLocationById,
   getLocationTree,
-  listWarehouseSimple,
   suggestLocationCode,
   type LocationTreeNode,
 } from '#/api/sys/location';

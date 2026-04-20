@@ -80,11 +80,6 @@ export async function exportStorage(params: StorageQuery) {
   return requestClient.post('/wms/storage/export', params, { responseType: 'blob' });
 }
 
-export async function listWarehouseSimple() {
-  const res = await requestClient.get('/wms/warehouse/simple');
-  return res?.data || res || [];
-}
-
 export async function listLocationSimple(warehouseId?: number) {
   const res = await requestClient.get('/wms/location/simple', { params: { warehouseId } });
   return res?.data || res || [];

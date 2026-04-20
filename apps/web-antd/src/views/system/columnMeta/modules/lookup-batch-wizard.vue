@@ -14,8 +14,8 @@
       <template #message>
         批量为当前表添加<strong>关联表虚拟列</strong>。
         第一步选择外键 + 关联表 + 匹配字段；
-        第二步勾选需要展示的字段，每一行可以选 1 个字段（普通列），也可以多选多个字段（自动用
-        <code>❤</code> 拼接成一列），提交后后端一次性插入多条字段元数据。
+        第二步勾选需要展示的字段，每一行可以选 1 个字段（普通列），也可以多选多个字段（自动拼接成一列，分隔符可自定义，默认
+        <code>❤</code>），提交后后端一次性插入多条字段元数据。
       </template>
     </Alert>
 
@@ -163,9 +163,21 @@
                 </SelectOption>
               </Select>
               <Tag v-if="(record as CandidateField).refTargetFields.length > 1" color="gold" class="ml-8">
-                拼接（❤）
+                拼接（{{ (record as CandidateField).separator || '❤' }}）
               </Tag>
               <Tag v-if="record.conflict" color="red" class="ml-8">编码冲突</Tag>
+            </template>
+            <template v-else-if="column.key === 'separator'">
+              <Tooltip :title="(record as CandidateField).refTargetFields.length < 2 ? '仅多字段拼接时生效' : '1-4 字符，留空使用 ❤'">
+                <Input
+                  v-model:value="(record as CandidateField).separator"
+                  size="small"
+                  :maxlength="4"
+                  :disabled="(record as CandidateField).refTargetFields.length < 2"
+                  placeholder="❤"
+                  style="width: 80px;"
+                />
+              </Tooltip>
             </template>
             <template v-else-if="column.key === 'field'">
               <Input
@@ -258,6 +270,8 @@ type CandidateField = {
   custom: boolean;
   manualField: boolean;
   manualTitle: boolean;
+  /** 多字段拼接分隔符，1-4 字符，空时走后端默认 ❤（WMS-LOWCODE-LOOKUP-SEP） */
+  separator: string;
 };
 
 let rowSeq = 0;
@@ -424,6 +438,7 @@ function buildCandidates() {
         custom: false,
         manualField: false,
         manualTitle: false,
+        separator: '❤',
       };
       return reactive(row) as CandidateField;
     });
@@ -454,11 +469,11 @@ function handleTargetFieldsChange(record: CandidateField, fields: string[]) {
     if (cleaned.length === 1 && firstRaw?.title) {
       record.title = firstRaw.title;
     } else if (cleaned.length > 1) {
-      // 多字段：用标题用 ❤ 拼接作为默认（用户仍可改）
+      // 多字段：用 title 以当前 separator 拼接作为默认（用户仍可改）
       const titles = cleaned
         .map((snake) => refFieldsRaw.value.find((f) => f.snake === snake)?.title || snake)
         .filter(Boolean);
-      record.title = titles.join('❤');
+      record.title = titles.join(record.separator || '❤');
     }
   }
   // 拼接列默认打开列表显示
@@ -487,6 +502,7 @@ function addConcatRow() {
     custom: true,
     manualField: false,
     manualTitle: false,
+    separator: '❤',
   };
   candidateFields.value = [reactive(row) as CandidateField, ...candidateFields.value];
 }
@@ -575,6 +591,7 @@ watch(
 const targetColumns = computed<TableColumnsType>(() => [
   { title: '', key: 'selected', width: 56, fixed: 'left' },
   { title: '关联表字段（多选自动拼接）', key: 'refTargetField', width: 320 },
+  { title: '分隔符', key: 'separator', width: 100 },
   { title: '虚拟字段编码(camelCase)', key: 'field', width: 200 },
   { title: '显示标题', key: 'title', width: 180 },
   { title: '默认开关', key: 'flags', width: 160 },
@@ -635,6 +652,11 @@ async function submit() {
     refMatchField: state.refMatchField,
     refTargetField: f.refTargetFields.join(','),
     refLocalField: localFieldFinal,
+    // 仅多字段拼接时发送分隔符；单字段或与默认 ❤ 一致时留空，后端兜底
+    refSeparator:
+      f.refTargetFields.length > 1 && f.separator && f.separator !== '❤'
+        ? f.separator
+        : '',
   }));
   try {
     loading.value = true;

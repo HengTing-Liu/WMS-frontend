@@ -1,9 +1,5 @@
 import { requestClient } from '#/api/request';
 import type { LocationTreeNode, LocationTreeQuery } from '#/api/wms/location';
-import { listWarehouseSimple } from '#/api/sys/storage';
-
-// 重新导出仓库接口
-export { listWarehouseSimple };
 
 /**
  * 库位档案 API（废弃：旧版 /base/location 接口，请使用 wms/location.ts）

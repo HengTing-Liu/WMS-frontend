@@ -453,6 +453,18 @@
           </FormItem>
         </Col>
       </Row>
+      <Row :gutter="16">
+        <Col :span="12">
+          <FormItem label="拼接分隔符" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+            <Input
+              v-model:value="formData.refSeparator"
+              allow-clear
+              :maxlength="4"
+              placeholder="默认 ❤（多字段拼接时生效，1-4 字符）"
+            />
+          </FormItem>
+        </Col>
+      </Row>
     </Form>
   </Modal>
 </template>
@@ -543,6 +555,7 @@ const formData = reactive<Record<string, any>>({
   refMatchField: '',
   refTargetField: '',
   refLocalField: '',
+  refSeparator: '',
 });
 
 const switches = reactive({
@@ -1001,6 +1014,7 @@ function resetForm() {
     refMatchField: '',
     refTargetField: '',
     refLocalField: '',
+    refSeparator: '',
   });
   syncSwitchFromForm();
   resetBuilders();
@@ -1060,6 +1074,7 @@ async function handleSubmit() {
       refMatchField: (formData.refMatchField || '').trim(),
       refTargetField: (formData.refTargetField || '').trim(),
       refLocalField: (formData.refLocalField || '').trim(),
+      refSeparator: (formData.refSeparator || '').trim(),
     };
 
     if (isEdit.value) {

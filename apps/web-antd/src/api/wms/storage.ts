@@ -10,8 +10,9 @@ export {
   deleteStorage,
   toggleStorageStatus,
   exportStorage,
-  listWarehouseSimple,
   listLocationSimple,
   type StorageQuery,
   type StorageResult,
 } from '#/api/sys/storage';
+
+export { listWarehouseSimpleForLocation } from '#/api/sys/warehouse';

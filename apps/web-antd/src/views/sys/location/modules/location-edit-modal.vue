@@ -77,7 +77,8 @@ import { Modal, Form, Input, Select, message } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
 
-import { checkLocationBind, updateLocationById, listWarehouseSimple } from '#/api/sys/location';
+import { checkLocationBind, updateLocationById } from '#/api/sys/location';
+import { listWarehouseSimpleForLocation } from '#/api/sys/warehouse';
 import type { LocationBindStatus } from '#/api/sys/location';
 
 const props = defineProps<{
@@ -220,10 +221,10 @@ async function loadBindStatus() {
 
 async function loadWarehouseOptions() {
   try {
-    const list = await listWarehouseSimple();
-    warehouseOptions.value = (list || []).map((item: any) => ({
-      label: item.warehouseName || item.warehouseCode,
-      value: item.warehouseCode,
+    const list = await listWarehouseSimpleForLocation();
+    warehouseOptions.value = list.map((item: any) => ({
+      label: item.label,
+      value: item.value,
     }));
   } catch {
     warehouseOptions.value = [];

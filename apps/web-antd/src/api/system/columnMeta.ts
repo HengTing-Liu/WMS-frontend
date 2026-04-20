@@ -53,6 +53,8 @@ export namespace ColumnMetaApi {
     refMatchField?: string;
     refTargetField?: string;
     refLocalField?: string;
+    /** 多字段拼接分隔符，空值时后端兜底为 ❤（SEP） */
+    refSeparator?: string;
 
     // legacy aliases from older payloads
     columnCode?: string;

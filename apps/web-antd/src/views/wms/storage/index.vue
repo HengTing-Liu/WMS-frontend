@@ -128,11 +128,11 @@ import {
   exportStorage,
   listLocationSimple,
   listStoragePage,
-  listWarehouseSimple,
   toggleStorageStatus,
   type StorageQuery,
   type StorageResult,
 } from '#/api/wms/storage';
+import { listWarehouseSimpleForLocation } from '#/api/sys/warehouse';
 import { WmsDataTable, WmsFilterBar, WmsPageLayout, WmsStatsCards } from '#/components/wms';
 
 import StorageModal from '#/views/sys/storage/components/storage-modal.vue';
@@ -349,7 +349,7 @@ function handleModalSuccess() {
 
 async function loadDropdownOptions() {
   try {
-    const [wh, loc] = await Promise.all([listWarehouseSimple(), listLocationSimple()]);
+    const [wh, loc] = await Promise.all([listWarehouseSimpleForLocation(), listLocationSimple()]);
     warehouseOptions.value = wh;
     locationOptions.value = loc;
   } catch (e) {
