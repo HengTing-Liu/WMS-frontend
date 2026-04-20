@@ -181,15 +181,35 @@ export async function fetchList(params: {
   queryModes?: Record<string, 'eq' | 'like'>;
   pageNum?: number;
   pageSize?: number;
+  orderByColumn?: string;
+  isAsc?: 'asc' | 'desc';
 }) {
-  const { tableCode, prefix, tableMeta, query = {}, queryModes = {}, pageNum = 1, pageSize = 20 } = params;
+  const {
+    tableCode,
+    prefix,
+    tableMeta,
+    query = {},
+    queryModes = {},
+    pageNum = 1,
+    pageSize = 20,
+    orderByColumn,
+    isAsc,
+  } = params;
   const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
+  const sortParams: Record<string, string> = {};
+  if (orderByColumn) {
+    sortParams.orderByColumn = orderByColumn;
+  }
+  if (isAsc) {
+    sortParams.isAsc = isAsc;
+  }
   const res = await requestClient.get<any>(`${basePrefix}/list`, {
     params: {
       pageNum,
       pageSize,
       ...query,
       queryModes: JSON.stringify(queryModes),
+      ...sortParams,
     },
   });
   const rows = res?.rows ?? res?.data?.rows ?? res?.data ?? [];
@@ -264,4 +284,3 @@ export async function toggleRecord(params: {
     { params: { enabled: enabledValue } },
   );
 }
-

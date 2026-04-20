@@ -67,6 +67,7 @@
         :enable-selection="tableSelectionEnabled"
         @page-change="onPageChange"
         @selection-change="onSelectionChange"
+        @table-change="onTableChange"
       >
         <template #bodyCell="{ column, record, index }">
             <!-- 序号 -->
@@ -265,6 +266,14 @@ const pagination = reactive({
   showTotal: (total: number) => `共 ${total} 条`,
 });
 
+const sortState = reactive<{
+  orderByColumn: string;
+  isAsc: '' | 'asc' | 'desc';
+}>({
+  orderByColumn: '',
+  isAsc: '',
+});
+
 const paginationConfig = computed(() => ({
   current: pagination.current,
   pageSize: pagination.pageSize,
@@ -450,6 +459,8 @@ async function loadData() {
       queryModes,
       pageNum: pagination.current,
       pageSize: pagination.pageSize,
+      orderByColumn: sortState.orderByColumn || undefined,
+      isAsc: sortState.isAsc || undefined,
     });
 
     let rows = res.rows;
@@ -720,6 +731,21 @@ function onPageChange({ page, pageSize }: { page: number; pageSize: number }) {
 function onSelectionChange(keys: any[]) {
   selectedRowKeys.value = keys;
   emit('selectionChange', keys);
+}
+
+function onTableChange(_pagination: any, _filters: any, sorter: any) {
+  const currentSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+  const field = currentSorter?.field ?? currentSorter?.columnKey;
+  const order = currentSorter?.order as string | undefined;
+  if (!field || !order) {
+    sortState.orderByColumn = '';
+    sortState.isAsc = '';
+  } else {
+    sortState.orderByColumn = String(field);
+    sortState.isAsc = order === 'descend' ? 'desc' : 'asc';
+  }
+  pagination.current = 1;
+  loadData();
 }
 
 function resolveLowcodeFormRouteName(): string | undefined {

@@ -9,6 +9,7 @@
       :row-selection="rowSelection"
       :scroll="scroll"
       :sticky="sticky"
+      @change="handleTableChange"
     >
       <template #bodyCell="slotProps">
         <slot name="bodyCell" v-bind="slotProps" />
@@ -64,6 +65,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: 'pageChange', payload: { page: number; pageSize: number }): void;
   (e: 'selectionChange', selectedRowKeys: Key[]): void;
+  (e: 'tableChange', pagination: any, filters: any, sorter: any, extra: any): void;
 }>();
 
 const pagination = computed(() => props.pagination);
@@ -81,6 +83,10 @@ const rowSelection = computed(() => {
 
 function handlePageChange(page: number, pageSize: number) {
   emit('pageChange', { page, pageSize });
+}
+
+function handleTableChange(pagination: any, filters: any, sorter: any, extra: any) {
+  emit('tableChange', pagination, filters, sorter, extra);
 }
 </script>
 
