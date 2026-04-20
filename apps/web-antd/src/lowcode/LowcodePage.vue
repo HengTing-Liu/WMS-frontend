@@ -30,13 +30,16 @@
 
       <!-- 工具栏：操作按钮 + 行选择提示 -->
       <div class="mb-4 flex items-center justify-between">
-        <div class="text-sm text-gray-500">
-          <template v-if="selectedRowKeys.length">
-            已选择 <span class="font-medium text-blue-600">{{ selectedRowKeys.length }}</span> 项
-          </template>
-          <template v-else>
-            共 <span class="font-medium">{{ pagination.total }}</span> 条
-          </template>
+        <div class="flex items-center gap-4">
+          <div class="text-sm text-gray-500">
+            <template v-if="selectedRowKeys.length">
+              已选择 <span class="font-medium text-blue-600">{{ selectedRowKeys.length }}</span> 项
+            </template>
+            <template v-else>
+              共 <span class="font-medium">{{ pagination.total }}</span> 条
+            </template>
+          </div>
+          <slot name="toolbarLeft" />
         </div>
         <div v-if="visibleToolbarActions.length || !!slots.toolbarExtra" class="flex gap-2">
           <slot name="toolbarExtra" />
@@ -56,6 +59,7 @@
 
       <!-- 表格 -->
       <WmsDataTable
+        v-if="showTable"
         :scroll="{ y: tableScrollY }"
         sticky
         :columns="columns"
@@ -162,6 +166,9 @@
             </slot>
           </template>
       </WmsDataTable>
+
+      <!-- 自定义内容区域（用于替代表格显示层级视图等） -->
+      <slot name="content" />
     </div>
   </Page>
 </template>
@@ -220,6 +227,8 @@ interface Props {
   staticColumns?: any[];
   /** 静态操作按钮配置（优先于后端 meta） */
   staticOperations?: LowcodeAction[];
+  /** 是否显示表格 */
+  showTable?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -229,6 +238,7 @@ const props = withDefaults(defineProps<Props>(), {
   staticSearchFields: () => [],
   staticColumns: () => [],
   staticOperations: () => [],
+  showTable: true,
 });
 
 const emit = defineEmits<{
@@ -238,7 +248,7 @@ const emit = defineEmits<{
   (e: 'delete', id: number | string): void;
   (e: 'toggle', record: Record<string, any>, enabled: boolean): void;
   (e: 'formSuccess', record: Record<string, any>): void;
-  (e: 'selectionChange', keys: any[]): void;
+  (e: 'selectionChange', keys: any[], rows: any[]): void;
 }>();
 
 // ==================== 状态 ====================
@@ -730,7 +740,8 @@ function onPageChange({ page, pageSize }: { page: number; pageSize: number }) {
 
 function onSelectionChange(keys: any[]) {
   selectedRowKeys.value = keys;
-  emit('selectionChange', keys);
+  const rows = dataList.value.filter((row) => keys.includes(row.id));
+  emit('selectionChange', keys, rows);
 }
 
 function onTableChange(_pagination: any, _filters: any, sorter: any) {

@@ -175,6 +175,7 @@ import { IconifyIcon } from '@vben/icons';
 import LowcodePage from '#/lowcode/LowcodePage.vue';
 import HierarchyNode from './modules/HierarchyNode.vue';
 import { getLocationTree } from '#/api/sys/location';
+import { getDetail } from '#/api/wms/location';
 import type { LocationTreeNode } from '#/api/sys/location';
 import StorageTypeModal from '#/views/location/modules/storage-type-modal.vue';
 import StorageSectionModal from '#/views/location/modules/storage-section-modal.vue';
@@ -511,16 +512,42 @@ function handlePreviewLocation(record: any) {
 }
 
 // 选中项变化
-function handleSelectionChange(keys: any[], records?: any[]) {
+async function handleSelectionChange(keys: any[], records?: any[]) {
   if (keys.length > 0) {
     selectedNodeId.value = keys[0];
     // 保存选中记录的 locationGrade
     if (records && records.length > 0) {
       const selectedRecord = records[0];
-      selectedLocationGrade.value = selectedRecord?.locationGrade ?? null;
-      selectedNodeName.value = selectedRecord?.locationName ?? '';
-      selectedWarehouseCode.value = selectedRecord?.warehouseCode ?? '';
-      // 检查是否有下级分区
+      if (selectedRecord?.locationGrade) {
+        // 优先使用 records 中的 locationGrade
+        selectedLocationGrade.value = selectedRecord.locationGrade;
+        selectedNodeName.value = selectedRecord?.locationName ?? '';
+        selectedWarehouseCode.value = selectedRecord?.warehouseCode ?? '';
+        checkSelectedNodeChildCount(keys[0]);
+      } else {
+        // records 中没有 locationGrade，通过 getDetail API 获取
+        try {
+          const detail = await getDetail(keys[0]);
+          selectedLocationGrade.value = detail?.locationGrade ?? null;
+          selectedNodeName.value = detail?.locationName ?? '';
+          selectedWarehouseCode.value = detail?.warehouseCode ?? '';
+        } catch {
+          selectedLocationGrade.value = null;
+          selectedNodeName.value = selectedRecord?.locationName ?? '';
+          selectedWarehouseCode.value = selectedRecord?.warehouseCode ?? '';
+        }
+        checkSelectedNodeChildCount(keys[0]);
+      }
+    } else {
+      // records 为空，直接通过 getDetail 获取
+      try {
+        const detail = await getDetail(keys[0]);
+        selectedLocationGrade.value = detail?.locationGrade ?? null;
+        selectedNodeName.value = detail?.locationName ?? '';
+        selectedWarehouseCode.value = detail?.warehouseCode ?? '';
+      } catch {
+        selectedLocationGrade.value = null;
+      }
       checkSelectedNodeChildCount(keys[0]);
     }
   } else {
