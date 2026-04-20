@@ -181,8 +181,10 @@ export async function fetchList(params: {
   queryModes?: Record<string, 'eq' | 'like'>;
   pageNum?: number;
   pageSize?: number;
+  orderByColumn?: string;
+  isAsc?: string;
 }) {
-  const { tableCode, prefix, tableMeta, query = {}, queryModes = {}, pageNum = 1, pageSize = 20 } = params;
+  const { tableCode, prefix, tableMeta, query = {}, queryModes = {}, pageNum = 1, pageSize = 20, orderByColumn, isAsc } = params;
   const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
   const res = await requestClient.get<any>(`${basePrefix}/list`, {
     params: {
@@ -190,6 +192,8 @@ export async function fetchList(params: {
       pageSize,
       ...query,
       queryModes: JSON.stringify(queryModes),
+      ...(orderByColumn ? { orderByColumn } : {}),
+      ...(isAsc ? { isAsc } : {}),
     },
   });
   const rows = res?.rows ?? res?.data?.rows ?? res?.data ?? [];

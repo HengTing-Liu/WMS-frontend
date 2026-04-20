@@ -30,6 +30,9 @@
 
       <!-- 工具栏：操作按钮 + 行选择提示 -->
       <div class="mb-4 flex items-center justify-between">
+        <div class="flex gap-2">
+          <slot name="toolbarLeft" />
+        </div>
         <div class="text-sm text-gray-500">
           <template v-if="selectedRowKeys.length">
             已选择 <span class="font-medium text-blue-600">{{ selectedRowKeys.length }}</span> 项
@@ -56,6 +59,7 @@
 
       <!-- 表格 -->
       <WmsDataTable
+        v-if="props.showTable"
         :scroll="{ y: tableScrollY }"
         sticky
         :columns="columns"
@@ -161,6 +165,11 @@
             </slot>
           </template>
       </WmsDataTable>
+
+      <!-- 自定义内容区域（当 showTable=false 时显示，用于层级视图等） -->
+      <div v-if="!props.showTable" class="lowcode-custom-content">
+        <slot name="content" />
+      </div>
     </div>
   </Page>
 </template>
@@ -219,6 +228,10 @@ interface Props {
   staticColumns?: any[];
   /** 静态操作按钮配置（优先于后端 meta） */
   staticOperations?: LowcodeAction[];
+  /** 是否显示数据表格（用于视图切换） */
+  showTable?: boolean;
+  /** 默认排序配置 */
+  defaultSort?: { orderByColumn?: string; isAsc?: string };
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -228,6 +241,8 @@ const props = withDefaults(defineProps<Props>(), {
   staticSearchFields: () => [],
   staticColumns: () => [],
   staticOperations: () => [],
+  showTable: true,
+  defaultSort: undefined,
 });
 
 const emit = defineEmits<{
@@ -237,7 +252,7 @@ const emit = defineEmits<{
   (e: 'delete', id: number | string): void;
   (e: 'toggle', record: Record<string, any>, enabled: boolean): void;
   (e: 'formSuccess', record: Record<string, any>): void;
-  (e: 'selectionChange', keys: any[]): void;
+  (e: 'selectionChange', keys: any[], records: any[]): void;
 }>();
 
 // ==================== 状态 ====================
@@ -450,6 +465,8 @@ async function loadData() {
       queryModes,
       pageNum: pagination.current,
       pageSize: pagination.pageSize,
+      orderByColumn: props.defaultSort?.orderByColumn,
+      isAsc: props.defaultSort?.isAsc,
     });
 
     let rows = res.rows;
@@ -719,7 +736,8 @@ function onPageChange({ page, pageSize }: { page: number; pageSize: number }) {
 
 function onSelectionChange(keys: any[]) {
   selectedRowKeys.value = keys;
-  emit('selectionChange', keys);
+  const records = dataList.value.filter((row) => keys.includes(row.id));
+  emit('selectionChange', keys, records);
 }
 
 function resolveLowcodeFormRouteName(): string | undefined {

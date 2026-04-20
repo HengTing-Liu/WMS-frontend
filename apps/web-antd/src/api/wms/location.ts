@@ -97,6 +97,33 @@ export function batchCreate(data: BatchCreateRequest) {
   return requestClient.post('/api/wms/location/batch-create', data);
 }
 
+// ========== 层级批量创建 ==========
+
+export interface LevelConfig {
+  locationType: string;
+  quantity: number;
+  startSerialNo?: number;
+}
+
+export interface ContainerConfig {
+  locationType: string;
+  quantity: number;
+  specification?: string;
+  childrenQuantity?: number;
+  childrenType?: string;
+}
+
+export interface BatchCreateHierarchyRequest {
+  parentId: number;
+  warehouseCode: string;
+  levels: LevelConfig[];
+  container?: ContainerConfig;
+}
+
+export function batchCreateHierarchy(data: BatchCreateHierarchyRequest) {
+  return requestClient.post('/api/wms/location/batch-create-hierarchy', data);
+}
+
 export interface LocationCodeSuggestion {
   suggestedCode: string;
   currentMaxSerial: number;

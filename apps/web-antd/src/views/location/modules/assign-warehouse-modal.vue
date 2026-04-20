@@ -237,16 +237,7 @@ const handleSubmit = async () => {
   }
 };
 
-// 监听 locationId 变化，重新加载数据
-watch(
-  () => props.locationId,
-  () => {
-    if (props.locationId) {
-      loadInitData();
-    }
-  },
-  { immediate: true },
-);
+
 </script>
 
 <style scoped>

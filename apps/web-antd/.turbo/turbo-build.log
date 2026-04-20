@@ -7,29 +7,22 @@
 [33mYou are using Node.js 20.18.0. Vite requires Node.js version 20.19+ or 22.12+. Please upgrade your Node.js version.[39m
 [36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
 transforming...
-[32m✓[39m 127 modules transformed.
+[32m✓[39m 5481 modules transformed.
 
- ERROR  [31m✗[39m Build failed in 3.30s
+ ERROR  [31m✗[39m Build failed in 44.17s
 
 
  ERROR  [31merror during build:
-[31m[vite:json] [plugin vite:json] src/locales/langs/en-US/page.json (437:7): Failed to parse JSON file, invalid JSON syntax found at position 17902[31m
-file: [36mD:/Java/WMS/WMS-frontend/apps/web-antd/src/locales/langs/en-US/page.json:437:7[31m
-[33m
-435:           "exportFail": "Export failed"
-436:         }
-437:       }
-            ^
-438: >>>>>>> Stashed changes
-439:     }
-[31m
-    at getRollupError (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/rollup@4.57.0/node_modules/rollup/dist/es/shared/parseAst.js:402:41)
-    at error (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/rollup@4.57.0/node_modules/rollup/dist/es/shared/parseAst.js:398:42)
-    at Object.error (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/rollup@4.57.0/node_modules/rollup/dist/es/shared/node-entry.js:22223:20)
-    at Object.error (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/rollup@4.57.0/node_modules/rollup/dist/es/shared/node-entry.js:21272:42)
-    at Object.handler (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/vite@7.3.1_@types+node@24.1_83f05bb86f68ba9ede2fca24747c8e40/node_modules/vite/dist/node/chunks/config.js:8890:11)
-    at Object.overrideJson (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/@intlify+unplugin-vue-i18n@_ba75d3db6ea80e19c6cc6114145c93a3/node_modules/@intlify/unplugin-vue-i18n/lib/index.mjs:261:33)
-    at Object.handler (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/vite@7.3.1_@types+node@24.1_83f05bb86f68ba9ede2fca24747c8e40/node_modules/vite/dist/node/chunks/config.js:33730:13)
-    at file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/rollup@4.57.0/node_modules/rollup/dist/es/shared/node-entry.js:22545:40[39m
+[31m[vite]: Rollup failed to resolve import "lucide-vue-next" from "D:/Java/WMS/WMS-frontend/apps/web-antd/src/views/system/tableMeta/index.vue?vue&type=script&setup=true&lang.ts".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rollupOptions.external`[31m
+    at viteLog (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/vite@7.3.1_@types+node@24.1_83f05bb86f68ba9ede2fca24747c8e40/node_modules/vite/dist/node/chunks/config.js:33635:57)
+    at onRollupLog (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/vite@7.3.1_@types+node@24.1_83f05bb86f68ba9ede2fca24747c8e40/node_modules/vite/dist/node/chunks/config.js:33665:7)
+    at onLog (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/vite@7.3.1_@types+node@24.1_83f05bb86f68ba9ede2fca24747c8e40/node_modules/vite/dist/node/chunks/config.js:33467:4)
+    at file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/rollup@4.57.0/node_modules/rollup/dist/es/shared/node-entry.js:20955:32
+    at Object.logger [as onLog] (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/rollup@4.57.0/node_modules/rollup/dist/es/shared/node-entry.js:22942:9)
+    at ModuleLoader.handleInvalidResolvedId (file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/rollup@4.57.0/node_modules/rollup/dist/es/shared/node-entry.js:21686:26)
+    at file:///D:/Java/WMS/WMS-frontend/node_modules/.pnpm/rollup@4.57.0/node_modules/rollup/dist/es/shared/node-entry.js:21644:26[39m
 
  ELIFECYCLE  Command failed with exit code 1.

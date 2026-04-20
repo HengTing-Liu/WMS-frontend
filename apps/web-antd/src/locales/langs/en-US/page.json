@@ -15,10 +15,10 @@
   "system": {
     "serial": {
       "title": "Serial Rule",
-      "ruleCode": "Rule Code",
-      "ruleName": "Rule Name",
-      "ruleCodePlaceholder": "Input rule code, e.g. ORDER_NO",
-      "ruleNamePlaceholder": "Input rule name",
+      "ruleCode": "Application Scope",
+      "ruleName": "Serial Name",
+      "ruleCodePlaceholder": "Input application scope description",
+      "ruleNamePlaceholder": "Input serial name",
       "prefix": "Prefix",
       "prefixPlaceholder": "e.g. ORD",
       "dateFormat": "Date Format",
@@ -41,6 +41,8 @@
       "everyDay": "Daily",
       "everyMonth": "Monthly",
       "everyYear": "Yearly",
+      "applyFormField": "Apply Form Field",
+      "applyFormFieldPlaceholder": "Specify which form field this serial number applies to, e.g. locationSortNo",
       "description": "Description",
       "preview": "Preview",
       "example": "Example",

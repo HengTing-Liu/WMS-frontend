@@ -9,21 +9,21 @@
     <Form :model="formData" :rules="rules" ref="formRef" layout="vertical">
       <Row :gutter="16">
         <Col :span="12">
-          <FormItem :label="$t('page.system.serial.ruleCode')" name="ruleCode">
-            <Input v-model:value="formData.ruleCode" :disabled="isEdit" :placeholder="$t('page.system.serial.ruleCodePlaceholder')" />
+          <FormItem :label="$t('page.system.serial.ruleName')" name="ruleName">
+            <Input v-model:value="formData.ruleName" :disabled="isEdit" :placeholder="$t('page.system.serial.ruleNamePlaceholder')" />
           </FormItem>
         </Col>
         <Col :span="12">
-          <FormItem :label="$t('page.system.serial.ruleName')" name="ruleName">
-            <Input v-model:value="formData.ruleName" :placeholder="$t('page.system.serial.ruleNamePlaceholder')" />
+          <FormItem :label="$t('page.system.serial.applyFormField')">
+            <Input v-model:value="formData.applyFormField" :placeholder="$t('page.system.serial.applyFormFieldPlaceholder')" />
           </FormItem>
         </Col>
       </Row>
 
       <Row :gutter="16">
         <Col :span="12">
-          <FormItem :label="$t('page.system.serial.prefix')">
-            <Input v-model:value="formData.prefix" :placeholder="$t('page.system.serial.prefixPlaceholder')" />
+          <FormItem :label="$t('page.system.serial.ruleCode')">
+            <Input v-model:value="formData.ruleCode" :placeholder="$t('page.system.serial.ruleCodePlaceholder')" />
           </FormItem>
         </Col>
         <Col :span="12">
@@ -76,7 +76,15 @@
           </FormItem>
         </Col>
         <Col :span="12">
-          <FormItem :label="$t('page.common.status')">
+          <FormItem :label="$t('page.system.serial.prefix')">
+            <Input v-model:value="formData.prefix" :placeholder="$t('page.system.serial.prefixPlaceholder')" />
+          </FormItem>
+        </Col>
+      </Row>
+
+      <Row :gutter="16">
+        <Col :span="12">
+          <FormItem :label="$t('page.system.serial.status')">
             <RadioGroup v-model:value="formData.status">
               <Radio value="0">{{ $t('page.common.enabled') }}</Radio>
               <Radio value="1">{{ $t('page.common.disabled') }}</Radio>
@@ -133,6 +141,7 @@ const formData = reactive({
   suffix: '',
   resetType: 'NEVER',
   status: '0',
+  applyFormField: '',
   description: '',
 });
 
@@ -183,6 +192,7 @@ const open = (row?: any) => {
       suffix: '',
       resetType: 'NEVER',
       status: '0',
+      applyFormField: '',
       description: '',
     });
   }
