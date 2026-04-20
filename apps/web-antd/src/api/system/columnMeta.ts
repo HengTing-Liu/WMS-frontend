@@ -48,6 +48,12 @@ export namespace ColumnMetaApi {
     columnSize?: number;
     decimalDigits?: number;
 
+    // ========== Lookup 虚拟列配置（WMS-LOWCODE-LOOKUP） ==========
+    refTableCode?: string;
+    refMatchField?: string;
+    refTargetField?: string;
+    refLocalField?: string;
+
     // legacy aliases from older payloads
     columnCode?: string;
     columnNameLegacy?: string;
@@ -223,7 +229,7 @@ export async function deleteColumnMeta(id: string | number) {
 }
 
 export async function batchAddColumnMeta(data: Partial<ColumnMetaApi.ColumnMeta>[]) {
-  return requestClient.post('/api/system/meta/column/batch', data, {
+  return requestClient.post('/api/system/meta/column/batch-insert', data, {
     responseReturn: 'body',
   });
 }

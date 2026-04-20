@@ -417,6 +417,36 @@
       </Row>
 
       <FormItem label="备注"><Input.TextArea v-model:value="formData.remarks" :rows="2" /></FormItem>
+
+      <div class="section-title">关联表配置（Lookup 虚拟列）</div>
+      <div class="lookup-tip">
+        配置后此字段将成为“虚拟联表列”，运行时由后端 LEFT JOIN 获取显示值。
+        <br />填写关联表 tableCode + 匹配字段 + 展示字段；当前表外键可留空（默认取字段编码的 snake_case）。
+      </div>
+      <Row :gutter="16">
+        <Col :span="12">
+          <FormItem label="关联表 tableCode" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+            <Input v-model:value="formData.refTableCode" allow-clear placeholder="如 inv_warehouse" />
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="匹配字段" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+            <Input v-model:value="formData.refMatchField" allow-clear placeholder="如 warehouse_code" />
+          </FormItem>
+        </Col>
+      </Row>
+      <Row :gutter="16">
+        <Col :span="12">
+          <FormItem label="展示字段" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+            <Input v-model:value="formData.refTargetField" allow-clear placeholder="如 warehouse_name" />
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="本表外键" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+            <Input v-model:value="formData.refLocalField" allow-clear placeholder="默认=字段编码，如 warehouse_code" />
+          </FormItem>
+        </Col>
+      </Row>
     </Form>
   </Modal>
 </template>
@@ -503,6 +533,10 @@ const formData = reactive<Record<string, any>>({
   linkageJson: '',
   componentProps: '',
   remarks: '',
+  refTableCode: '',
+  refMatchField: '',
+  refTargetField: '',
+  refLocalField: '',
 });
 
 const switches = reactive({
@@ -957,6 +991,10 @@ function resetForm() {
     linkageJson: '',
     componentProps: '',
     remark: '',
+    refTableCode: '',
+    refMatchField: '',
+    refTargetField: '',
+    refLocalField: '',
   });
   syncSwitchFromForm();
   resetBuilders();
@@ -1012,6 +1050,10 @@ async function handleSubmit() {
       labelField: formData.labelField ?? '',
       valueField: formData.valueField ?? '',
       remarks: formData.remarks ?? '',
+      refTableCode: (formData.refTableCode || '').trim(),
+      refMatchField: (formData.refMatchField || '').trim(),
+      refTargetField: (formData.refTargetField || '').trim(),
+      refLocalField: (formData.refLocalField || '').trim(),
     };
 
     if (isEdit.value) {
@@ -1100,6 +1142,17 @@ watch(
   color: #374151;
   font-size: 13px;
   font-weight: 600;
+}
+
+.lookup-tip {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background: #f9fafb;
+  border-left: 3px solid #3b82f6;
+  border-radius: 4px;
 }
 </style>
 

@@ -56,6 +56,15 @@ export interface ColumnMeta {
   i18nKey?: string;
   visibleCondition?: string;
   status?: number;
+  // ========== Lookup 虚拟列配置（WMS-LOWCODE-LOOKUP） ==========
+  /** 关联表 tableCode（存在 + refMatchField + refTargetField 非空 → 此字段为虚拟联表列） */
+  refTableCode?: string;
+  /** 关联表匹配字段(snake_case) */
+  refMatchField?: string;
+  /** 关联表展示字段(snake_case) */
+  refTargetField?: string;
+  /** 当前表外键字段(snake_case)，为空时默认取 field 的 snake_case */
+  refLocalField?: string;
   // 运行时字段（后端自动填充）
   options?: Array<{ label: string; value: string | number }>;
   dataSource?: Array<{ label: string; value: string | number }>;

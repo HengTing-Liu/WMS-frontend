@@ -45,6 +45,10 @@
             <Button type="primary" :disabled="!selectedTableCode" @click="handleAdd">
               <Plus class="btn-icon" /> 新增字段
             </Button>
+            <Button :disabled="!selectedTableCode" @click="handleOpenLookupWizard">
+              <IconifyIcon icon="material-symbols:table-view" class="btn-icon" />
+              批量添加关联字段
+            </Button>
             <Popconfirm
               v-if="selectedRowKeys.length > 0"
               title="确定删除选中的字段吗？"
@@ -258,6 +262,11 @@
       :selected-ids="selectedRowKeys.map((k) => Number(k))"
       @success="handleModalSuccess"
     />
+    <LookupBatchWizard
+      v-model:visible="lookupWizardVisible"
+      :table-code="selectedTableCode"
+      @success="handleModalSuccess"
+    />
   </WmsPageLayout>
 </template>
 
@@ -283,6 +292,7 @@ import { WmsDataTable, WmsPageLayout } from '#/components/wms';
 import ColumnMetaModal from './modules/column-meta-modal.vue';
 import BatchSetGroupModal from './modules/batch-set-group-modal.vue';
 import BatchSetColspanModal from './modules/batch-set-colspan-modal.vue';
+import LookupBatchWizard from './modules/lookup-batch-wizard.vue';
 import {
   getColumnMetaList,
   deleteColumnMeta,
@@ -324,6 +334,15 @@ const currentRecord = ref<ColumnMetaApi.ColumnMeta | null>(null);
 
 const batchSetGroupVisible = ref(false);
 const batchSetColspanVisible = ref(false);
+const lookupWizardVisible = ref(false);
+
+function handleOpenLookupWizard() {
+  if (!selectedTableCode.value) {
+    message.warning('请先选择表');
+    return;
+  }
+  lookupWizardVisible.value = true;
+}
 
 function savePageState() {
   const state: ColumnMetaPageState = {
