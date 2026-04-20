@@ -3,7 +3,7 @@
     v-model:open="visible"
     title="新建存储分区"
     :confirm-loading="loading"
-    width="960px"
+    width="1200px"
     :body-style="{ padding: '16px 0 0 0' }"
     @ok="handleSubmit"
     @cancel="handleCancel"
@@ -22,10 +22,6 @@
               <div class="info-row">
                 <span class="info-label">库位ID：</span>
                 <span class="info-value">{{ parentInfo.id ?? '-' }}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">本级ID：</span>
-                <span class="info-value">{{ parentInfo.parentId ?? '-' }}</span>
               </div>
               <div class="info-row">
                 <span class="info-label">库位名称：</span>
@@ -60,18 +56,6 @@
                 <span class="info-value">{{ parentInfo.warehouseCode || '-' }}</span>
               </div>
               <div class="info-row">
-                <span class="info-label">本级名称：</span>
-                <span class="info-value">{{ parentInfo.parentName || '-' }}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">存储模式：</span>
-                <span class="info-value">{{ formatStorageMode(parentInfo.storageMode) }}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">规格：</span>
-                <span class="info-value">{{ parentInfo.specification || '-' }}</span>
-              </div>
-              <div class="info-row">
                 <span class="info-label">使用状态：</span>
                 <Tag :color="parentInfo.isUse === 1 ? 'red' : 'green'">{{ formatIsUse(parentInfo.isUse) }}</Tag>
               </div>
@@ -82,14 +66,6 @@
               <div class="info-row info-row-wide">
                 <span class="info-label">全路径名称：</span>
                 <span class="info-value">{{ parentInfo.locationFullpathName || '-' }}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">占用率：</span>
-                <span class="info-value">{{ formatOccupancyRate(parentInfo.occupancyRate) }}</span>
-              </div>
-              <div class="info-row info-row-wide">
-                <span class="info-label">备注：</span>
-                <span class="info-value">{{ parentInfo.remarks || '-' }}</span>
               </div>
             </div>
           </div>
@@ -177,8 +153,8 @@
               </Checkbox>
             </div>
 
-            <Row :gutter="12">
-              <Col :span="14">
+            <Row :gutter="15">
+              <Col :span="5">
                 <div class="form-item">
                   <label class="form-label">容器类型</label>
                   <Select
@@ -193,7 +169,7 @@
                   </Select>
                 </div>
               </Col>
-              <Col :span="5">
+              <Col :span="4">
                 <div class="form-item">
                   <label class="form-label">规格</label>
                   <Input
@@ -204,9 +180,9 @@
                   />
                 </div>
               </Col>
-              <Col :span="5">
+              <Col :span="3">
                 <div class="form-item">
-                  <label class="form-label">容器数量</label>
+                  <label class="form-label">数量</label>
                   <InputNumber
                     v-model:value="formData.container.quantity"
                     :min="1"
@@ -215,6 +191,20 @@
                     size="small"
                     placeholder="数量"
                     :disabled="!createContainer"
+                  />
+                </div>
+              </Col>
+              <Col :span="10">
+                <div class="form-item">
+                  <label class="form-label">容器名称</label>
+                  <Select
+                    v-model:value="formData.container.locationName"
+                    placeholder="请选择流水号规则"
+                    size="small"
+                    :disabled="!createContainer"
+                    :loading="serialRuleLoading"
+                    :options="serialRuleOptions"
+                    style="width: 100%"
                   />
                 </div>
               </Col>
@@ -295,6 +285,7 @@ import { IconifyIcon } from '@vben/icons';
 import { batchCreateHierarchy, getDetail } from '#/api/wms/location';
 import type { LevelConfig, ContainerConfig } from '#/api/wms/location';
 import { getDictDataByType } from '#/api/system/dict';
+import { getSerialNumberList } from '#/api/system/serial-number';
 
 interface Props {
   visible: boolean;
@@ -340,6 +331,26 @@ const selectedContainerSpec = computed(() => {
   if (!label || !dictOptions.value[label]) return { spec: '', childrenQuantity: 0 };
   return dictOptions.value[label];
 });
+
+// 流水号规则选项（apply_form_field = inv_location|location_name）
+const serialRuleLoading = ref(false);
+const serialRuleOptions = ref<Array<{ label: string; value: string }>>([]);
+
+async function loadSerialRules() {
+  serialRuleLoading.value = true;
+  try {
+    const res = await getSerialNumberList({ applyFormField: 'inv_location|location_name', pageSize: 999 });
+    serialRuleOptions.value = (res.rows || []).map((r: any) => ({
+      label: r.ruleName || r.name || r.ruleCode || r.applyFormField,
+      value: r.ruleName || r.name || r.applyFormField,
+    }));
+  } catch (e: any) {
+    console.warn('[流水号规则加载失败]', e?.message || e);
+    serialRuleOptions.value = [];
+  } finally {
+    serialRuleLoading.value = false;
+  }
+}
 
 // 父节点详细信息
 const parentInfo = reactive({
@@ -408,6 +419,7 @@ const formData = reactive<{
     specification: '',
     childrenQuantity: 0,
     childrenType: '孔',
+    locationName: '',
   },
 });
 
@@ -647,7 +659,15 @@ const previewTreeData = computed<PreviewTreeNode[]>(() => {
     const children: PreviewTreeNode[] = [];
 
     for (let i = 0; i < containerQty; i++) {
-      const name = `${formData.container.locationType}${i + 1}`;
+      let name: string;
+      if (formData.container.locationName) {
+        const ruleLabel = serialRuleOptions.value.find(
+          (r) => r.value === formData.container.locationName,
+        )?.label || formData.container.locationName;
+        name = `${ruleLabel}${i + 1}`;
+      } else {
+        name = `${formData.container.locationType}${i + 1}`;
+      }
       const node: PreviewTreeNode = {
         title: name,
         key: `${parentPrefix}-c-${i}`,
@@ -763,6 +783,7 @@ async function handleSubmit() {
         specification: formData.container.specification,
         childrenQuantity: formData.container.childrenQuantity,
         childrenType: formData.container.childrenType || '孔',
+        locationName: formData.container.locationName,
       };
     }
 
@@ -788,6 +809,7 @@ watch(visible, (val) => {
     loadParentInfo();
     loadSectionDict();
     loadContainerDict();
+    loadSerialRules();
     // 重置表单
     const defaultSectionType = sectionTypeOpts.value[0] || '层';
     formData.levels = [{ locationType: defaultSectionType, quantity: 1, startSerialNo: 1 }];
@@ -797,6 +819,7 @@ watch(visible, (val) => {
       specification: '',
       childrenQuantity: 0,
       childrenType: '孔',
+      locationName: '',
     };
     // 规格由字典自动解析，无需重置
     createContainer.value = false;

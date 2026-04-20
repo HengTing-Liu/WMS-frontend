@@ -111,6 +111,7 @@ export interface ContainerConfig {
   specification?: string;
   childrenQuantity?: number;
   childrenType?: string;
+  locationName?: string;
 }
 
 export interface BatchCreateHierarchyRequest {
