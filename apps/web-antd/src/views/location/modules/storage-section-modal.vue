@@ -161,6 +161,7 @@
                     v-model:value="formData.container.locationType"
                     placeholder="请选择"
                     size="small"
+                    style="width: 100%"
                     :disabled="!createContainer"
                     :dropdown-style="{ minWidth: '220px' }"
                     @change="handleContainerTypeChange"
@@ -285,7 +286,7 @@ import { IconifyIcon } from '@vben/icons';
 import { batchCreateHierarchy, getDetail } from '#/api/wms/location';
 import type { LevelConfig, ContainerConfig } from '#/api/wms/location';
 import { getDictDataByType } from '#/api/system/dict';
-import { getSerialNumberList } from '#/api/system/serial-number';
+import { getSerialNumberList, batchGenerateSerialNumber } from '#/api/system/serial-number';
 
 interface Props {
   visible: boolean;
@@ -601,8 +602,14 @@ interface PreviewTreeNode {
 }
 
 // 生成预览树
-const previewTreeData = computed<PreviewTreeNode[]>(() => {
-  if (!props.parentId || formData.levels.length === 0) return [];
+// 预览树数据（通过 watch + API 调用更新）
+const previewTreeData = ref<PreviewTreeNode[]>([]);
+
+async function loadPreviewTree() {
+  if (!props.parentId || formData.levels.length === 0) {
+    previewTreeData.value = [];
+    return;
+  }
 
   const root: PreviewTreeNode = {
     title: parentInfo.locationName || props.parentLocationName || '上级库位',
@@ -611,6 +618,24 @@ const previewTreeData = computed<PreviewTreeNode[]>(() => {
     children: [],
   };
 
+  // 获取容器名称数组
+  let containerNames: string[] = [];
+  if (createContainer.value && formData.container.locationName) {
+    const qty = Math.min(formData.container.quantity || 1, 3);
+    try {
+      const res = await batchGenerateSerialNumber({
+        ruleName: formData.container.locationName,
+        count: qty,
+      });
+      const raw = Array.isArray(res) ? res : res?.data || res?.serialNumbers || [];
+      containerNames = raw.map((n: any) =>
+        typeof n === 'string' ? n : n?.serialNo || n?.serialNumber || n?.name || String(n),
+      );
+    } catch {
+      containerNames = [];
+    }
+  }
+
   // 递归生成分区层级
   function buildLevelNodes(
     parentNode: PreviewTreeNode,
@@ -618,7 +643,6 @@ const previewTreeData = computed<PreviewTreeNode[]>(() => {
     parentPrefix: string,
   ) {
     if (levelIdx >= formData.levels.length) {
-      // 生成容器节点（仅在需要时）
       if (createContainer.value) {
         buildContainerNodes(parentNode, parentPrefix);
       }
@@ -626,7 +650,7 @@ const previewTreeData = computed<PreviewTreeNode[]>(() => {
     }
 
     const config = formData.levels[levelIdx];
-    const qty = Math.min(config.quantity || 1, 5); // 预览最多5个
+    const qty = Math.min(config.quantity || 1, 5);
     const children: PreviewTreeNode[] = [];
 
     for (let i = 0; i < qty; i++) {
@@ -654,19 +678,22 @@ const previewTreeData = computed<PreviewTreeNode[]>(() => {
   }
 
   // 生成容器节点
+  let containerIdx = 0;
   function buildContainerNodes(parentNode: PreviewTreeNode, parentPrefix: string) {
-    const containerQty = Math.min(formData.container.quantity || 1, 3); // 预览最多3个容器
+    const containerQty = Math.min(formData.container.quantity || 1, 3);
     const children: PreviewTreeNode[] = [];
 
     for (let i = 0; i < containerQty; i++) {
       let name: string;
-      if (formData.container.locationName) {
+      if (containerNames[i]) {
+        name = containerNames[i];
+      } else if (formData.container.locationName) {
         const ruleLabel = serialRuleOptions.value.find(
           (r) => r.value === formData.container.locationName,
         )?.label || formData.container.locationName;
         name = `${ruleLabel}${i + 1}`;
       } else {
-        name = `${formData.container.locationType}${i + 1}`;
+        name = `${formData.container.locationType || '容器'}${i + 1}`;
       }
       const node: PreviewTreeNode = {
         title: name,
@@ -690,7 +717,7 @@ const previewTreeData = computed<PreviewTreeNode[]>(() => {
   }
 
   // 生成孔位节点
-  function buildPositionNodes(parentNode: PreviewTreeNode, parentPrefix: string, containerIdx: number) {
+  function buildPositionNodes(parentNode: PreviewTreeNode, parentPrefix: string, idx: number) {
     const childrenQty = formData.container.childrenQuantity || 0;
     if (childrenQty <= 0) return;
 
@@ -701,7 +728,7 @@ const previewTreeData = computed<PreviewTreeNode[]>(() => {
       cols = parseInt(match[2], 10);
     }
 
-    const previewQty = Math.min(childrenQty, 6); // 预览最多6个孔位
+    const previewQty = Math.min(childrenQty, 6);
     const children: PreviewTreeNode[] = [];
 
     for (let i = 0; i < previewQty; i++) {
@@ -713,7 +740,7 @@ const previewTreeData = computed<PreviewTreeNode[]>(() => {
 
       children.push({
         title: name,
-        key: `${parentPrefix}-c-${containerIdx}-p-${i}`,
+        key: `${parentPrefix}-c-${idx}-p-${i}`,
         gradeType: 'position',
       });
     }
@@ -721,7 +748,7 @@ const previewTreeData = computed<PreviewTreeNode[]>(() => {
     if (childrenQty > 6) {
       children.push({
         title: `... 还有 ${childrenQty - 6} 个孔位`,
-        key: `${parentPrefix}-c-${containerIdx}-p-more`,
+        key: `${parentPrefix}-c-${idx}-p-more`,
         gradeType: 'more',
       });
     }
@@ -730,8 +757,8 @@ const previewTreeData = computed<PreviewTreeNode[]>(() => {
   }
 
   buildLevelNodes(root, 0, 'root');
-  return [root];
-});
+  previewTreeData.value = [root];
+}
 
 async function handleSubmit() {
   if (!props.parentId) {
@@ -825,6 +852,21 @@ watch(visible, (val) => {
     createContainer.value = false;
   }
 });
+
+// 监听关键字段变化，刷新预览树
+watch(
+  () => [
+    props.parentId,
+    formData.levels,
+    createContainer.value,
+    formData.container.locationName,
+    formData.container.quantity,
+    serialRuleOptions.value.length,
+  ],
+  () => {
+    loadPreviewTree();
+  },
+);
 </script>
 
 <style scoped lang="less">

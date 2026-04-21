@@ -77,63 +77,65 @@
               容器配置
             </div>
 
-            <Row :gutter="16">
-              <Col :span="12">
-                <FormItem label="容器类型" name="locationType">
-                  <Select v-model:value="formData.locationType" placeholder="请选择容器类型" @change="handleContainerTypeChange">
-                    <SelectOption v-for="t in containerTypeOpts" :key="t" :value="t">{{ t }}</SelectOption>
-                  </Select>
-                </FormItem>
-              </Col>
-              <Col :span="12">
-                <FormItem label="存储模式" name="storageMode">
-                  <Select v-model:value="formData.storageMode" placeholder="请选择存储模式">
-                    <SelectOption value="Exclusive">独占模式</SelectOption>
-                    <SelectOption value="Shared">共享模式</SelectOption>
-                  </Select>
-                </FormItem>
-              </Col>
-            </Row>
+            <Form layout="horizontal" :label-col="{ span: 10 }" :wrapper-col="{ span: 16 }">
+              <Row :gutter="12">
+                <Col :span="8">
+                  <FormItem label="容器类型" name="locationType">
+                    <Select v-model:value="formData.locationType" placeholder="请选择容器类型" @change="handleContainerTypeChange">
+                      <SelectOption v-for="t in containerTypeOpts" :key="t" :value="t">{{ t }}</SelectOption>
+                    </Select>
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="数量" name="quantity">
+                    <InputNumber
+                      v-model:value="formData.quantity"
+                      :min="1"
+                      :max="100"
+                      style="width: 100%"
+                      placeholder="默认1"
+                    />
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="起始编号" name="startSerial">
+                    <InputNumber
+                      v-model:value="formData.startSerial"
+                      :min="1"
+                      :max="9999"
+                      style="width: 50%"
+                      placeholder="默认1"
+                    />
+                  </FormItem>
+                </Col>
+              </Row>
 
-            <Row :gutter="16">
-              <Col :span="8">
-                <FormItem label="规格" name="specification">
-                  <Input :value="selectedContainerSpec.spec || '-'" disabled />
-                </FormItem>
-              </Col>
-              <Col :span="8">
-                <FormItem label="数量" name="quantity">
-                  <InputNumber
-                    v-model:value="formData.quantity"
-                    :min="1"
-                    :max="100"
-                    style="width: 100%"
-                    placeholder="默认1"
-                  />
-                </FormItem>
-              </Col>
-              <Col :span="8">
-                <FormItem label="起始编号" name="startSerial">
-                  <InputNumber
-                    v-model:value="formData.startSerial"
-                    :min="1"
-                    :max="9999"
-                    style="width: 100%"
-                    placeholder="默认1"
-                  />
-                </FormItem>
-              </Col>
-            </Row>
+              <Row :gutter="12">
+                <Col :span="8">
+                  <FormItem label="存储模式" name="storageMode">
+                    <Select v-model:value="formData.storageMode" disabled>
+                      <SelectOption value="Exclusive">独占模式</SelectOption>
+                      <SelectOption value="Shared">共享模式</SelectOption>
+                    </Select>
+                  </FormItem>
+                </Col>
+                <Col :span="8">
+                  <FormItem label="规格" name="specification">
+                    <Input :value="selectedContainerSpec.spec || '-'" disabled />
+                  </FormItem>
+                </Col>                
+              </Row>
 
-            <FormItem label="容器名称" name="locationName">
-              <Select
-                v-model:value="formData.locationName"
-                placeholder="请选择流水号规则"
-                :loading="serialRuleLoading"
-                :options="serialRuleOptions"
-                style="width: 100%"
-              />
-            </FormItem>
+              <FormItem label="容器名称" name="locationName">
+                <Select
+                  v-model:value="formData.locationName"
+                  placeholder="请选择流水号规则"
+                  :loading="serialRuleLoading"
+                  :options="serialRuleOptions"
+                  style="width: 100%"
+                />
+              </FormItem>
+            </Form>
           </div>
         </div>
       </Col>
@@ -202,7 +204,7 @@ import { IconifyIcon } from '@vben/icons';
 
 import { batchCreate, getDetail } from '#/api/wms/location';
 import { getDictDataByType } from '#/api/system/dict';
-import { getSerialNumberList } from '#/api/system/serial-number';
+import { getSerialNumberList, batchGenerateSerialNumber } from '#/api/system/serial-number';
 
 interface ContainerInfo {
   id?: number;
@@ -352,6 +354,8 @@ function handleContainerTypeChange() {
   if (opt) {
     formData.specification = opt.spec;
     formData.childrenQuantity = opt.childrenQuantity;
+    // 规格为1x1时自动共享模式，其他规格自动独占模式
+    formData.storageMode = opt.spec === '1x1' ? 'Shared' : 'Exclusive';
   } else {
     formData.specification = '';
     formData.childrenQuantity = 0;
@@ -413,55 +417,50 @@ interface PreviewTreeNode {
   children?: PreviewTreeNode[];
 }
 
-// 生成预览树
-const previewTreeData = computed<PreviewTreeNode[]>(() => {
-  if (!props.parentId || !formData.locationType) return [];
+// 生成孔位子节点
+function buildPositionNodes(spec: string, containerIdx: number) {
+  const [rows, cols] = spec.split('x').map(Number);
+  const previewQty = Math.min(rows * cols, 6);
+  const positionNodes: PreviewTreeNode[] = [];
 
-  const ruleLabel = serialRuleOptions.value.find(
-    (r) => r.value === formData.locationName,
-  )?.label || formData.locationName || formData.locationType || '';
+  for (let p = 0; p < previewQty; p++) {
+    const rowIdx = Math.floor(p / cols);
+    const colIdx = p % cols;
+    const rowChar = String.fromCharCode(65 + rowIdx);
+    const colStr = String(colIdx + 1).padStart(2, '0');
+    positionNodes.push({
+      title: `${rowChar}${colStr}`,
+      key: `container-${containerIdx}-pos-${p}`,
+      gradeType: 'position',
+    });
+  }
 
-  const qty = Math.min(formData.quantity || 1, 10);
+  if (rows * cols > 6) {
+    positionNodes.push({
+      title: `... 还有 ${rows * cols - 6} 个孔位`,
+      key: `container-${containerIdx}-pos-more`,
+      gradeType: 'more',
+    });
+  }
+
+  return positionNodes;
+}
+
+// 构建预览树（传入容器名称数组）
+function buildPreviewTree(containerNames: string[]): PreviewTreeNode[] {
   const containerNodes: PreviewTreeNode[] = [];
 
-  for (let i = 0; i < qty; i++) {
-    const num = (formData.startSerial || 1) + i;
-    const containerName = `${ruleLabel}${num}`;
-
+  for (let i = 0; i < containerNames.length; i++) {
     const containerNode: PreviewTreeNode = {
-      title: containerName,
+      title: containerNames[i],
       key: `container-${i}`,
       gradeType: 'container',
       children: [],
     };
 
-    // 独占模式生成孔位子节点
     if (formData.storageMode === 'Exclusive' && formData.specification) {
+      containerNode.children = buildPositionNodes(formData.specification, i);
       const [rows, cols] = formData.specification.split('x').map(Number);
-      const previewQty = Math.min(rows * cols, 6);
-      const positionNodes: PreviewTreeNode[] = [];
-
-      for (let p = 0; p < previewQty; p++) {
-        const rowIdx = Math.floor(p / cols);
-        const colIdx = p % cols;
-        const rowChar = String.fromCharCode(65 + rowIdx);
-        const colStr = String(colIdx + 1).padStart(2, '0');
-        positionNodes.push({
-          title: `${rowChar}${colStr}`,
-          key: `container-${i}-pos-${p}`,
-          gradeType: 'position',
-        });
-      }
-
-      if (rows * cols > 6) {
-        positionNodes.push({
-          title: `... 还有 ${rows * cols - 6} 个孔位`,
-          key: `container-${i}-pos-more`,
-          gradeType: 'more',
-        });
-      }
-
-      containerNode.children = positionNodes;
       containerNode.count = `${rows * cols}孔`;
     }
 
@@ -476,8 +475,71 @@ const previewTreeData = computed<PreviewTreeNode[]>(() => {
     });
   }
 
-  return containerNodes;
-});
+  // 根节点 = 上级库位（存储分区）
+  const root: PreviewTreeNode = {
+    title: parentInfo.locationName || props.parentLocationName || '上级库位',
+    key: 'parent',
+    gradeType: 'parent',
+    children: containerNodes.length > 0 ? containerNodes : undefined,
+  };
+
+  return [root];
+}
+
+// 预览树数据（通过 watch + API 调用更新）
+const previewTreeData = ref<PreviewTreeNode[]>([]);
+
+// 加载预览树
+async function loadPreviewTree() {
+  if (!props.parentId) {
+    previewTreeData.value = [];
+    return;
+  }
+
+  // 只有选择了容器类型后才生成容器节点
+  if (!formData.locationType) {
+    // 只显示根节点
+    previewTreeData.value = [
+      {
+        title: parentInfo.locationName || props.parentLocationName || '上级库位',
+        key: 'parent',
+        gradeType: 'parent',
+        children: undefined,
+      },
+    ];
+    return;
+  }
+
+  const qty = Math.min(formData.quantity || 1, 10);
+  let containerNames: string[] = [];
+
+  // 选择了流水号规则，调用 API 获取真实名称
+  if (formData.locationName) {
+    try {
+      const res = await batchGenerateSerialNumber({
+        ruleName: formData.locationName,
+        count: qty,
+      });
+      // 兼容：API 可能返回 string[] 或 { serialNumbers: string[] } 或 { data: string[] }
+      const raw = Array.isArray(res) ? res : res?.data || res?.serialNumbers || [];
+      containerNames = raw.map((n: any) => (typeof n === 'string' ? n : n?.serialNo || n?.serialNumber || n?.name || String(n)));
+    } catch {
+      // fallback 到本地生成
+      containerNames = [];
+    }
+  }
+
+  // 未选流水号规则或 API 调用失败时，用本地规则拼接名称
+  if (containerNames.length === 0) {
+    const ruleLabel = serialRuleOptions.value.find((r) => r.value === formData.locationName)?.label || formData.locationName || formData.locationType || '';
+    for (let i = 0; i < qty; i++) {
+      const num = (formData.startSerial || 1) + i;
+      containerNames.push(`${ruleLabel}${num}`);
+    }
+  }
+
+  previewTreeData.value = buildPreviewTree(containerNames);
+}
 
 const formData = reactive({
   locationType: '',
@@ -515,8 +577,8 @@ async function handleSubmit() {
     const payload: any = {
       parentId: props.parentId,
       warehouseCode: props.parentWarehouseCode,
+      locationGrade: '存储容器',
       locationType: formData.locationType,
-      locationGrade: 'Container',
       quantity: formData.quantity,
       startSerialNo: formData.startSerial,
       storageMode: formData.storageMode,
@@ -529,6 +591,7 @@ async function handleSubmit() {
       payload.createChildren = true;
       payload.childrenQuantity = formData.childrenQuantity;
       payload.childrenType = '孔';
+      payload.childrenLocationGrade = '存储孔位';
     }
 
     await batchCreate(payload);
@@ -564,6 +627,14 @@ watch(visible, (val) => {
     });
   }
 });
+
+// 监听关键字段变化，刷新预览树
+watch(
+  () => [props.parentId, formData.locationType, formData.locationName, formData.quantity, formData.startSerial, formData.storageMode, formData.specification, serialRuleOptions.value.length],
+  () => {
+    loadPreviewTree();
+  },
+);
 </script>
 
 <style scoped lang="less">
@@ -675,6 +746,11 @@ watch(visible, (val) => {
 
 .tree-node {
   font-size: 13px;
+
+  &.node-grade-parent {
+    color: #1890ff;
+    font-weight: 600;
+  }
 
   &.node-grade-container {
     color: #fa8c16;

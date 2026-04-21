@@ -145,18 +145,23 @@ const hasChildren = computed(() => {
   return children.length > 0;
 });
 
+/** 是否为“孔位”节点（兼容 DB/字典：英文枚举、中文等级，或 grade 仍为存储对象但 type=孔） */
+function isHoleLikeNode(n: LocationTreeNode): boolean {
+  const g = n.locationGrade || '';
+  if (g === 'ContainerPosition' || g === '存储孔位') return true;
+  const t = (n.locationType || '').trim();
+  return t === '孔' || t === '孔位';
+}
+
+// 子节点全部为孔位时，用彩色方块网格展示（不再逐条渲染为树节点）
 const isLeafGrid = computed(() => {
   const children = props.node.children || [];
   if (children.length === 0) return false;
-  const firstGrade = children[0]?.locationGrade || '';
-  return firstGrade === 'ContainerPosition' || firstGrade === '存储孔位';
+  return children.every((ch) => isHoleLikeNode(ch));
 });
 
 // 孔位不显示任何操作按钮
-const isPositionNode = computed(() => {
-  const grade = props.node.locationGrade || '';
-  return grade === 'ContainerPosition' || grade === '存储孔位';
-});
+const isPositionNode = computed(() => isHoleLikeNode(props.node));
 
 // 新建分区：非孔位且非存储容器节点
 const canAddSectionForNode = computed(() => {
