@@ -18,6 +18,9 @@
       <DescriptionsItem :label="$t('page.warehouse.qualityZone')">
         {{ detail.qualityZone || '-' }}
       </DescriptionsItem>
+      <DescriptionsItem label="存储物料">
+        {{ detail.storedMaterial || '-' }}
+      </DescriptionsItem>
       <DescriptionsItem :label="$t('page.warehouse.employeeCode')">
         {{ detail.employeeCode || '-' }}
       </DescriptionsItem>

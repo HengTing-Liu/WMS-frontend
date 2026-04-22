@@ -76,6 +76,15 @@
             />
           </FormItem>
         </Col>
+        <Col :span="12">
+          <FormItem label="存储物料">
+            <Input
+              v-model:value="formData.storedMaterial"
+              :placeholder="$t('page.common.inputPlaceholder')"
+              :maxlength="500"
+            />
+          </FormItem>
+        </Col>
       </Row>
 
       <Divider>{{ $t('page.warehouse.erpSection') || 'ERP信息' }}</Divider>
@@ -242,6 +251,7 @@ const formData = reactive<Record<string, any>>({
   warehouseName: '',
   temperatureZone: '',
   qualityZone: '',
+  storedMaterial: '',
   employeeCode: '',
   employeeName: '',
   deptCode: '',
@@ -326,6 +336,7 @@ const resetForm = () => {
   formData.warehouseName = '';
   formData.temperatureZone = '';
   formData.qualityZone = '';
+  formData.storedMaterial = '';
   formData.employeeCode = '';
   formData.employeeName = '';
   formData.deptCode = '';

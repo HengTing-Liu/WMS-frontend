@@ -220,6 +220,7 @@
       "warehouseLocation": "Location",
       "temperatureZone": "Temperature Zone",
       "qualityZone": "Quality Zone",
+      "storedMaterial": "Stored Material",
       "employeeCode": "Employee Code",
       "employeeName": "Employee Name",
       "deptCode": "Department Code",

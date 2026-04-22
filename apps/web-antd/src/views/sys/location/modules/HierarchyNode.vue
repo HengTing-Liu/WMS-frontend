@@ -22,6 +22,9 @@
         <template v-if="(node.locationGrade === 'Container' || node.locationGrade === '存储容器') && node.specification">
           &nbsp;&nbsp;{{ node.specification }}
         </template>
+        <template v-if="node.warehouseCode">
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ node.warehouseCode }}&nbsp;{{ node.warehouseName ?? '' }}&nbsp;{{ node.warehouseLocation ?? '' }}&nbsp;{{ node.temperatureZone ?? '' }}&nbsp;{{ node.qualityZone ?? '' }}
+        </template>
       </span>
       <!-- 悬停操作按钮 -->
       <span v-show="showActions" class="node-actions" @click.stop>
@@ -78,12 +81,18 @@
     </div>
     <div v-if="expanded && isLeafGrid" class="position-grid" :style="indentStyle">
       <div
-        v-for="child in node.children"
-        :key="child.id"
-        class="position-card"
-        :class="child.isUse === 1 ? 'occupied' : 'free'"
+        v-for="row in sortedPositionRows"
+        :key="row.rowIndex"
+        class="position-row"
       >
-        {{ child.locationName }}
+        <div
+          v-for="child in row.items"
+          :key="child.id"
+          class="position-card"
+          :class="child.isUse === 1 ? 'occupied' : 'free'"
+        >
+          {{ child.locationName }}
+        </div>
       </div>
     </div>
     <template v-if="expanded && !isLeafGrid">
@@ -158,6 +167,39 @@ const isLeafGrid = computed(() => {
   const children = props.node.children || [];
   if (children.length === 0) return false;
   return children.every((ch) => isHoleLikeNode(ch));
+});
+
+// 按规格（如 4x5）行列排列孔位：先排序，再按行分组
+interface PositionRow {
+  rowIndex: number;
+  items: LocationTreeNode[];
+}
+
+const sortedPositionRows = computed<PositionRow[]>(() => {
+  const children = props.node.children || [];
+  if (children.length === 0) return [];
+
+  // 按 locationName 排序
+  const sorted = [...children].sort((a, b) => {
+    const nameA = a.locationName || '';
+    const nameB = b.locationName || '';
+    return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' });
+  });
+
+  // 从父节点规格解析列数，如 "4x5" -> 5列
+  const parentSpec = props.node.specification || '';
+  const parts = parentSpec.split('x');
+  const cols = parts.length >= 2 ? parseInt(parts[1], 10) : 6; // 默认6列
+
+  // 按列数分组为行
+  const rows: PositionRow[] = [];
+  for (let i = 0; i < sorted.length; i += cols) {
+    rows.push({
+      rowIndex: Math.floor(i / cols),
+      items: sorted.slice(i, i + cols),
+    });
+  }
+  return rows;
 });
 
 // 孔位不显示任何操作按钮
@@ -341,10 +383,16 @@ if (injectedTick) {
 
 .position-grid {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 6px;
   margin-bottom: 14px;
+}
+
+.position-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .position-card {

@@ -81,13 +81,13 @@ const languageTypeOptions = [
 ];
 
 const columns = [
-  { title: '字典标签', dataIndex: 'dictLabel', key: 'dictLabel', width: 140 },
-  { title: '字典值', dataIndex: 'dictValue', key: 'dictValue', width: 140 },
-  { title: '语言', dataIndex: 'languageType', key: 'languageType', width: 120 },
-  { title: '排序', dataIndex: 'sortOrder', key: 'sortOrder', width: 90, align: 'center' as const },
-  { title: '是否启用', key: 'isEnabled', width: 120, align: 'center' as const },
-  { title: '备注', dataIndex: 'remarks', key: 'remarks' },
-  { title: '操作', key: 'action', width: 140, fixed: 'right' as const },
+  { title: '字典标签', dataIndex: 'dictLabel', key: 'dictLabel', width: 160 },
+  { title: '字典值', dataIndex: 'dictValue', key: 'dictValue', width: 160 },
+  { title: '语言', dataIndex: 'languageType', key: 'languageType', width: 100 },
+  { title: '排序', dataIndex: 'sortOrder', key: 'sortOrder', width: 80, align: 'center' as const },
+  { title: '是否启用', key: 'isEnabled', width: 100, align: 'center' as const },
+  { title: '备注', dataIndex: 'remarks', key: 'remarks', width: 420, ellipsis: true as const },
+  { title: '操作', key: 'action', width: 120, fixed: 'right' as const },
 ];
 
 const toIntFlag = (val: unknown, defaultVal = 0) => {
@@ -340,7 +340,7 @@ defineExpose({ open });
   <Modal
     v-model:open="visible"
     :title="modalTitle"
-    width="900px"
+    width="1100px"
     :footer="null"
     @cancel="handleCancel"
   >
@@ -377,7 +377,7 @@ defineExpose({ open });
           showTotal: (t: number) => `共 ${t} 条`,
         }"
         row-key="id"
-        :scroll="{ x: 900 }"
+        :scroll="{ x: 1100 }"
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">

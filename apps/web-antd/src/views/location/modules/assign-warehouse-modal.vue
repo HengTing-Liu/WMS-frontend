@@ -2,7 +2,7 @@
   <Modal
     v-bind="$attrs"
     :title="modalTitle"
-    :width="700"
+    :width="900"
     :confirmLoading="confirmLoading"
     :open="isModalOpen"
     @ok="handleSubmit"
@@ -10,17 +10,36 @@
   >
     <template v-if="isReady">
       <!-- 原仓库信息 -->
-      <div class="mb-4">
-        <span class="label">原仓库：</span>
-        <span class="value">
-          {{ initData.originalWarehouseName }} - {{ initData.originalTemperatureZone }}区
-          （{{ initData.originalWarehouseCode }}）
-        </span>
+      <div class="info-section" v-if="initData.originalWarehouseCode">
+        <div class="section-title">
+          <IconifyIcon icon="material-symbols:warehouse" class="title-icon" />
+          <span>原仓库信息</span>
+        </div>
+        <Descriptions :column="3" bordered size="small" class="info-descriptions">
+          <DescriptionsItem label="仓库编码">{{ initData.originalWarehouseCode || '-' }}</DescriptionsItem>
+          <DescriptionsItem label="仓库名称">{{ initData.originalWarehouseName || '-' }}</DescriptionsItem>
+          <DescriptionsItem label="仓库类型">{{ getWarehouseTypeText(initData.originalWarehouseType) }}</DescriptionsItem>
+          <DescriptionsItem label="ERP公司名称">{{ initData.originalErpCompanyName || '-' }}</DescriptionsItem>
+          <DescriptionsItem label="所在地">{{ initData.originalWarehouseLocation || '-' }}</DescriptionsItem>
+          <DescriptionsItem label="温度分区">{{ initData.originalTemperatureZone || '-' }}</DescriptionsItem>
+          <DescriptionsItem label="质量分区">{{ initData.originalQualityZone || '-' }}</DescriptionsItem>
+          <DescriptionsItem label="存储物料">{{ initData.originalStoredMaterial || '-' }}</DescriptionsItem>
+          <DescriptionsItem label="责任部门">{{ initData.originalDeptNameFullPath || '-' }}</DescriptionsItem>
+        </Descriptions>
       </div>
 
-      <!-- 存储容器列表 -->
+      <!-- 存储分区/容器列表 -->
       <div class="mb-4">
-        <div class="section-title">存储容器列表：</div>
+        <div class="section-title">
+          <span>存储分区/容器列表：</span>
+          <Checkbox
+            v-model:checked="allContainersSelected"
+            :indeterminate="isIndeterminate"
+            class="ml-2"
+          >
+            {{ allContainersSelected ? '取消全选' : '全选' }}
+          </Checkbox>
+        </div>
         <Table
           :columns="containerColumns"
           :data-source="initData.containers"
@@ -36,10 +55,20 @@
                 @change="(e) => handleContainerSelect(record, e.target.checked)"
               />
             </template>
+            <template v-if="column.key === 'locationGrade'">
+              <Tag :color="getLocationGradeColor(record.locationGrade)">
+                {{ getLocationGradeText(record.locationGrade) }}
+              </Tag>
+            </template>
             <template v-if="column.key === 'currentWarehouse'">
-              <span>
-                {{ record.warehouseName || '-' }}
-                {{ record.temperatureZone ? `(${record.temperatureZone}区)` : '' }}
+              <span class="warehouse-info">
+                {{ record.erpCompanyName || '' }}
+                {{ getWarehouseTypeText(record.warehouseType) || '' }}
+                {{ record.warehouseLocation ? `- ${record.warehouseLocation}` : '' }}
+                {{ record.warehouseName || '' }}
+                {{ record.temperatureZone || '' }}
+                {{ record.qualityZone || '' }}
+                {{ record.warehouseCode ? `(${record.warehouseCode})` : '' }}
               </span>
             </template>
           </template>
@@ -72,7 +101,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { message, Table, Checkbox, Select, Spin, Modal } from 'ant-design-vue';
+import { message, Table, Checkbox, Select, Spin, Modal, Descriptions, DescriptionsItem, Tag } from 'ant-design-vue';
+import { IconifyIcon } from '@vben/icons';
 
 import {
   initAssignWarehouse,
@@ -118,6 +148,13 @@ const resetState = () => {
     originalWarehouseCode: '',
     originalWarehouseName: '',
     originalTemperatureZone: '',
+    originalWarehouseType: '',
+    originalErpCompanyName: '',
+    originalWarehouseLocation: '',
+    originalQualityZone: '',
+    originalEmployeeName: '',
+    originalStoredMaterial: '',
+    originalDeptNameFullPath: '',
     containers: [],
     availableWarehouses: [],
   };
@@ -132,6 +169,13 @@ const initData = ref<AssignWarehouseInitResponse>({
   originalWarehouseCode: '',
   originalWarehouseName: '',
   originalTemperatureZone: '',
+  originalWarehouseType: '',
+  originalErpCompanyName: '',
+  originalWarehouseLocation: '',
+  originalQualityZone: '',
+  originalEmployeeName: '',
+  originalStoredMaterial: '',
+  originalDeptNameFullPath: '',
   containers: [],
   availableWarehouses: [],
 });
@@ -142,10 +186,10 @@ const selectedContainerIds = ref<number[]>([]);
 const modalTitle = computed(() => '分配仓库');
 
 const containerColumns = [
-  { title: '选择', key: 'selected', width: 60 },
-  { title: '容器名称', dataIndex: 'containerName', key: 'containerName', width: 120 },
-  { title: '容器编号', dataIndex: 'containerNo', key: 'containerNo', width: 100 },
-  { title: '当前仓库', key: 'currentWarehouse', width: 200 },
+  { title: '选择', key: 'selected', width: 80 },
+  { title: '库位等级', key: 'locationGrade', width: 100 },
+  { title: '全路径名称', dataIndex: 'locationFullpathName', key: 'locationFullpathName', width: 250 },
+  { title: '当前仓库', key: 'currentWarehouse', width: 400 },
 ];
 
 const warehouseOptions = computed(() => {
@@ -157,6 +201,65 @@ const warehouseOptions = computed(() => {
 
 const availableWarehouses = computed(() => initData.value.availableWarehouses || []);
 
+// 全选/取消全选
+const allContainersSelected = computed({
+  get: () => {
+    const containers = initData.value.containers || [];
+    return containers.length > 0 && containers.every((c: any) => c.selected);
+  },
+  set: (val: boolean) => {
+    (initData.value.containers || []).forEach((c: any) => {
+      c.selected = val;
+    });
+    selectedContainerIds.value = val
+      ? (initData.value.containers || []).map((c: any) => c.containerId)
+      : [];
+  },
+});
+
+const isIndeterminate = computed(() => {
+  const containers = initData.value.containers || [];
+  const selectedCount = containers.filter((c: any) => c.selected).length;
+  return selectedCount > 0 && selectedCount < containers.length;
+});
+
+// 库位等级文本映射
+function getLocationGradeText(grade?: string): string {
+  const textMap: Record<string, string> = {
+    StorageSection: '存储分区',
+    TypeSection: '存储分区',
+    '存储分区': '存储分区',
+    Container: '存储容器',
+    '存储容器': '存储容器',
+  };
+  return grade ? (textMap[grade] || grade) : '-';
+}
+
+// 库位等级颜色映射
+function getLocationGradeColor(grade?: string): string {
+  const colorMap: Record<string, string> = {
+    StorageSection: 'blue',
+    TypeSection: 'blue',
+    '存储分区': 'blue',
+    Container: 'green',
+    '存储容器': 'green',
+  };
+  return grade ? (colorMap[grade] || 'default') : 'default';
+}
+
+// 仓库类型文本映射
+function getWarehouseTypeText(type?: string): string {
+  const textMap: Record<string, string> = {
+    QUARANTINE: '隔离仓',
+    SAMPLE: '留样仓',
+    STORAGE: '存储仓',
+    PICK: '拣货仓',
+    COLLECT: '集货仓',
+    RETURN: '退货仓',
+  };
+  return type ? (textMap[type] || type) : '-';
+}
+
 // 加载初始化数据
 const loadInitData = async () => {
   if (!props.locationId) {
@@ -166,19 +269,16 @@ const loadInitData = async () => {
 
   isReady.value = false;
   try {
-    const res = await initAssignWarehouse(props.locationId, props.selectedContainerIds);
-    if (res.code === 200) {
-      initData.value = res.data;
-      // 初始化已选中的容器ID
-      selectedContainerIds.value = (res.data.containers || [])
-        .filter((c) => c.selected)
-        .map((c) => c.containerId);
-      // 默认选中第一个仓库
-      if (res.data.availableWarehouses && res.data.availableWarehouses.length > 0) {
-        targetWarehouseCode.value = res.data.availableWarehouses[0].warehouseCode;
-      }
-    } else {
-      message.error(res.msg || '加载数据失败');
+    // requestClient 配置了 responseReturn: 'data'，直接返回 data 部分
+    const data = await initAssignWarehouse(props.locationId, props.selectedContainerIds);
+    initData.value = data;
+    // 初始化已选中的容器ID
+    selectedContainerIds.value = (data.containers || [])
+      .filter((c: any) => c.selected)
+      .map((c: any) => c.containerId);
+    // 默认选中第一个仓库
+    if (data.availableWarehouses && data.availableWarehouses.length > 0) {
+      targetWarehouseCode.value = data.availableWarehouses[0].warehouseCode;
     }
   } catch (error) {
     console.error('加载分配仓库数据失败:', error);
@@ -216,19 +316,15 @@ const handleSubmit = async () => {
   confirmLoading.value = true;
 
   try {
-    const res = await assignWarehouse({
+    await assignWarehouse({
       locationId: props.locationId,
       containerIds: selectedContainerIds.value,
       targetWarehouseCode: targetWarehouseCode.value,
     });
 
-    if (res.code === 200) {
-      message.success(res.msg || '分配成功');
-      emit('success');
-      isModalOpen.value = false;
-    } else {
-      message.error(res.msg || '分配失败');
-    }
+    message.success('分配成功');
+    emit('success');
+    isModalOpen.value = false;
   } catch (error: any) {
     console.error('分配仓库失败:', error);
     message.error(error?.response?.data?.msg || error?.message || '分配失败');
@@ -251,9 +347,37 @@ const handleSubmit = async () => {
 }
 
 .section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #fff7e6 0%, #ffffff 100%);
+  border-left: 3px solid #fa8c16;
+  border-radius: 4px;
+  margin-bottom: 12px;
   font-weight: 500;
-  margin-bottom: 8px;
-  color: #333;
+  color: #262626;
+}
+
+.title-icon {
+  color: #fa8c16;
+  font-size: 18px;
+}
+
+.info-section {
+  margin-bottom: 16px;
+}
+
+.info-descriptions {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.info-descriptions :deep(.ant-descriptions-item-label) {
+  background-color: #fafafa;
+  font-weight: 500;
+  color: #595959;
+  width: 140px;
 }
 
 .mb-4 {

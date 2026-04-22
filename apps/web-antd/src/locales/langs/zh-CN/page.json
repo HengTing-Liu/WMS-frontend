@@ -21,6 +21,7 @@
     "warehouseLocation": "所在地",
     "temperatureZone": "温度分区",
     "qualityZone": "质量分区",
+    "storedMaterial": "存储物料",
     "employeeCode": "责任人工号",
     "employeeName": "责任人",
     "deptCode": "责任部门编号",

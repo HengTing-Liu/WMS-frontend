@@ -44,6 +44,10 @@ export interface LocationTreeNode {
   internalQuantity?: number;
   locationName: string;
   warehouseCode?: string;
+  warehouseName?: string;
+  warehouseLocation?: string;
+  temperatureZone?: string;
+  qualityZone?: string;
   parentName?: string;
   storageMode?: string;
   specification?: string;
@@ -200,6 +204,12 @@ export interface ContainerWarehouseInfo {
   warehouseCode: string;
   warehouseName: string;
   temperatureZone: string;
+  erpCompanyName?: string;
+  warehouseType?: string;
+  warehouseLocation?: string;
+  qualityZone?: string;
+  locationGrade?: string;
+  locationFullpathName?: string;
   selected?: boolean;
 }
 
@@ -215,6 +225,13 @@ export interface AssignWarehouseInitResponse {
   originalWarehouseCode: string;
   originalWarehouseName: string;
   originalTemperatureZone: string;
+  originalWarehouseType?: string;
+  originalErpCompanyName?: string;
+  originalWarehouseLocation?: string;
+  originalQualityZone?: string;
+  originalEmployeeName?: string;
+  originalStoredMaterial?: string;
+  originalDeptNameFullPath?: string;
   containers: ContainerWarehouseInfo[];
   availableWarehouses: AvailableWarehouse[];
 }

@@ -32,15 +32,15 @@
         <template #icon><IconifyIcon icon="material-symbols:add" /></template>
         新建对象
       </Button>
-      <Button v-if="viewMode === 'list' && !isContainerOrPosition" @click="handleAddStorageSection" :disabled="!canAddSection">
+      <Button v-if="viewMode === 'list'" @click="handleAddStorageSection" :disabled="!canAddSection">
         <template #icon><IconifyIcon icon="material-symbols:playlist-add" /></template>
         新建分区
       </Button>
-      <Button v-if="viewMode === 'list' && !isContainerOrPosition" @click="handleAddStorageContainer" :disabled="!canAddContainer">
+      <Button v-if="viewMode === 'list'" @click="handleAddStorageContainer" :disabled="!canAddContainer">
         <template #icon><IconifyIcon icon="material-symbols:inventory-2" /></template>
         新建容器
       </Button>
-      <Button @click="handleAssignWarehouse" :disabled="!selectedNodeId">
+      <Button @click="handleAssignWarehouse" :disabled="!selectedNodeId || isPositionNode">
         <template #icon><IconifyIcon icon="material-symbols:warehouse" /></template>
         分配仓库
       </Button>
@@ -93,7 +93,6 @@
           <div class="hierarchy-actions">
             <Button size="small" @click="expandAll">全部展示</Button>
             <Button size="small" @click="collapseAll">全部折叠</Button>
-            <Button size="small" type="default" @click="viewMode = 'list'">返回列表</Button>
           </div>
         </div>
         <div v-if="hierarchyLoading" class="hierarchy-loading">
@@ -315,6 +314,12 @@ const isContainerOrPosition = computed(() => {
   return ['Container', '存储容器', 'ContainerPosition', '存储孔位'].includes(selectedLocationGrade.value);
 });
 
+// 当前选中节点是否为存储孔位
+const isPositionNode = computed(() => {
+  if (!selectedLocationGrade.value) return false;
+  return ['ContainerPosition', '存储孔位'].includes(selectedLocationGrade.value);
+});
+
 // 新建容器按钮可用条件：单选一行"存储分区"且其下没有"存储分区"子节点
 // 注意：DB 里 location_grade 历史值可能是英文枚举 'StorageSection' 或中文 '存储分区'，此处两者都兼容。
 // selectedNodeChildCount 来自 /tree/count 接口，已按 location_grade IN (StorageSection,存储分区) 过滤，
@@ -326,10 +331,11 @@ const canAddContainer = computed(() => {
   return selectedNodeChildCount.value === 0;
 });
 
-// 新建分区按钮可用条件：单选一行 + 该行下未出现"存储容器"子节点
+// 新建分区按钮可用条件：单选一行 + 非存储容器/存储孔位 + 该行下未出现"存储容器"子节点
 // 避免在同一父节点下混挂"存储分区"和"存储容器"。
 const canAddSection = computed(() => {
   if (!isSingleSelection.value) return false;
+  if (isContainerOrPosition.value) return false;
   return selectedNodeContainerCount.value === 0;
 });
 
