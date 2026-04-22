@@ -21,6 +21,8 @@ export interface ActionContext {
   crudPrefix?: string;
   tableCode: string;
   searchForm: Record<string, any>;
+  /** 与列表查询一致：各搜索字段 eq / like，用于组装 queryModes */
+  searchQueryModes?: Record<string, 'eq' | 'like'>;
   selectedRowKeys: any[];
   pagination: {
     current: number;
@@ -213,8 +215,9 @@ export async function executeDownloadAction(
   const fileName = config.fileName || `${action.label || '导出'}_${new Date().getTime()}.xlsx`;
 
   try {
+    // 与 LowcodeCrudController @GetMapping("/{tableCode}/export") 一致；未配置时默认 GET
     await downloadBlob(url, snakePayload, {
-      method: config.method || 'POST',
+      method: config.method || 'GET',
       fileName,
     });
     message.success('导出成功');
@@ -313,18 +316,23 @@ function camelToSnake(str: string): string {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
+/** 与 CrudServiceImpl / PageHelper 约定的参数名一致，禁止转成 snake_case */
+const EXPORT_RESERVED_KEYS = new Set([
+  'queryModes',
+  'pageNum',
+  'pageSize',
+  'orderByColumn',
+  'isAsc',
+  'ids',
+]);
+
 /** 构建蛇形字段名的请求参数 */
 function buildSnakePayload(payload: Record<string, any>): Record<string, any> {
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(payload)) {
-    if (value !== undefined && value !== null && value !== '') {
-      if (Array.isArray(value)) {
-        // 数组值保持原样
-        result[camelToSnake(key)] = value;
-      } else {
-        result[camelToSnake(key)] = value;
-      }
-    }
+    if (value === undefined || value === null || value === '') continue;
+    const outKey = EXPORT_RESERVED_KEYS.has(key) ? key : camelToSnake(key);
+    result[outKey] = value;
   }
   return result;
 }
@@ -367,6 +375,29 @@ function buildQueryParams(
   return result;
 }
 
+/** 与 LowcodePage#buildExportParams 对齐：搜索字段转 snake_case + queryModes JSON */
+function buildExportLikePayload(ctx: ActionContext, options: { all?: boolean }): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(ctx.searchForm || {})) {
+    if (key === '__queryModes') continue;
+    if (value !== undefined && value !== null && value !== '') {
+      result[camelToSnake(key)] = value;
+    }
+  }
+  const modes = ctx.searchQueryModes || {};
+  const queryModes: Record<string, 'eq' | 'like'> = {};
+  for (const [key, mode] of Object.entries(modes)) {
+    const snakeKey = camelToSnake(key);
+    if (result[snakeKey] === undefined) continue;
+    queryModes[snakeKey] = mode === 'eq' ? 'eq' : 'like';
+  }
+  result.queryModes = JSON.stringify(queryModes);
+  if (options.all) {
+    result.pageSize = 999999;
+  }
+  return result;
+}
+
 /** 根据 payloadType 构建请求参数 */
 function buildPayload(
   payloadType: string | undefined,
@@ -380,25 +411,22 @@ function buildPayload(
       break;
 
     case 'selected':
-      // 传递选中的行 ID 列表
+      // 勾选行 + 当前筛选条件（与列表逻辑一致）；后端先按条件查再在内存按 ids 过滤
+      Object.assign(payload, buildExportLikePayload(ctx, {}));
       payload.ids = ctx.selectedRowKeys;
       break;
 
-    case 'currentPage':
-      // 传递当前分页参数
+    case 'currentPage': {
+      Object.assign(payload, buildExportLikePayload(ctx, {}));
       payload.pageNum = ctx.pagination.current;
       payload.pageSize = ctx.pagination.pageSize;
       break;
+    }
 
     case 'filtered':
     case 'all':
     default:
-      // 传递搜索条件
-      Object.assign(payload, ctx.searchForm);
-      // 如果是 all，忽略分页限制
-      if (payloadType === 'all') {
-        payload.pageSize = 999999;
-      }
+      Object.assign(payload, buildExportLikePayload(ctx, { all: payloadType === 'all' }));
       break;
   }
 

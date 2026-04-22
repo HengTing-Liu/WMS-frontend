@@ -569,6 +569,7 @@ async function handleToolbarAction(action: LowcodeAction, record?: any) {
       crudPrefix: props.crudPrefix,
       tableCode: props.tableCode,
       searchForm: { ...searchForm },
+      searchQueryModes: { ...searchQueryModes.value },
       selectedRowKeys: selectedRowKeys.value,
       pagination: {
         current: pagination.current,
@@ -662,6 +663,7 @@ async function handleExportAction(action: LowcodeAction) {
         message.warning('请先勾选要导出的数据');
         return;
       }
+      Object.assign(params, buildExportParams());
       params.ids = selectedRowKeys.value;
       break;
     case 'currentPage':
