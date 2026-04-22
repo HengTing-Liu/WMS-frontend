@@ -1031,6 +1031,12 @@ async function loadDetail(id: number) {
     Object.assign(formData, detail, {
       tableCode: props.tableCode || detail.tableCode,
     });
+    // 强制设置 colSpan，确保使用 API 返回的值
+    if (detail.colSpan != null && detail.colSpan !== '') {
+      formData.colSpan = Number(detail.colSpan);
+    } else {
+      formData.colSpan = 24;
+    }
     syncSwitchFromForm();
     hydrateBuildersFromForm();
   } catch (error: any) {

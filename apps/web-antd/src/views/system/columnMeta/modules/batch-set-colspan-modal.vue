@@ -23,6 +23,10 @@
           <SelectOption :value="12">12（一行两个）</SelectOption>
           <SelectOption :value="8">8（一行三个）</SelectOption>
           <SelectOption :value="6">6（一行四个）</SelectOption>
+          <SelectOption :value="4">4（一行六个）</SelectOption>
+          <SelectOption :value="3">3（一行八个）</SelectOption>
+          <SelectOption :value="2">2（一行十二个）</SelectOption>
+          <SelectOption :value="1">1（一行二十四个）</SelectOption>
         </Select>
       </FormItem>
     </Form>
