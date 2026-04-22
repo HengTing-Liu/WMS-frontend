@@ -128,12 +128,6 @@
           </Tag>
         </template>
 
-        <!-- 栅格列宽：未配置时接口为 colSpan null，与弹窗一致显示为 — -->
-        <template v-else-if="column.key === 'colSpan'">
-          <span v-if="record.colSpan === undefined || record.colSpan === null">—</span>
-          <span v-else>{{ record.colSpan }}</span>
-        </template>
-
         <template v-else-if="column.key === 'sectionType'">
           <Tag :color="record.sectionType === 'collapse' ? 'geekblue' : 'default'">
             {{ record.sectionType === 'collapse' ? 'Collapse' : 'Card' }}

@@ -3,10 +3,13 @@
     v-model:open="visible"
     :title="modalTitle"
     :confirm-loading="loading"
-    width="860px"
-    @ok="handleSubmit"
-    @cancel="handleCancel"
+    width="1000px"
+    :footer="null"
   >
+    <div class="modal-action-bar">
+      <Button @click="handleCancel">取消</Button>
+      <Button type="primary" :loading="loading" @click="handleSubmit">确认</Button>
+    </div>
     <Form
       ref="formRef"
       :model="formData"
@@ -15,27 +18,36 @@
       :wrapper-col="{ span: 16 }"
     >
       <div class="section-title">基础信息</div>
-      <FormItem label="表编码" name="tableCode">
-        <Input v-model:value="formData.tableCode" disabled />
-      </FormItem>
-      <FormItem label="字段编码" name="field">
-        <Input v-model:value="formData.field" :disabled="isEdit" :maxlength="50" placeholder="如 warehouseCode" />
-      </FormItem>
-      <FormItem label="数据库字段名" name="columnName">
-        <Input
-          v-model:value="formData.columnName"
-          :disabled="isEdit"
-          :maxlength="100"
-          placeholder="如 warehouse_code"
-        />
-      </FormItem>
-      <FormItem label="显示标题" name="title">
-        <Input v-model:value="formData.title" :maxlength="100" />
-      </FormItem>
-
       <Row :gutter="16">
-        <Col :span="12">
-          <FormItem label="表单类型" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" name="formType">
+        <Col :span="8">
+          <FormItem label="表编码" name="tableCode">
+            <Input v-model:value="formData.tableCode" disabled />
+          </FormItem>
+        </Col>
+        <Col :span="8">
+          <FormItem label="字段编码" name="field">
+            <Input v-model:value="formData.field" :disabled="isEdit" :maxlength="50" placeholder="如 warehouseCode" />
+          </FormItem>
+        </Col>
+        <Col :span="8">
+          <FormItem label="数据库字段名" name="columnName">
+            <Input
+              v-model:value="formData.columnName"
+              :disabled="isEdit"
+              :maxlength="100"
+              placeholder="如 warehouse_code"
+            />
+          </FormItem>
+        </Col>
+      </Row>
+      <Row :gutter="16">
+        <Col :span="8">
+          <FormItem label="显示标题" name="title">
+            <Input v-model:value="formData.title" :maxlength="100" />
+          </FormItem>
+        </Col>
+        <Col :span="8">
+          <FormItem label="表单类型" name="formType">
             <Select v-model:value="formData.formType">
               <SelectOption value="text">text</SelectOption>
               <SelectOption value="textarea">textarea</SelectOption>
@@ -50,8 +62,8 @@
             </Select>
           </FormItem>
         </Col>
-        <Col :span="12">
-          <FormItem label="数据类型" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }" name="dataType">
+        <Col :span="8">
+          <FormItem label="数据类型" name="dataType">
             <Select v-model:value="formData.dataType">
               <SelectOption value="string">string</SelectOption>
               <SelectOption value="int">int</SelectOption>
@@ -111,51 +123,54 @@
 
       <div class="section-title">展示与校验</div>
       <Row :gutter="16">
-        <Col :span="8"><FormItem label="必填" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.required" /></FormItem></Col>
-        <Col :span="8"><FormItem label="只读" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.readonly" /></FormItem></Col>
-        <Col :span="8"><FormItem label="编辑只读" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.editReadonly" /></FormItem></Col>
+        <Col :span="6"><FormItem label="必填"><Switch v-model:checked="switches.required" /></FormItem></Col>
+        <Col :span="6"><FormItem label="只读"><Switch v-model:checked="switches.readonly" /></FormItem></Col>
+        <Col :span="6"><FormItem label="编辑只读"><Switch v-model:checked="switches.editReadonly" /></FormItem></Col>
+        <Col :span="6"><FormItem label="唯一"><Switch v-model:checked="switches.isUnique" /></FormItem></Col>
       </Row>
       <Row :gutter="16">
-        <Col :span="8"><FormItem label="唯一" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.isUnique" /></FormItem></Col>
+        <Col :span="6"><FormItem label="可搜索"><Switch v-model:checked="switches.searchable" /></FormItem></Col>
+        <Col :span="6"><FormItem label="列表显示"><Switch v-model:checked="switches.showInList" /></FormItem></Col>
+        <Col :span="6"><FormItem label="表单显示"><Switch v-model:checked="switches.showInForm" /></FormItem></Col>
+        <Col :span="6"><FormItem label="导出显示"><Switch v-model:checked="switches.showInExport" /></FormItem></Col>
       </Row>
       <Row :gutter="16">
-        <Col :span="8"><FormItem label="可搜索" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.searchable" /></FormItem></Col>
-      </Row>
-      <Row :gutter="16">
-        <Col :span="8"><FormItem label="列表显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInList" /></FormItem></Col>
-        <Col :span="8"><FormItem label="表单显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInForm" /></FormItem></Col>
-        <Col :span="8"><FormItem label="导出显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInExport" /></FormItem></Col>
-        <Col :span="8"><FormItem label="导入显示" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.showInImport" /></FormItem></Col>
-      </Row>
-      <Row :gutter="16">
-        <Col :span="8"><FormItem label="可排序" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.sortable" /></FormItem></Col>
-        <Col :span="8"><FormItem label="状态" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Switch v-model:checked="switches.status" /></FormItem></Col>
-      </Row>
-
-      <Row :gutter="16">
-        <Col :span="12">
-          <FormItem label="列表宽度" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+        <Col :span="6"><FormItem label="导入显示"><Switch v-model:checked="switches.showInImport" /></FormItem></Col>
+        <Col :span="6"><FormItem label="可排序"><Switch v-model:checked="switches.sortable" /></FormItem></Col>
+        <Col :span="6"><FormItem label="状态"><Switch v-model:checked="switches.status" /></FormItem></Col>
+        <Col :span="6">
+          <FormItem label="列表宽度">
             <InputNumber v-model:value="formData.width" :min="50" :max="600" style="width: 100%" />
           </FormItem>
         </Col>
-        <Col :span="12">
-          <FormItem label="栅格列宽" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
-            <!-- 使用数字输入：库中可为 1–24 任意值；仅用 6/8/12/24 下拉会导致非选项值无法回显 -->
-            <InputNumber
-              v-model:value="formData.colSpan"
-              :min="1"
-              :max="24"
-              allow-clear
-              placeholder="未配置（可留空）"
-              style="width: 100%"
-            />
-          </FormItem>
-        </Col>
       </Row>
       <Row :gutter="16">
-        <Col :span="12"><FormItem label="排序号" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }" name="sortOrder"><InputNumber v-model:value="formData.sortOrder" :min="1" :max="9999" style="width: 100%" /></FormItem></Col>
-        <Col :span="12">
-          <FormItem label="分组 Key" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+        <Col :span="6">
+          <FormItem label="栅格列宽">
+            <Select v-model:value="formData.colSpan">
+              <SelectOption :value="24">24</SelectOption>
+              <SelectOption :value="12">12</SelectOption>
+              <SelectOption :value="8">8</SelectOption>
+              <SelectOption :value="6">6</SelectOption>
+            </Select>
+          </FormItem>
+        </Col>
+        <Col :span="6">
+          <FormItem label="排序号" name="sortOrder">
+            <InputNumber v-model:value="formData.sortOrder" :min="1" :max="9999" style="width: 100%" />
+          </FormItem>
+        </Col>
+        <Col :span="6">
+          <FormItem label="分组排序">
+            <InputNumber v-model:value="formData.sectionOrder" :min="0" :max="9999" style="width: 100%" />
+          </FormItem>
+        </Col>
+        <Col :span="6">
+          <FormItem label="默认展开"><Switch v-model:checked="switches.sectionOpen" /></FormItem></Col>
+      </Row>
+      <Row :gutter="16">
+        <Col :span="6">
+          <FormItem label="分组 Key">
             <Select
               v-model:value="formData.sectionKey"
               allow-clear
@@ -176,35 +191,36 @@
             </Select>
           </FormItem>
         </Col>
-      </Row>
-      <Row :gutter="16">
-        <Col :span="12"><FormItem label="分组标题" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Input v-model:value="formData.sectionTitle" placeholder="未选择分组时可手动输入" /></FormItem></Col>
-        <Col :span="12"><FormItem label="分组排序" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><InputNumber v-model:value="formData.sectionOrder" :min="0" :max="9999" style="width: 100%" /></FormItem></Col>
-      </Row>
-      <Row :gutter="16">
-        <Col :span="12">
-          <FormItem label="分组容器" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+        <Col :span="6">
+          <FormItem label="分组容器">
             <Select v-model:value="formData.sectionType">
               <SelectOption value="card">Card</SelectOption>
               <SelectOption value="collapse">Collapse</SelectOption>
             </Select>
           </FormItem>
         </Col>
-        <Col :span="12">
-          <FormItem label="默认展开" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
-            <Switch v-model:checked="switches.sectionOpen" />
+        <Col :span="6">
+          <FormItem label="分组标题">
+            <Input v-model:value="formData.sectionTitle" placeholder="未选择分组时可手动输入" />
           </FormItem>
         </Col>
+        <Col :span="6"><FormItem label="i18n Key"><Input v-model:value="formData.i18nKey" /></FormItem></Col>
       </Row>
-      <FormItem label="i18n Key"><Input v-model:value="formData.i18nKey" /></FormItem>
 
       <div class="section-title">默认值与数据源</div>
-      <FormItem label="默认值"><Input v-model:value="formData.defaultValue" /></FormItem>
-      <FormItem label="占位提示"><Input v-model:value="formData.placeholder" /></FormItem>
-
       <Row :gutter="16">
-        <Col :span="12">
-          <FormItem label="数据来源" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+        <Col :span="8">
+          <FormItem label="默认值">
+            <Input v-model:value="formData.defaultValue" />
+          </FormItem>
+        </Col>
+        <Col :span="8">
+          <FormItem label="占位提示">
+            <Input v-model:value="formData.placeholder" />
+          </FormItem>
+        </Col>
+        <Col :span="8">
+          <FormItem label="数据来源">
             <Select v-model:value="formData.dataSource">
               <SelectOption value="">(empty)</SelectOption>
               <SelectOption value="dict">dict</SelectOption>
@@ -213,24 +229,46 @@
             </Select>
           </FormItem>
         </Col>
-        <Col :span="12">
-          <FormItem label="API 地址" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+      </Row>
+      <Row :gutter="16">
+        <Col :span="8">
+          <FormItem label="API 地址">
             <Input v-model:value="formData.apiUrl" placeholder="/api/xxx" />
           </FormItem>
         </Col>
-      </Row>
-      <Row :gutter="16">
-        <Col :span="12"><FormItem label="label 字段" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><Input v-model:value="formData.labelField" /></FormItem></Col>
-        <Col :span="12"><FormItem label="value 字段" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><Input v-model:value="formData.valueField" /></FormItem></Col>
+        <Col :span="8">
+          <FormItem label="label 字段">
+            <Input v-model:value="formData.labelField" />
+          </FormItem>
+        </Col>
+        <Col :span="8">
+          <FormItem label="value 字段">
+            <Input v-model:value="formData.valueField" />
+          </FormItem>
+        </Col>
       </Row>
 
       <div class="section-title">校验规则</div>
       <Row :gutter="16">
-        <Col :span="12"><FormItem label="最小值" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><InputNumber v-model:value="ruleBuilder.min" :min="0" style="width: 100%" /></FormItem></Col>
-        <Col :span="12"><FormItem label="最大值" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><InputNumber v-model:value="ruleBuilder.max" :min="0" style="width: 100%" /></FormItem></Col>
+        <Col :span="5">
+          <FormItem label="最小值" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
+            <InputNumber v-model:value="ruleBuilder.min" :min="0" style="width: 100%" />
+          </FormItem>
+        </Col>
+        <Col :span="5">
+          <FormItem label="最大值" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
+            <InputNumber v-model:value="ruleBuilder.max" :min="0" style="width: 100%" />
+          </FormItem>
+        </Col>
+        <Col :span="14">
+          <FormItem label="正则表达式">
+            <Input v-model:value="ruleBuilder.pattern" placeholder="如 ^[A-Za-z0-9_]+$" />
+          </FormItem>
+        </Col>
       </Row>
-      <FormItem label="正则表达式"><Input v-model:value="ruleBuilder.pattern" placeholder="如 ^[A-Za-z0-9_]+$" /></FormItem>
-      <FormItem label="错误提示"><Input v-model:value="ruleBuilder.message" /></FormItem>
+      <FormItem label="错误提示">
+        <Input v-model:value="ruleBuilder.message" />
+      </FormItem>
 
       <div class="linkage-action-header">
         <span>可见条件</span>
@@ -259,29 +297,31 @@
             删除
           </Button>
         </div>
-        <FormItem label="条件字段">
-          <Select
-            v-model:value="condition.field"
-            allow-clear
-            show-search
-            :loading="fieldLoading"
-            placeholder="请选择可见条件字段"
-            option-filter-prop="label"
-            @change="handleVisibleFieldChange(conditionIndex)"
-          >
-            <SelectOption
-              v-for="item in fieldOptions"
-              :key="`visible-${conditionIndex}-${item.value}`"
-              :value="item.value"
-              :label="item.label"
-            >
-              {{ item.label }}
-            </SelectOption>
-          </Select>
-        </FormItem>
         <Row :gutter="16">
           <Col :span="8">
-            <FormItem label="条件操作符" :label-col="{ span: 14 }" :wrapper-col="{ span: 10 }">
+            <FormItem label="条件字段">
+              <Select
+                v-model:value="condition.field"
+                allow-clear
+                show-search
+                :loading="fieldLoading"
+                placeholder="请选择可见条件字段"
+                option-filter-prop="label"
+                @change="handleVisibleFieldChange(conditionIndex)"
+              >
+                <SelectOption
+                  v-for="item in fieldOptions"
+                  :key="`visible-${conditionIndex}-${item.value}`"
+                  :value="item.value"
+                  :label="item.label"
+                >
+                  {{ item.label }}
+                </SelectOption>
+              </Select>
+            </FormItem>
+          </Col>
+          <Col :span="8">
+            <FormItem label="条件操作符">
               <Select v-model:value="condition.operator" @change="handleVisibleOperatorChange(conditionIndex)">
                 <SelectOption value="hasValue">hasValue</SelectOption>
                 <SelectOption value="isEmpty">isEmpty</SelectOption>
@@ -294,8 +334,8 @@
               </Select>
             </FormItem>
           </Col>
-          <Col :span="16">
-            <FormItem label="条件值" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
+          <Col :span="8">
+            <FormItem label="条件值">
               <Switch
                 v-if="resolveVisibleValueControlType(conditionIndex) === 'boolean'"
                 v-model:checked="condition.value"
@@ -317,28 +357,30 @@
         </Row>
       </div>
 
-      <FormItem label="联动源字段">
-        <Select
-          v-model:value="linkageBuilder.sourceField"
-          allow-clear
-          show-search
-          :loading="fieldLoading"
-          placeholder="请选择源字段"
-          option-filter-prop="label"
-        >
-          <SelectOption
-            v-for="item in fieldOptions"
-            :key="`source-${item.value}`"
-            :value="item.value"
-            :label="item.label"
-          >
-            {{ item.label }}
-          </SelectOption>
-        </Select>
-      </FormItem>
       <Row :gutter="16">
         <Col :span="8">
-          <FormItem label="联动条件" :label-col="{ span: 14 }" :wrapper-col="{ span: 10 }">
+          <FormItem label="联动源字段">
+            <Select
+              v-model:value="linkageBuilder.sourceField"
+              allow-clear
+              show-search
+              :loading="fieldLoading"
+              placeholder="请选择源字段"
+              option-filter-prop="label"
+            >
+              <SelectOption
+                v-for="item in fieldOptions"
+                :key="`source-${item.value}`"
+                :value="item.value"
+                :label="item.label"
+              >
+                {{ item.label }}
+              </SelectOption>
+            </Select>
+          </FormItem>
+        </Col>
+        <Col :span="8">
+          <FormItem label="联动条件">
             <Select v-model:value="linkageBuilder.operator">
               <SelectOption value="hasValue">hasValue</SelectOption>
               <SelectOption value="==">==</SelectOption>
@@ -350,8 +392,8 @@
             </Select>
           </FormItem>
         </Col>
-        <Col :span="16">
-          <FormItem label="条件值" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
+        <Col :span="8">
+          <FormItem label="条件值">
             <Input v-model:value="linkageBuilder.conditionValue" :disabled="linkageBuilder.operator === 'hasValue'" />
           </FormItem>
         </Col>
@@ -370,8 +412,8 @@
           <Button v-if="linkageActions.length > 1" danger size="small" type="link" @click="removeLinkageAction(index)">删除</Button>
         </div>
         <Row :gutter="16">
-          <Col :span="12">
-            <FormItem label="目标字段" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+          <Col :span="8">
+            <FormItem label="目标字段">
               <Select
                 v-model:value="action.targetField"
                 allow-clear
@@ -391,8 +433,8 @@
               </Select>
             </FormItem>
           </Col>
-          <Col :span="12">
-            <FormItem label="动作类型" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+          <Col :span="8">
+            <FormItem label="动作类型">
               <Select v-model:value="action.action">
                 <SelectOption value="set">set</SelectOption>
                 <SelectOption value="clear">clear</SelectOption>
@@ -401,10 +443,12 @@
               </Select>
             </FormItem>
           </Col>
+          <Col :span="8">
+            <FormItem label="动作值">
+              <Input v-model:value="action.value" :disabled="['clear', 'disable', 'enable'].includes(action.action || '')" />
+            </FormItem>
+          </Col>
         </Row>
-        <FormItem label="动作值">
-          <Input v-model:value="action.value" :disabled="['clear', 'disable', 'enable'].includes(action.action || '')" />
-        </FormItem>
       </div>
 
       <FormItem label="组件属性">
@@ -415,11 +459,22 @@
         </Row>
       </FormItem>
       <Row :gutter="16">
-        <Col :span="12"><FormItem label="maxLength" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }"><InputNumber v-model:value="componentBuilder.maxLength" :min="0" style="width: 100%" /></FormItem></Col>
-        <Col :span="12"><FormItem label="rows" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }"><InputNumber v-model:value="componentBuilder.rows" :min="1" style="width: 100%" /></FormItem></Col>
+        <Col :span="8">
+          <FormItem label="maxLength">
+            <InputNumber v-model:value="componentBuilder.maxLength" :min="0" style="width: 100%" />
+          </FormItem>
+        </Col>
+        <Col :span="8">
+          <FormItem label="rows">
+            <InputNumber v-model:value="componentBuilder.rows" :min="1" style="width: 100%" />
+          </FormItem>
+        </Col>
+        <Col :span="8">
+          <FormItem label="备注">
+            <Input.TextArea v-model:value="formData.remarks" :rows="1" />
+          </FormItem>
+        </Col>
       </Row>
-
-      <FormItem label="备注"><Input.TextArea v-model:value="formData.remarks" :rows="2" /></FormItem>
 
       <div class="section-title">关联表配置（Lookup 虚拟列）</div>
       <div class="lookup-tip">
@@ -429,20 +484,18 @@
         <code>warehouse_code,warehouse_name</code>），后端会用 <code>❤</code> 拼接成一列展示。
       </div>
       <Row :gutter="16">
-        <Col :span="12">
-          <FormItem label="关联表 tableCode" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+        <Col :span="8">
+          <FormItem label="关联表 tableCode">
             <Input v-model:value="formData.refTableCode" allow-clear placeholder="如 inv_warehouse" />
           </FormItem>
         </Col>
-        <Col :span="12">
-          <FormItem label="匹配字段" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+        <Col :span="8">
+          <FormItem label="匹配字段">
             <Input v-model:value="formData.refMatchField" allow-clear placeholder="如 warehouse_code" />
           </FormItem>
         </Col>
-      </Row>
-      <Row :gutter="16">
-        <Col :span="12">
-          <FormItem label="展示字段" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+        <Col :span="8">
+          <FormItem label="展示字段">
             <Input
               v-model:value="formData.refTargetField"
               allow-clear
@@ -450,15 +503,15 @@
             />
           </FormItem>
         </Col>
-        <Col :span="12">
-          <FormItem label="本表外键" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
+      </Row>
+      <Row :gutter="16">
+        <Col :span="8">
+          <FormItem label="本表外键">
             <Input v-model:value="formData.refLocalField" allow-clear placeholder="默认=字段编码，如 warehouse_code" />
           </FormItem>
         </Col>
-      </Row>
-      <Row :gutter="16">
-        <Col :span="12">
-          <FormItem label="拼接分隔符" :label-col="{ span: 12 }" :wrapper-col="{ span: 12 }">
+        <Col :span="8">
+          <FormItem label="拼接分隔符">
             <Input
               v-model:value="formData.refSeparator"
               allow-clear
@@ -467,6 +520,7 @@
             />
           </FormItem>
         </Col>
+        <Col :span="8" />
       </Row>
     </Form>
   </Modal>
@@ -475,6 +529,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
 import {
+  Button,
   Col,
   Form,
   FormItem,
@@ -1059,8 +1114,6 @@ async function handleSubmit() {
 
     const payload = {
       ...formData,
-      /** 未填则传 null，与库 col_span IS NULL、接口 colSpan:null 一致 */
-      colSpan: formData.colSpan === undefined || formData.colSpan === null ? null : formData.colSpan,
       tableCode: props.tableCode || formData.tableCode,
       field: formData.field?.trim(),
       title: formData.title?.trim(),
@@ -1184,6 +1237,13 @@ watch(
   background: #f9fafb;
   border-left: 3px solid #3b82f6;
   border-radius: 4px;
+}
+
+.modal-action-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 </style>
 

@@ -3,7 +3,7 @@
     :open="visible"
     :title="dialogTitle"
     :confirm-loading="loading"
-    width="600px"
+    width="700px"
     :ok-text="$t('page.common.confirm')"
     :cancel-text="$t('page.common.cancel')"
     @ok="handleSubmit"
@@ -19,23 +19,28 @@
         <Input :value="record?.warehouseCode || ''" disabled />
       </Form.Item>
 
-      <Form.Item label="库位类型">
+      <Form.Item label="仓库档案信息">
+        <Input :value="warehouseInfoText" disabled />
+      </Form.Item>
+
+      <Form.Item label="排序号">
+        <Input :value="record?.locationSortNo || ''" disabled />
+      </Form.Item>
+
+      <Form.Item label="全路径名称">
+        <Input :value="record?.locationFullpathName || ''" disabled />
+      </Form.Item>
+
+      <Form.Item label="库位等级">
         <Input :value="locationGradeLabel" disabled />
       </Form.Item>
 
-      <Form.Item label="名称" name="locationName">
-        <Input v-model:value="formState.locationName" placeholder="请输入库位名称" />
+      <Form.Item label="库位类型名称">
+        <Input :value="record?.locationType || ''" disabled />
       </Form.Item>
 
-      <Form.Item label="数量">
-        <Input
-          v-model:value="formState.internalQuantity"
-          disabled
-          placeholder="仅存储容器可用"
-        />
-        <div v-if="isContainer && !isBound" class="form-tip">
-          数量变更需通过批量创建实现
-        </div>
+      <Form.Item label="库位名称" name="locationName">
+        <Input v-model:value="formState.locationName" placeholder="请输入库位名称" />
       </Form.Item>
 
       <Form.Item label="规格">
@@ -106,6 +111,16 @@ const formState = ref({
 
 // 仓库选项
 const warehouseOptions = ref<Array<{ label: string; value: string }>>([]);
+
+// 仓库档案信息文本
+const warehouseInfoText = computed(() => {
+  if (!props.record) return '-';
+  const parts: string[] = [];
+  if (props.record.warehouseName) parts.push(props.record.warehouseName);
+  if (props.record.temperatureZone) parts.push(props.record.temperatureZone + '区');
+  if (props.record.warehouseLocation) parts.push(props.record.warehouseLocation);
+  return parts.length > 0 ? parts.join(' ') : '-';
+});
 
 const storageModeOptions = [
   { label: '共享模式', value: 'Shared' },
