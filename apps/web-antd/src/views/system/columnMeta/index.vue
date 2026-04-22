@@ -185,6 +185,15 @@
           />
         </template>
 
+        <!-- 可搜索 -->
+        <template v-else-if="column.key === 'searchable'">
+          <Switch
+            :checked="record.searchable === 1"
+            size="small"
+            @change="(checked) => void handleToggleSearchable(record, checked as boolean)"
+          />
+        </template>
+
         <!-- 导出显示 -->
         <template v-else-if="column.key === 'showInExport'">
           <Switch
@@ -422,20 +431,19 @@ const columns = computed<TableColumnsType>(() => [
   { title: '排序', key: 'seq', width: 70, align: 'center' },
   { title: '字段编码', dataIndex: 'field', key: 'field', width: 150 },
   { title: '字段名称', dataIndex: 'title', key: 'title', width: 150 },
+  { title: '列表宽度', dataIndex: 'width', key: 'width', width: 90, align: 'center' },
   { title: '栅格列宽', dataIndex: 'colSpan', key: 'colSpan', width: 90, align: 'center' },
   { title: '只读', key: 'readonly', width: 70, align: 'center' },
   { title: '编辑只读', key: 'editReadonly', width: 90, align: 'center' },
-  { title: '分组', dataIndex: 'sectionTitle', key: 'sectionTitle', width: 140 },
-  { title: '分组Key', dataIndex: 'sectionKey', key: 'sectionKey', width: 120 },
   { title: '容器', dataIndex: 'sectionType', key: 'sectionType', width: 90, align: 'center' },
   { title: '字段类型', key: 'formType', width: 120, align: 'center' },
   { title: '数据类型', key: 'dataType', width: 100, align: 'center' },
   { title: '必填', key: 'required', width: 70, align: 'center' },
+  { title: '可搜索', key: 'searchable', width: 90, align: 'center' },
   { title: '列表显示', key: 'showInList', width: 90, align: 'center' },
   { title: '表单显示', key: 'showInForm', width: 90, align: 'center' },
   { title: '导出显示', key: 'showInExport', width: 90, align: 'center' },
   { title: '导入显示', key: 'showInImport', width: 90, align: 'center' },
-  { title: '排序号', dataIndex: 'sortOrder', key: 'sortOrder', width: 80, align: 'center' },
   { title: '分组排序', dataIndex: 'sectionOrder', key: 'sectionOrder', width: 90, align: 'center' },
   { title: '默认展开', dataIndex: 'sectionOpen', key: 'sectionOpen', width: 90, align: 'center' },
   { title: '状态', key: 'status', width: 70, align: 'center' },
@@ -603,6 +611,20 @@ async function handleToggleRequired(record: ColumnMetaApi.ColumnMeta, checked: b
       required: checked ? 1 : 0,
     });
     message.success(checked ? '已设为必填' : '已取消必填');
+    loadData();
+  } catch (error: any) {
+    message.error(error?.message || '操作失败');
+    loadData();
+  }
+}
+
+async function handleToggleSearchable(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
+  try {
+    await updateColumnMeta({
+      ...record,
+      searchable: checked ? 1 : 0,
+    });
+    message.success(checked ? '已设为可搜索' : '已取消可搜索');
     loadData();
   } catch (error: any) {
     message.error(error?.message || '操作失败');
