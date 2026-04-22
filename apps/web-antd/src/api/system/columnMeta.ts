@@ -92,6 +92,24 @@ export interface SortOrderItem {
   sortOrder: number;
 }
 
+/**
+ * 栅格列宽：统一 camel/snake；未配置时为 undefined（与接口 colSpan:null 一致），禁止误当成 24
+ */
+function normalizeColSpan(item: Record<string, unknown>): number | undefined {
+  const raw =
+    item.colSpan ??
+    item.col_span ??
+    item.formColSpan ??
+    item.form_col_span;
+  if (raw === null || raw === undefined || raw === '') {
+    return undefined;
+  }
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return undefined;
+  const r = Math.round(n);
+  return Math.min(24, Math.max(1, r));
+}
+
 function normalizeColumn(item: any): ColumnMetaApi.ColumnMeta {
   return {
     ...item,
@@ -106,7 +124,7 @@ function normalizeColumn(item: any): ColumnMetaApi.ColumnMeta {
     searchable: Number(item.searchable ?? item.isSearchable ?? 0),
     sortable: Number(item.sortable ?? item.isSortable ?? 0),
     width: Number(item.width ?? item.listWidth ?? 120),
-    colSpan: Number(item.colSpan ?? item.formColSpan ?? 24),
+    colSpan: normalizeColSpan(item),
     readonly: Number(item.readonly ?? item.isReadonly ?? 0),
     editReadonly: Number(item.editReadonly ?? item.isEditReadonly ?? 0),
     rulesJson: item.rulesJson ?? item.validRules ?? '',
@@ -133,7 +151,7 @@ function normalizeSchemaColumn(item: any): ColumnMetaApi.ColumnMeta {
     searchable: Number(item.searchable ?? item.isSearchable ?? 0),
     sortable: Number(item.sortable ?? item.isSortable ?? 0),
     width: Number(item.width ?? 120),
-    colSpan: Number(item.colSpan ?? 24),
+    colSpan: normalizeColSpan(item),
     readonly: Number(item.readonly ?? item.isReadonly ?? 0),
     editReadonly: Number(item.editReadonly ?? item.isEditReadonly ?? 0),
     defaultValue: item.defaultValue ?? '',

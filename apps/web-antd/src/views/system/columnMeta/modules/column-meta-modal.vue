@@ -140,12 +140,15 @@
         </Col>
         <Col :span="12">
           <FormItem label="栅格列宽" :label-col="{ span: 10 }" :wrapper-col="{ span: 14 }">
-            <Select v-model:value="formData.colSpan">
-              <SelectOption :value="24">24</SelectOption>
-              <SelectOption :value="12">12</SelectOption>
-              <SelectOption :value="8">8</SelectOption>
-              <SelectOption :value="6">6</SelectOption>
-            </Select>
+            <!-- 使用数字输入：库中可为 1–24 任意值；仅用 6/8/12/24 下拉会导致非选项值无法回显 -->
+            <InputNumber
+              v-model:value="formData.colSpan"
+              :min="1"
+              :max="24"
+              allow-clear
+              placeholder="未配置（可留空）"
+              style="width: 100%"
+            />
           </FormItem>
         </Col>
       </Row>
@@ -1027,7 +1030,6 @@ async function loadDetail(id: number) {
     if (!detail) return;
     Object.assign(formData, detail, {
       tableCode: props.tableCode || detail.tableCode,
-      colSpan: detail.colSpan ?? detail.formColSpan ?? 24,
     });
     syncSwitchFromForm();
     hydrateBuildersFromForm();
@@ -1051,6 +1053,8 @@ async function handleSubmit() {
 
     const payload = {
       ...formData,
+      /** 未填则传 null，与库 col_span IS NULL、接口 colSpan:null 一致 */
+      colSpan: formData.colSpan === undefined || formData.colSpan === null ? null : formData.colSpan,
       tableCode: props.tableCode || formData.tableCode,
       field: formData.field?.trim(),
       title: formData.title?.trim(),
