@@ -8,6 +8,14 @@
     :crud-prefix="crudPrefix"
     @form-success="handleFormSuccess"
   >
+    <!-- 添加工具栏左侧的「新建仓库」按钮 -->
+    <template #toolbarLeft>
+      <Button type="primary" @click="handleOpenCreate">
+        <IconifyIcon icon="material-symbols:add" class="mr-1" />
+        新建仓库
+      </Button>
+    </template>
+
     <!-- 操作列由 LowcodePage 根据 meta 渲染；此处仅追加「收货地址」 -->
     <template #appendAction="{ record }">
       <Tooltip title="收货地址">
@@ -17,6 +25,14 @@
       </Tooltip>
     </template>
   </LowcodePage>
+
+  <!-- 新建/编辑仓库弹窗 -->
+  <WarehouseModal
+    ref="warehouseModalRef"
+    v-model:open="warehouseModalVisible"
+    :warehouse-id="currentEditId"
+    @success="handleWarehouseSuccess"
+  />
 
   <!-- 收货地址管理弹窗 -->
   <WarehouseReceiverModal
@@ -32,12 +48,18 @@ import { ref } from 'vue';
 import { Button, Tooltip, message } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 import LowcodePage from '#/lowcode/LowcodePage.vue';
+import WarehouseModal from '#/views/sys/warehouse/modules/warehouse-modal.vue';
 import WarehouseReceiverModal from '#/views/sys/warehouse/modules/warehouse-receiver-modal.vue';
 
 const crudPrefix = '/api/wms/crud/inv_warehouse';
 
 // LowcodePage 引用
 const lowcodePageRef = ref<InstanceType<typeof LowcodePage> | null>(null);
+
+// 仓库弹窗
+const warehouseModalVisible = ref(false);
+const currentEditId = ref<number | undefined>(undefined);
+const warehouseModalRef = ref<InstanceType<typeof WarehouseModal> | null>(null);
 
 // 收货地址弹窗
 const receiverModalVisible = ref(false);
@@ -48,6 +70,16 @@ function reloadList() {
 }
 
 function handleFormSuccess() {
+  reloadList();
+}
+
+function handleOpenCreate() {
+  currentEditId.value = undefined;
+  warehouseModalRef.value?.open();
+}
+
+function handleWarehouseSuccess() {
+  warehouseModalVisible.value = false;
   reloadList();
 }
 
