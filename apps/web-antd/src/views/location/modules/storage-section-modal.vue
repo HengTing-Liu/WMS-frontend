@@ -210,6 +210,14 @@
                 </div>
               </Col>
             </Row>
+            <div
+              v-if="createContainer && formData.container.locationName && currentSerialPreview"
+              class="serial-preview"
+            >
+              <span class="preview-label">当前容器名称起始数据为 </span>
+              <span class="preview-value">{{ currentSerialPreview }}</span>
+              <span class="preview-label">，仅供参考，保存时自动生成。</span>
+            </div>
           </div>
 
           <!-- 统计信息 -->
@@ -228,6 +236,11 @@
           <div class="preview-title">
             <IconifyIcon icon="material-symbols:preview" class="mr-1" />
             结构预览
+            <div class="preview-actions">
+              <Button type="text" size="small" class="refresh-btn" @click="handleRefreshPreview">
+                <template #icon><IconifyIcon icon="material-symbols:refresh" /></template>
+              </Button>
+            </div>
           </div>
           <div class="preview-content">
             <Empty
@@ -286,7 +299,7 @@ import { IconifyIcon } from '@vben/icons';
 import { batchCreateHierarchy, getDetail } from '#/api/wms/location';
 import type { LevelConfig, ContainerConfig } from '#/api/wms/location';
 import { getDictDataByType } from '#/api/system/dict';
-import { getSerialNumberList, batchGenerateSerialNumber } from '#/api/system/serial-number';
+import { getSerialNumberList } from '#/api/system/serial-number';
 
 interface Props {
   visible: boolean;
@@ -336,6 +349,45 @@ const selectedContainerSpec = computed(() => {
 // 流水号规则选项（apply_form_field = inv_location|location_name）
 const serialRuleLoading = ref(false);
 const serialRuleOptions = ref<Array<{ label: string; value: string }>>([]);
+
+// 当前流水号预览值
+const currentSerialPreview = ref('');
+
+// 获取当前流水号预览（只是查看，不占用）
+async function loadCurrentSerialPreview() {
+  if (!formData.container.locationName) {
+    currentSerialPreview.value = '';
+    return;
+  }
+  try {
+    const res = await getSerialNumberList({ applyFormField: 'inv_location|location_name', pageSize: 999 });
+    const rows = res.rows || [];
+    const rule = rows.find((r: any) => (r.ruleName || r.name) === formData.container.locationName);
+    if (!rule) {
+      currentSerialPreview.value = '';
+      return;
+    }
+    const prefix = rule.prefix || '';
+    const suffix = rule.suffix || '';
+    const seqLength = rule.seqLength || rule.seq_length || 4;
+    const currentSeq = rule.currentSeq || rule.current_seq || 1;
+    const dateFormat = rule.dateFormat || rule.date_format || '';
+    let datePart = '';
+    if (dateFormat) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      if (dateFormat === 'yyyy') datePart = String(year);
+      else if (dateFormat === 'yyyyMM') datePart = `${year}${month}`;
+      else if (dateFormat === 'yyyyMMdd') datePart = `${year}${month}${day}`;
+    }
+    const seqStr = String(currentSeq).padStart(seqLength, '0');
+    currentSerialPreview.value = `${prefix}${datePart}${seqStr}${suffix}`;
+  } catch {
+    currentSerialPreview.value = '';
+  }
+}
 
 async function loadSerialRules() {
   serialRuleLoading.value = true;
@@ -605,6 +657,11 @@ interface PreviewTreeNode {
 // 预览树数据（通过 watch + API 调用更新）
 const previewTreeData = ref<PreviewTreeNode[]>([]);
 
+// 刷新预览树
+async function handleRefreshPreview() {
+  await loadPreviewTree();
+}
+
 async function loadPreviewTree() {
   if (!props.parentId || formData.levels.length === 0) {
     previewTreeData.value = [];
@@ -617,24 +674,6 @@ async function loadPreviewTree() {
     gradeType: 'parent',
     children: [],
   };
-
-  // 获取容器名称数组
-  let containerNames: string[] = [];
-  if (createContainer.value && formData.container.locationName) {
-    const qty = Math.min(formData.container.quantity || 1, 3);
-    try {
-      const res = await batchGenerateSerialNumber({
-        ruleName: formData.container.locationName,
-        count: qty,
-      });
-      const raw = Array.isArray(res) ? res : res?.data || res?.serialNumbers || [];
-      containerNames = raw.map((n: any) =>
-        typeof n === 'string' ? n : n?.serialNo || n?.serialNumber || n?.name || String(n),
-      );
-    } catch {
-      containerNames = [];
-    }
-  }
 
   // 递归生成分区层级
   function buildLevelNodes(
@@ -678,16 +717,13 @@ async function loadPreviewTree() {
   }
 
   // 生成容器节点
-  let containerIdx = 0;
   function buildContainerNodes(parentNode: PreviewTreeNode, parentPrefix: string) {
     const containerQty = Math.min(formData.container.quantity || 1, 3);
     const children: PreviewTreeNode[] = [];
 
     for (let i = 0; i < containerQty; i++) {
       let name: string;
-      if (containerNames[i]) {
-        name = containerNames[i];
-      } else if (formData.container.locationName) {
+      if (formData.container.locationName) {
         const ruleLabel = serialRuleOptions.value.find(
           (r) => r.value === formData.container.locationName,
         )?.label || formData.container.locationName;
@@ -850,21 +886,29 @@ watch(visible, (val) => {
     };
     // 规格由字典自动解析，无需重置
     createContainer.value = false;
+    currentSerialPreview.value = '';
   }
 });
 
-// 监听关键字段变化，刷新预览树
+// 弹窗打开时加载预览树（不支持自动刷新，需手动点击刷新按钮）
 watch(
-  () => [
-    props.parentId,
-    formData.levels,
-    createContainer.value,
-    formData.container.locationName,
-    formData.container.quantity,
-    serialRuleOptions.value.length,
-  ],
-  () => {
-    loadPreviewTree();
+  () => props.visible,
+  (val) => {
+    if (val) {
+      loadPreviewTree();
+    }
+  },
+);
+
+// 监听容器名称和创建容器状态变化，获取当前流水号预览
+watch(
+  () => [createContainer.value, formData.container.locationName],
+  async ([isCreate, locationName]) => {
+    if (isCreate && locationName) {
+      await loadCurrentSerialPreview();
+    } else {
+      currentSerialPreview.value = '';
+    }
   },
 );
 </script>
@@ -901,6 +945,7 @@ watch(
       margin-bottom: 12px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
     }
 
     .preview-content {
@@ -910,6 +955,21 @@ watch(
       border-radius: 6px;
       padding: 12px;
       min-height: 400px;
+    }
+  }
+
+  .preview-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .refresh-btn {
+      padding: 4px;
+      color: #595959;
+
+      &:hover {
+        color: #1890ff;
+      }
     }
   }
 }
@@ -1065,6 +1125,23 @@ watch(
 
 .stats-alert {
   margin-top: 4px;
+}
+
+.serial-preview {
+  font-size: 13px;
+  margin-top: 4px;
+  line-height: 1.6;
+  text-align: right;
+
+  .preview-label {
+    color: #262626;
+  }
+
+  .preview-value {
+    color: #1890ff;
+    font-size: 15px;
+    font-weight: 600;
+  }
 }
 
 .preview-tree {

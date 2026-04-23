@@ -88,7 +88,14 @@ function buildMenuTree(list: MenuItem[]): MenuTreeOption[] {
 
 async function loadMenuTree() {
   const res = (await getMenuList()) as any;
-  const list: MenuItem[] = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+  let list: MenuItem[] = [];
+  if (Array.isArray(res?.rows)) {
+    list = res.rows;
+  } else if (Array.isArray(res?.data)) {
+    list = res.data;
+  } else if (Array.isArray(res)) {
+    list = res;
+  }
   const children = buildMenuTree(list);
   menuTreeOptions.value = [
     { title: '主类目', value: 0, children },

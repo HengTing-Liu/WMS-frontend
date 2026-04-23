@@ -25,7 +25,7 @@
     "employeeCode": "责任人工号",
     "employeeName": "责任人",
     "deptCode": "责任部门编号",
-    "deptNameFullPath": "责任部门全路径",
+    "deptNameFullPath": "责任部门名称",
     "erpSection": "ERP信息",
     "erpCompanyCode": "ERP公司编码",
     "erpCompanyName": "ERP公司名称",

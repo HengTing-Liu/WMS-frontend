@@ -90,6 +90,25 @@ export async function getWarehouseByCode(warehouseCode: string): Promise<Warehou
   return null;
 }
 
+export interface WarehouseBatchParams {
+  warehouseType: string;
+  warehouseLocation?: string;
+  warehouseName: string;
+  temperatureZones: string[];
+  qualityZones: string[];
+  employeeCode?: string;
+  employeeName?: string;
+  deptCode?: string;
+  deptNameFullPath?: string;
+  erpCompanyCode?: string;
+  erpCompanyName?: string;
+  erpWarehouseCode?: string;
+  erpLocationCode?: string;
+  isEnabled?: number;
+  remarks?: string;
+  storedMaterial?: string;
+}
+
 export async function createWarehouse(data: Partial<WarehouseResult>) {
   // 移除 snake_case 字段，避免后端接收参数混乱
   const {
@@ -100,6 +119,13 @@ export async function createWarehouse(data: Partial<WarehouseResult>) {
     is_enabled, create_by, create_time, update_by, update_time, ...rest
   } = data as any;
   return requestClient.post('/api/wms/warehouse', { ...rest });
+}
+
+/**
+ * 批量创建仓库（根据温度分区和质量分区的笛卡尔积）
+ */
+export async function createWarehouseBatch(data: WarehouseBatchParams) {
+  return requestClient.post('/api/wms/warehouse/batch', data);
 }
 
 export async function updateWarehouse(data: Partial<WarehouseResult>) {

@@ -18,12 +18,14 @@
 
       <Row :gutter="16">
         <Col :span="8">
-          <FormItem :label="$t('page.warehouse.warehouseCode')" name="warehouseCode">
-            <Input
-              v-model:value="formData.warehouseCode"
-              :placeholder="$t('page.common.inputPlaceholder')"
-              :disabled="isEdit"
-              :maxlength="100"
+          <FormItem :label="$t('page.warehouse.warehouseType')" name="warehouseType" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
+            <Select
+              v-model:value="formData.warehouseType"
+              :placeholder="$t('page.common.selectPlaceholder')"
+              :options="warehouseTypeOptions"
+              :loading="dictLoading"
+              style="width: 80%; margin-left: 10px"
+              allow-clear
             />
           </FormItem>
         </Col>
@@ -54,56 +56,42 @@
       </Row>
       <Row :gutter="16">
         <Col :span="8">
-          <FormItem :label="$t('page.warehouse.warehouseType')" name="warehouseType" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
-            <Select
-              v-model:value="formData.warehouseType"
-              :placeholder="$t('page.common.selectPlaceholder')"
-              :options="warehouseTypeOptions"
-              :loading="dictLoading"
-              style="width: 80%; margin-left: 10px"
-              allow-clear
+          <FormItem label="仓库编码" name="warehouseCode" :label-col="{ span: 8 }" extra="仅供参考，保存时自动生成">
+            <Input
+              v-model:value="formData.warehouseCode"
+              placeholder="保存时自动生成"
+              :disabled="!isEdit"
+              style="width: 150px; margin-left: 10px"
             />
           </FormItem>
-        </Col>      
-        <Col :span="8">
-          <FormItem :label="$t('page.warehouse.warehouseLocation')" name="warehouseLocation">
+        </Col>
+        <Col :span="4">
+          <FormItem :label="$t('page.warehouse.warehouseLocation')" name="warehouseLocation":label-col="{ span: 10 }">
             <Select
               v-model:value="formData.warehouseLocation"
               :placeholder="$t('page.common.selectPlaceholder')"
               :options="warehouseLocationOptions"
               :loading="dictLoading"
-              style="width: 110%"
+              style="width: 100px; margin-left: 10px"
               allow-clear
             />
           </FormItem>
-        </Col>
-        <Col :span="8">
-          <FormItem :label="$t('page.warehouse.warehouseName')" name="warehouseName">
+        </Col>      
+        <Col :span="12">
+          <FormItem :label="$t('page.warehouse.warehouseName')" name="warehouseName" :label-col="{ span: 8 }">
             <Input
               v-model:value="formData.warehouseName"
               :placeholder="$t('page.common.inputPlaceholder')"
               :maxlength="100"
-              style=" margin-left: 10px"
+              style="width: 95%; margin-left: 10px"
             />
           </FormItem>
         </Col>
       </Row>
 
       <Row :gutter="16">
-        <Col :span="16">
-          <FormItem :label="$t('page.warehouse.temperatureZone')" name="temperatureZone" :label-col="{ span: 4 }" :wrapper-col="{ span: 19 }">
-            <Select
-              v-model:value="formData.temperatureZone"
-              :placeholder="$t('page.common.selectPlaceholder')"
-              :options="temperatureZoneOptions"
-              :loading="dictLoading"
-              mode="multiple"
-              allow-clear
-            />
-          </FormItem>
-        </Col>
-        <Col :span="8">
-          <FormItem :label="$t('page.warehouse.qualityZone')" name="qualityZone">
+        <Col :span="10">
+          <FormItem :label="$t('page.warehouse.qualityZone')" name="qualityZone" >
             <Select
               v-model:value="formData.qualityZone"
               :placeholder="$t('page.common.selectPlaceholder')"
@@ -114,19 +102,22 @@
             />
           </FormItem>
         </Col>
-      </Row>
-
-      <Row :gutter="16">
-        <Col :span="8">
-          <FormItem :label="$t('page.warehouse.employeeCode')">
-            <Input
-              v-model:value="formData.employeeCode"
-              :placeholder="$t('page.common.inputPlaceholder')"
-              :maxlength="50"
-              style="width: 50%; margin-left: 10px"
+        <Col :span="14">
+          <FormItem :label="$t('page.warehouse.temperatureZone')" name="temperatureZone" :label-col="{ span: 4 }" :wrapper-col="{ span: 22 }">
+            <Select
+              v-model:value="formData.temperatureZone"
+              :placeholder="$t('page.common.selectPlaceholder')"
+              :options="temperatureZoneOptions"
+              :loading="dictLoading"
+              mode="multiple"
+              style="width: 100%"
+              allow-clear
             />
           </FormItem>
         </Col>
+      </Row>
+
+      <Row :gutter="16">
         <Col :span="8">
           <FormItem :label="$t('page.warehouse.employeeName')">
             <Input
@@ -136,32 +127,22 @@
             />
           </FormItem>
         </Col>
-        <Col :span="8">
-          <FormItem :label="$t('page.warehouse.deptCode')">
-            <Input
-              v-model:value="formData.deptCode"
-              :placeholder="$t('page.common.inputPlaceholder')"
-              :maxlength="50"
-              style="width: 100%; margin-left: 10px"
-            />
-          </FormItem>
-        </Col>      
-      </Row>
-
-      <Row :gutter="16">
-
-        <Col :span="12">
+        <Col :span="16">
           <FormItem :label="$t('page.warehouse.deptNameFullPath')" name="deptNameFullPath">
             <Input
               v-model:value="formData.deptNameFullPath"
               :placeholder="$t('page.common.inputPlaceholder')"
               :maxlength="200"
+              style="width: 112%"
             />
           </FormItem>
-        </Col>
+        </Col>     
+      </Row>
 
-        <Col :span="12">
-          <FormItem :label="$t('page.warehouse.remark')">
+      <Row :gutter="16">
+
+        <Col :span="24">
+          <FormItem :label="$t('page.warehouse.remark')" :label-col="{ span: 2 }" :wrapper-col="{ span: 24 }">
             <Input
               v-model:value="formData.remarks"
               :placeholder="$t('page.common.inputPlaceholder')"
@@ -245,8 +226,10 @@ import {
   createWarehouse,
   updateWarehouse,
   getWarehouseDetail,
+  createWarehouseBatch,
 } from '#/api/sys/warehouse';
 import { listDictDataPage } from '#/api/sys/dict';
+import { getSerialNumberList } from '#/api/system/serial-number';
 import type { DictDataResult } from '#/api/sys/dict';
 
 const props = defineProps<{
@@ -349,6 +332,9 @@ const formRules = {
   warehouseType: [
     { required: true, message: '请选择仓库类型', trigger: 'change' },
   ],
+  warehouseCode: [
+    { required: false, message: '仓库编码不能为空', trigger: 'blur' },
+  ],
   warehouseName: [
     { required: true, message: () => $t('page.warehouse.nameRequired'), trigger: 'blur' },
     { max: 100, message: () => $t('page.warehouse.nameMaxLength'), trigger: 'blur' },
@@ -387,6 +373,43 @@ const loadDetail = async (id: number) => {
   }
 };
 
+// 加载流水号规则并拼接预览编码（不消耗流水号）
+async function loadWarehouseCode() {
+  try {
+    const res = await getSerialNumberList({ applyFormField: 'inv_warehouse|warehouse_code', pageSize: 999 });
+    const rows = res.rows || [];
+    if (rows.length === 0) {
+      console.warn('[WarehouseModal] 未找到流水号规则: inv_warehouse|warehouse_code');
+      return;
+    }
+    const rule = rows[0];
+    const prefix = rule.prefix || '';
+    const suffix = rule.suffix || '';
+    const seqLength = rule.seqLength || rule.seq_length || 4;
+    const currentSeq = rule.currentSeq || rule.current_seq || 1;
+    const dateFormat = rule.dateFormat || rule.date_format || '';
+
+    // 拼接序号部分
+    const seqStr = String(currentSeq).padStart(seqLength, '0');
+
+    // 日期部分（如有）
+    let datePart = '';
+    if (dateFormat) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      if (dateFormat === 'yyyy') datePart = String(year);
+      else if (dateFormat === 'yyyyMM') datePart = `${year}${month}`;
+      else if (dateFormat === 'yyyyMMdd') datePart = `${year}${month}${day}`;
+    }
+
+    formData.warehouseCode = `${prefix}${datePart}${seqStr}${suffix}`;
+  } catch (e: any) {
+    console.warn('[WarehouseModal] 加载仓库编码失败:', e?.message || e);
+  }
+}
+
 // 打开弹窗时加载数据
 const open = async (id?: number) => {
   visible.value = true;
@@ -394,6 +417,8 @@ const open = async (id?: number) => {
   await loadDictData();
   if (id) {
     await loadDetail(id);
+  } else {
+    await loadWarehouseCode();
   }
 };
 
@@ -411,12 +436,39 @@ const handleSubmit = async () => {
       });
       message.success($t('page.common.updateSuccess'));
     } else {
-      await createWarehouse({
-        ...formData,
-        temperatureZone: formData.temperatureZone?.join(','),
-        qualityZone: formData.qualityZone?.join(','),
-      });
-      message.success($t('page.common.createSuccess'));
+      const hasMultiTemp = (formData.temperatureZone || []).length > 1;
+      const hasMultiQuality = (formData.qualityZone || []).length > 1;
+
+      if (hasMultiTemp || hasMultiQuality) {
+        // 批量创建：根据温度分区和质量分区的笛卡尔积生成多个仓库
+        await createWarehouseBatch({
+          warehouseType: formData.warehouseType,
+          warehouseLocation: formData.warehouseLocation,
+          warehouseName: formData.warehouseName,
+          temperatureZones: formData.temperatureZone || [],
+          qualityZones: formData.qualityZone || [],
+          employeeCode: formData.employeeCode,
+          employeeName: formData.employeeName,
+          deptCode: formData.deptCode,
+          deptNameFullPath: formData.deptNameFullPath,
+          erpCompanyCode: formData.erpCompanyCode,
+          erpCompanyName: formData.erpCompanyName,
+          erpWarehouseCode: formData.erpWarehouseCode,
+          erpLocationCode: formData.erpLocationCode,
+          isEnabled: formData.isEnabled,
+          remarks: formData.remarks,
+          storedMaterial: formData.storedMaterial,
+        });
+        message.success($t('page.common.createSuccess'));
+      } else {
+        // 单个创建：兼容只有一个温度分区和一个质量分区的情况
+        await createWarehouse({
+          ...formData,
+          temperatureZone: formData.temperatureZone?.join(','),
+          qualityZone: formData.qualityZone?.join(','),
+        });
+        message.success($t('page.common.createSuccess'));
+      }
     }
 
     visible.value = false;
