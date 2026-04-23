@@ -75,6 +75,7 @@ export async function fetchColumnSchema(tableCode: string): Promise<ColumnMeta[]
       dataSource: item.dataSource,
       readonly: Number(item.readonly ?? item.isReadonly ?? item.is_readonly ?? 0),
       editReadonly: Number(item.editReadonly ?? item.isEditReadonly ?? item.is_edit_readonly ?? 0),
+      serialNumberRule: item.serialNumberRule ?? '',
     };
   });
 }
@@ -265,6 +266,18 @@ export async function deleteRecord(params: {
   const { tableCode, prefix, tableMeta, id } = params;
   const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
   return requestClient.delete<any>(`${basePrefix}/${id}`);
+}
+
+/**
+ * 根据规则编码预览流水号（低代码表单预填充用，只计算不消耗）
+ */
+export async function fetchSerialNumber(ruleCode: string): Promise<string> {
+  try {
+    const res = await requestClient.post<any>('/api/serial/previewByRuleCode', { ruleCode });
+    return res?.data?.serialNo ?? res?.serialNo ?? '';
+  } catch {
+    return '';
+  }
 }
 
 /** 闁氨鏁ら崥顖滄暏/閸嬫粎鏁?*/

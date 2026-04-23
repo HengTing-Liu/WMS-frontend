@@ -86,6 +86,7 @@ import {
   fetchColumnSchema,
   fetchDetail,
   fetchFormGroups,
+  fetchSerialNumber,
   fetchTableMeta,
   inferCrudPrefix,
   updateRecord,
@@ -544,7 +545,9 @@ function computeFieldReadonly(field: ColumnMeta): boolean {
     isSystemReadonlyField(field) ||
     field.readonly === 1 ||
     field.readonly === true ||
-    (isEdit.value && (field.editReadonly === 1 || field.editReadonly === true))
+    (isEdit.value && (field.editReadonly === 1 || field.editReadonly === true)) ||
+    // 配置了流水号规则的字段自动生成，不允许手动修改
+    !!field.serialNumberRule
   );
 }
 
@@ -911,6 +914,27 @@ async function loadPage() {
       : {};
 
     const initialValues = buildInitialValues(allFields.value, detail);
+
+    // WMS-LOWCODE-SERIAL：新建模式下，为配置了流水号规则且值为空的字段预填充预览流水号
+    if (!isDetailMode.value) {
+      const serialFields = allFields.value.filter(
+        (f) => f.serialNumberRule && !initialValues[getFieldKey(f)],
+      );
+      if (serialFields.length > 0) {
+        const serialResults = await Promise.allSettled(
+          serialFields.map(async (f) => ({
+            fieldKey: getFieldKey(f),
+            serialNo: await fetchSerialNumber(f.serialNumberRule!),
+          })),
+        );
+        for (const result of serialResults) {
+          if (result.status === 'fulfilled' && result.value.serialNo) {
+            initialValues[result.value.fieldKey] = result.value.serialNo;
+          }
+        }
+      }
+    }
+
     formValues.value = initialValues;
     currentValues.value = applyLinkageValues(initialValues);
     groupSchemas.value = buildSchemas(groups, currentValues.value);

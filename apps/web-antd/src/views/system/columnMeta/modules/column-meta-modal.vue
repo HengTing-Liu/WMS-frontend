@@ -240,6 +240,31 @@
       </Row>
       <Row :gutter="16">
         <Col :span="8">
+          <FormItem label="流水号规则">
+            <Select
+              v-model:value="formData.serialNumberRule"
+              allow-clear
+              show-search
+              :loading="serialRuleLoading"
+              placeholder="请选择流水号规则"
+              option-filter-prop="label"
+            >
+              <SelectOption
+                v-for="rule in serialRuleOptions"
+                :key="rule.ruleCode"
+                :value="rule.ruleCode"
+                :label="rule.ruleName"
+              >
+                {{ rule.ruleName }}
+              </SelectOption>
+            </Select>
+          </FormItem>
+        </Col>
+        <Col :span="8" />
+        <Col :span="8" />
+      </Row>
+      <Row :gutter="16">
+        <Col :span="8">
           <FormItem label="API 地址">
             <Input v-model:value="formData.apiUrl" placeholder="/api/xxx" />
           </FormItem>
@@ -560,6 +585,7 @@ import {
   type ColumnMetaApi,
 } from '#/api/system/columnMeta';
 import { getGroupMetaList, type GroupMetaApi } from '#/api/system/groupMeta';
+import { getSerialRuleList } from '#/api/system/serial-number';
 import type { Rule } from 'ant-design-vue/es/form';
 
 const props = defineProps<{
@@ -622,6 +648,7 @@ const formData = reactive<Record<string, any>>({
   refTargetField: '',
   refLocalField: '',
   refSeparator: '',
+  serialNumberRule: '',
 });
 
 const switches = reactive({
@@ -663,6 +690,8 @@ const fieldLoading = ref(false);
 const fieldOptions = ref<FieldOption[]>([]);
 const groupLoading = ref(false);
 const groupMetaOptions = ref<GroupMetaApi.GroupMeta[]>([]);
+const serialRuleLoading = ref(false);
+const serialRuleOptions = ref<Array<{ ruleCode: string; ruleName: string }>>([]);
 const visibleLogic = ref<'and' | 'or'>('and');
 const visibleConditions = ref<VisibleConditionBuilder[]>([
   { field: '', operator: '==', value: '' },
@@ -1023,6 +1052,24 @@ async function loadGroupMetaOptions() {
   }
 }
 
+async function loadSerialRules() {
+  serialRuleLoading.value = true;
+  try {
+    const res = await getSerialRuleList({ pageNum: 1, pageSize: 1000, status: '0' });
+    serialRuleOptions.value = (res.rows || [])
+      .filter((item: any) => item.status === '0' || item.status === 0)
+      .map((item: any) => ({
+        ruleCode: item.ruleCode || item.usageScope || '',
+        ruleName: item.ruleName || item.name || item.ruleCode || '',
+      }))
+      .filter((item: any) => item.ruleCode);
+  } catch {
+    serialRuleOptions.value = [];
+  } finally {
+    serialRuleLoading.value = false;
+  }
+}
+
 function handleSectionKeyChange(sectionKey?: string) {
   if (!sectionKey) return;
   const selected = groupMetaOptions.value.find((item) => item.groupCode === sectionKey);
@@ -1173,6 +1220,7 @@ watch(visible, (val) => {
   if (!val) return;
   loadFieldOptions();
   loadGroupMetaOptions();
+  loadSerialRules();
   if (isEdit.value && props.data?.id) {
     loadDetail(props.data.id);
   } else {
@@ -1190,6 +1238,7 @@ watch(
     formData.tableCode = code || '';
     loadFieldOptions();
     loadGroupMetaOptions();
+    loadSerialRules();
   },
 );
 </script>

@@ -67,6 +67,8 @@ export interface ColumnMeta {
   refLocalField?: string;
   /** 多字段拼接分隔符，仅多字段场景生效，空值时后端兜底为 ❤（WMS-LOWCODE-LOOKUP-SEP） */
   refSeparator?: string;
+  /** 关联流水号规则编码（对应 sys_serial_number.usage_scope） */
+  serialNumberRule?: string;
   // 运行时字段（后端自动填充）
   options?: Array<{ label: string; value: string | number }>;
   dataSource?: Array<{ label: string; value: string | number }>;

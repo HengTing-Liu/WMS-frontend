@@ -55,6 +55,8 @@ export namespace ColumnMetaApi {
     refLocalField?: string;
     /** 多字段拼接分隔符，空值时后端兜底为 ❤（SEP） */
     refSeparator?: string;
+    /** 关联流水号规则编码（对应 sys_serial_number.usage_scope） */
+    serialNumberRule?: string;
 
     // legacy aliases from older payloads
     columnCode?: string;
@@ -168,6 +170,7 @@ function normalizeSchemaColumn(item: any): ColumnMetaApi.ColumnMeta {
     sectionKey: item.sectionKey ?? '',
     i18nKey: item.i18nKey ?? '',
     visibleCondition: item.visibleCondition ?? '',
+    serialNumberRule: item.serialNumberRule ?? '',
   };
 }
 
