@@ -147,8 +147,16 @@
       <Row :gutter="16">
         <Col :span="6">
           <FormItem label="栅格列宽">
-            <Select v-model:value="formData.colSpan">
+            <!-- 低代码表单按 24 栅格渲染：&lt;6 时单字段会挤成一行，故选项从 6 起；未配置可清空 -->
+            <Select
+              v-model:value="formData.colSpan"
+              allow-clear
+              placeholder="请选择"
+              style="width: 100%"
+            >
               <SelectOption :value="24">24</SelectOption>
+              <SelectOption :value="18">18</SelectOption>
+              <SelectOption :value="16">16</SelectOption>
               <SelectOption :value="12">12</SelectOption>
               <SelectOption :value="8">8</SelectOption>
               <SelectOption :value="6">6</SelectOption>

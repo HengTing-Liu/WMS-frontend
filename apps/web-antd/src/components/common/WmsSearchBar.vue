@@ -31,6 +31,7 @@
             v-model:value="formModel[field.key]"
             :placeholder="`请选择${field.label}`"
             :options="getFilteredOptions(field)"
+            :mode="field.multiple ? 'multiple' : undefined"
             allow-clear
             show-search
             :filter-option="false"
@@ -101,6 +102,7 @@ export interface SearchField {
   key: string;
   label: string;
   type: 'input' | 'select' | 'switch';
+  multiple?: boolean;
   options?: { label: string; value: string | number }[];
 }
 
@@ -334,30 +336,39 @@ function parseMetaFields(metaData: any[]): SearchField[] {
     if (formType === 'input' || formType === 'textarea' || formType === 'text') {
       result.push({ key, label, type: 'input' });
     } else if (formType === 'select' || formType === 'radio' || formType === 'checkbox') {
+      let isMultiple = formType === 'checkbox';
+      if (col.componentProps) {
+        try {
+          const compProps = JSON.parse(col.componentProps);
+          if (compProps.multiple === true) isMultiple = true;
+        } catch {
+          // ignore
+        }
+      }
+      const mapOption = (o: any) => ({
+        label: o.label || o.text || o.name || String(o.value),
+        value: o.value,
+      });
       if (Array.isArray(col.options) && col.options.length > 0) {
         result.push({
           key,
           label,
           type: 'select',
-          options: col.options.map((o: any) => ({
-            label: o.label || o.text || o.name || String(o.value),
-            value: o.value,
-          })),
+          multiple: isMultiple,
+          options: col.options.map(mapOption),
         });
       } else if (Array.isArray(col.dataSource) && col.dataSource.length > 0) {
         result.push({
           key,
           label,
           type: 'select',
-          options: col.dataSource.map((o: any) => ({
-            label: o.label || o.text || o.name || String(o.value),
-            value: o.value,
-          })),
+          multiple: isMultiple,
+          options: col.dataSource.map(mapOption),
         });
       } else if (col.dictType) {
-        result.push({ key, label, type: 'select', options: [] });
+        result.push({ key, label, type: 'select', multiple: isMultiple, options: [] });
       } else {
-        result.push({ key, label, type: 'select', options: [] });
+        result.push({ key, label, type: 'select', multiple: isMultiple, options: [] });
       }
     } else if (formType === 'switch') {
       result.push({
@@ -425,12 +436,12 @@ async function loadRemoteFields() {
         }
         if (formType === 'input' || formType === 'textarea' || formType === 'text') {
           fields.push({ key, label, type: 'input' });
-        } else if (formType === 'select' || formType === 'radio') {
+        } else if (formType === 'select' || formType === 'radio' || formType === 'checkbox') {
           const opts = (col.options || col.dataSource || []).map((o: any) => ({
             label: o.label || o.text || o.name || String(o.value),
             value: o.value,
           }));
-          fields.push({ key, label, type: 'select', options: opts });
+          fields.push({ key, label, type: 'select', multiple: formType === 'checkbox', options: opts });
         }
       }
     }

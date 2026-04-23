@@ -514,6 +514,7 @@ function resolveComponent(field: ColumnMeta): VbenFormSchema['component'] {
   if (formType === 'upload' || formType === 'file') return 'Upload';
   if (isSwitchField(field)) return 'Switch';
   if (formType === 'select') return 'Select';
+  if (formType === 'checkbox') return 'CheckboxGroup';
   if (formType === 'treeselect') return 'TreeSelect';
   if (formType === 'textarea') return 'Textarea';
   if (isDateField(field)) return 'DatePicker';
@@ -589,12 +590,30 @@ function buildFieldSchema(field: ColumnMeta, values: Record<string, any>): VbenF
   }
 
   if (component === 'Select') {
+    let isMultiple = false;
+    if (field.componentProps) {
+      try {
+        const compProps = JSON.parse(field.componentProps);
+        isMultiple = compProps.multiple === true;
+      } catch {
+        // ignore
+      }
+    }
     schema.componentProps = {
       ...schema.componentProps,
       filterOption: true,
+      mode: isMultiple ? 'multiple' : undefined,
       options,
       showSearch: true,
     };
+  }
+
+  if (component === 'CheckboxGroup') {
+    schema.componentProps = {
+      ...schema.componentProps,
+      options,
+    };
+    delete (schema.componentProps as any).placeholder;
   }
 
   if (component === 'TreeSelect') {

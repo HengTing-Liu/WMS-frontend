@@ -20,6 +20,8 @@
       >
         <Select v-model:value="formData.colSpan" placeholder="请选择">
           <SelectOption :value="24">24（占满一行）</SelectOption>
+          <SelectOption :value="18">18</SelectOption>
+          <SelectOption :value="16">16</SelectOption>
           <SelectOption :value="12">12（一行两个）</SelectOption>
           <SelectOption :value="8">8（一行三个）</SelectOption>
           <SelectOption :value="6">6（一行四个）</SelectOption>
