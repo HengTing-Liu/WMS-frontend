@@ -167,7 +167,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide } from 'vue';
+import { ref, computed, provide, watch } from 'vue';
 import { Button, Popconfirm, Modal, message, Spin } from 'ant-design-vue';
 import { IconifyIcon } from '@vben/icons';
 
@@ -199,15 +199,26 @@ provide('hierarchyExpand', { tick: expandTick, value: expandAllValue });
 
 async function switchToHierarchyView() {
   viewMode.value = 'hierarchy';
-  if (hierarchyData.value.length === 0) {
-    await loadHierarchyData();
-  }
+  // 切换到层级视图时，以当前搜索条件加载数据
+  const searchParams = lowcodePageRef.value?.searchForm || {};
+  await loadHierarchyData(searchParams);
 }
 
-async function loadHierarchyData() {
+async function loadHierarchyData(searchParams?: Record<string, any>) {
   hierarchyLoading.value = true;
   try {
-    const data = await getLocationTree({ maxLevel: 5 });
+    // 支持搜索参数：驼峰转蛇形后传给后端
+    const params: Record<string, any> = { maxLevel: 5 };
+    if (searchParams) {
+      for (const [key, val] of Object.entries(searchParams)) {
+        if (val === undefined || val === null || val === '') continue;
+        if (key === '__queryModes') continue;
+        // 驼峰转蛇形
+        const snakeKey = key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
+        params[snakeKey] = val;
+      }
+    }
+    const data = await getLocationTree(params);
     hierarchyData.value = Array.isArray(data) ? data : [];
   } catch (e) {
     hierarchyData.value = [];
@@ -600,6 +611,16 @@ async function handleSelectionChange(keys: any[], records?: any[]) {
     selectedNodeContainerCount.value = 0;
   }
 }
+
+// 监听搜索表单变化：当搜索条件改变时，层级视图自动刷新数据
+watch(
+  () => lowcodePageRef.value?.searchForm,
+  (searchForm) => {
+    if (viewMode.value !== 'hierarchy') return;
+    loadHierarchyData(searchForm || {});
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>

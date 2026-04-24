@@ -35,7 +35,8 @@
         </div>
 
         <!-- 树形表格 -->
-        <Table :columns="columns" :data-source="treeData" :loading="loading" row-key="deptId" :pagination="false"
+        <Table :columns="columns" :data-source="treeData" :loading="loading" row-key="deptId"
+            :pagination="{ pageSize: 999, showSizeChanger: false, showTotal: () => '' }"
             :expanded-row-keys="expandedRowKeys" @expand="onExpand" :expand-row-by-click="false"
             class="dept-manager-table">
             <template #bodyCell="{ column, record }">
@@ -48,6 +49,9 @@
                             {{ record.status === '0' ? '正常' : '停用' }}
                         </Tag>
                     </span>
+                </template>
+                <template v-else-if="column.key === 'userCount'">
+                    <span class="cell-content">{{ record.userCount ?? 0 }}</span>
                 </template>
                 <template v-else-if="column.key === 'action'">
                     <span class="cell-content cell-action">
@@ -174,9 +178,12 @@ function onExpand(expanded: boolean, record: DeptTreeNode) {
 }
 
 const columns = [
-    { title: '部门名称', dataIndex: 'deptName', key: 'deptName', width: 260, align: 'center' as const },
+    { title: '部门名称', dataIndex: 'deptName', key: 'deptName', width: 200, align: 'center' as const },
+    { title: '部门全路径', dataIndex: 'deptFullPath', key: 'deptFullPath', width: 300, align: 'center' as const },
+    { title: '部门分类', dataIndex: 'deptCategory', key: 'deptCategory', width: 150, align: 'center' as const },
     { title: '排序', dataIndex: 'orderNum', key: 'orderNum', width: 100, align: 'center' as const },
     { title: '状态', dataIndex: 'status', key: 'status', width: 120, align: 'center' as const },
+    { title: '用户数', dataIndex: 'userCount', key: 'userCount', width: 100, align: 'center' as const },
     { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 200, align: 'center' as const },
     { title: '操作', key: 'action', width: 240, fixed: 'right' as const, align: 'center' as const },
 ];

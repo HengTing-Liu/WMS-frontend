@@ -7,6 +7,8 @@ export namespace DeptApi {
     parentId: number;
     ancestors?: string;
     deptName: string;
+    deptFullPath?: string;
+    deptCategory?: string;
     orderNum: number;
     leader?: string;
     phone?: string;
@@ -19,6 +21,7 @@ export namespace DeptApi {
     updateTime?: string | null;
     remarks?: string | null;
     parentName?: string | null;
+    userCount?: number;
     children?: DeptTreeNode[];
   }
 
@@ -49,6 +52,8 @@ export interface DeptSaveBody {
   deptId?: number;
   parentId: number;
   deptName: string;
+  deptFullPath?: string;
+  deptCategory?: string;
   orderNum?: number;
   leader?: string;
   phone?: string;

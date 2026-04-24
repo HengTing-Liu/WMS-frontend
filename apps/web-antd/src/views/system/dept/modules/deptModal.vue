@@ -58,6 +58,7 @@ const [Modal, modalApi] = useVbenModal({
         formApi.setValues({
           parentId: record.parentId ?? 0,
           deptName: record.deptName,
+          deptCategory: record.deptCategory ?? '',
           orderNum: record.orderNum,
           leader: record.leader,
           phone: record.phone,
@@ -94,6 +95,12 @@ const [Modal, modalApi] = useVbenModal({
           label: '部门名称',
           rules: 'required',
           componentProps: { placeholder: '请输入部门名称' },
+        },
+        {
+          component: 'Input',
+          fieldName: 'deptCategory',
+          label: '部门分类',
+          componentProps: { placeholder: '请输入部门分类' },
         },
         {
           component: 'InputNumber',
@@ -139,6 +146,8 @@ const onSubmit = async (values: Record<string, any>) => {
     const body: DeptSaveBody = {
       parentId: Number(parentId) || 0,
       deptName: values.deptName,
+      deptFullPath: values.deptFullPath || undefined,
+      deptCategory: values.deptCategory || undefined,
       orderNum: Number(values.orderNum) ?? 0,
       leader: values.leader || undefined,
       phone: values.phone || undefined,
@@ -189,6 +198,12 @@ const [Form, formApi] = useVbenForm({
       label: '部门名称',
       rules: 'required',
       componentProps: { placeholder: '请输入部门名称' },
+    },
+    {
+      component: 'Input',
+      fieldName: 'deptCategory',
+      label: '部门分类',
+      componentProps: { placeholder: '请输入部门分类' },
     },
     {
       component: 'InputNumber',

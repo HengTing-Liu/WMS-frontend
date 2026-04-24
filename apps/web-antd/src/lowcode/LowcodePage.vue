@@ -922,10 +922,12 @@ watch(
 defineExpose({
   reload: loadData,
   handleEdit,
+  handleSearch,
   dataList,
   pagination,
   selectedRowKeys,
   selectedRows,
+  searchForm,
 });
 </script>
 
