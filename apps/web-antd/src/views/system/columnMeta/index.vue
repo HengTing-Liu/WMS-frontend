@@ -280,7 +280,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch, onActivated, onDeactivated, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, nextTick, watch, onActivated, onDeactivated, onBeforeUnmount, h } from 'vue';
 import {
   Alert,
   Button,
@@ -426,6 +426,49 @@ function restorePageState() {
   return true;
 }
 
+type SwitchField = 'readonly' | 'editReadonly' | 'required' | 'searchable' | 'showInList' | 'showInForm' | 'showInExport' | 'showInImport' | 'status';
+
+function isAllChecked(field: SwitchField) {
+  if (tableData.value.length === 0) return false;
+  return tableData.value.every((record) => (record[field] as number) === 1);
+}
+
+function getSwitchHeader(title: string, field: SwitchField) {
+  return () =>
+    h('div', { class: 'header-switch' }, [
+      h('span', null, title),
+      h(Switch, {
+        size: 'small',
+        checked: isAllChecked(field),
+        onChange: (checked: boolean) => handleBatchToggle(field, checked),
+      }),
+    ]);
+}
+
+async function handleBatchToggle(field: SwitchField, checked: boolean) {
+  if (tableData.value.length === 0) return;
+  try {
+    const results = await Promise.allSettled(
+      tableData.value.map((record) =>
+        updateColumnMeta({
+          ...record,
+          [field]: checked ? 1 : 0,
+        }),
+      ),
+    );
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length === 0) {
+      message.success('批量操作成功');
+    } else {
+      message.warning(`操作完成，${failures.length} 条失败`);
+    }
+    loadData();
+  } catch (error: any) {
+    message.error(error?.message || '批量操作失败');
+    loadData();
+  }
+}
+
 // ========== 表格列定义 ==========
 const columns = computed<TableColumnsType>(() => [
   { title: '排序', key: 'seq', width: 70, align: 'center' },
@@ -433,20 +476,20 @@ const columns = computed<TableColumnsType>(() => [
   { title: '字段名称', dataIndex: 'title', key: 'title', width: 150 },
   { title: '列表宽度', dataIndex: 'width', key: 'width', width: 90, align: 'center' },
   { title: '栅格列宽', dataIndex: 'colSpan', key: 'colSpan', width: 90, align: 'center' },
-  { title: '只读', key: 'readonly', width: 70, align: 'center' },
-  { title: '编辑只读', key: 'editReadonly', width: 90, align: 'center' },
+  { title: getSwitchHeader('只读', 'readonly'), key: 'readonly', width: 70, align: 'center' },
+  { title: getSwitchHeader('编辑只读', 'editReadonly'), key: 'editReadonly', width: 90, align: 'center' },
   { title: '容器', dataIndex: 'sectionType', key: 'sectionType', width: 90, align: 'center' },
   { title: '字段类型', key: 'formType', width: 120, align: 'center' },
   { title: '数据类型', key: 'dataType', width: 100, align: 'center' },
-  { title: '必填', key: 'required', width: 70, align: 'center' },
-  { title: '可搜索', key: 'searchable', width: 90, align: 'center' },
-  { title: '列表显示', key: 'showInList', width: 90, align: 'center' },
-  { title: '表单显示', key: 'showInForm', width: 90, align: 'center' },
-  { title: '导出显示', key: 'showInExport', width: 90, align: 'center' },
-  { title: '导入显示', key: 'showInImport', width: 90, align: 'center' },
+  { title: getSwitchHeader('必填', 'required'), key: 'required', width: 70, align: 'center' },
+  { title: getSwitchHeader('可搜索', 'searchable'), key: 'searchable', width: 90, align: 'center' },
+  { title: getSwitchHeader('列表显示', 'showInList'), key: 'showInList', width: 90, align: 'center' },
+  { title: getSwitchHeader('表单显示', 'showInForm'), key: 'showInForm', width: 90, align: 'center' },
+  { title: getSwitchHeader('导出显示', 'showInExport'), key: 'showInExport', width: 90, align: 'center' },
+  { title: getSwitchHeader('导入显示', 'showInImport'), key: 'showInImport', width: 90, align: 'center' },
   { title: '分组排序', dataIndex: 'sectionOrder', key: 'sectionOrder', width: 90, align: 'center' },
   { title: '默认展开', dataIndex: 'sectionOpen', key: 'sectionOpen', width: 90, align: 'center' },
-  { title: '状态', key: 'status', width: 70, align: 'center' },
+  { title: getSwitchHeader('状态', 'status'), key: 'status', width: 70, align: 'center' },
   { title: '操作', key: 'action', width: 120, align: 'center', fixed: 'right' },
 ]);
 
@@ -991,5 +1034,13 @@ onBeforeUnmount(() => {
 .drag-table :deep(.ant-table-tbody > tr.sortable-drag) {
   background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.2;
 }
 </style>

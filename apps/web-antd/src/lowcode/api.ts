@@ -269,11 +269,11 @@ export async function deleteRecord(params: {
 }
 
 /**
- * 根据规则编码预览流水号（低代码表单预填充用，只计算不消耗）
+ * 根据规则名称预览流水号（低代码表单预填充用，只计算不消耗）
  */
-export async function fetchSerialNumber(ruleCode: string): Promise<string> {
+export async function fetchSerialNumber(ruleName: string): Promise<string> {
   try {
-    const res = await requestClient.post<any>('/api/serial/previewByRuleCode', { ruleCode });
+    const res = await requestClient.post<any>('/api/serial/previewByRuleName', { ruleName });
     return res?.data?.serialNo ?? res?.serialNo ?? '';
   } catch {
     return '';
