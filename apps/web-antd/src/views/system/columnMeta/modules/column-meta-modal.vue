@@ -1059,8 +1059,8 @@ async function loadSerialRules() {
     serialRuleOptions.value = (res.rows || [])
       .filter((item: any) => item.status === '0' || item.status === 0)
       .map((item: any) => ({
-        ruleCode: item.ruleCode || item.usageScope || '',
-        ruleName: item.ruleName || item.name || item.ruleCode || '',
+        ruleCode: item.ruleName || item.name || '',
+        ruleName: item.ruleName || item.name || '',
       }))
       .filter((item: any) => item.ruleCode);
   } catch {
