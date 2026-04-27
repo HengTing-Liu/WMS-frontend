@@ -256,4 +256,21 @@ export interface ApiResponse<T = any> {
   msg?: string;
 }
 
+/** LowcodeTreePage 暴露给父组件的类型（与 defineExpose 一致） */
+export interface LowcodeTreePageExposed {
+  reload: () => Promise<void>;
+  handleEdit: (record: any) => void;
+  handleSearch: (payload?: Record<string, any>) => void;
+  handleAddChild: (parentRecord: any) => void;
+  rawDataList: any[];
+  treeData: any[];
+  pagination: { current: number; pageSize: number; total: number };
+  selectedRowKeys: any[];
+  selectedRows: any[];
+  searchForm: Record<string, any>;
+  expandedRowKeys: any[];
+  expandAll: boolean;
+  toggleExpandAll: () => void;
+}
+
 

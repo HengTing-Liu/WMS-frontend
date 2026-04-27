@@ -17,12 +17,18 @@ export namespace UserApi {
  // 用户信息接口
  export interface User {
   userId: string | number;
+  /** 工号，对应库字段 code */
+  code?: string;
   userName: string;
   nickName: string;
   dept: Dept;
   deptId: number;
   phonenumber: string;
   status: string;
+  /** 入职日期 */
+  entryDate?: string;
+  /** 离职日期 */
+  leaveDate?: string;
   createTime: string;
   [key: string]: any;
 }

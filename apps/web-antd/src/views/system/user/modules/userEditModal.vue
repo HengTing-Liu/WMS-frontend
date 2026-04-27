@@ -158,28 +158,6 @@ const [Form, formApi] = useVbenForm({
       },
     },
      {
-      component: 'Select',
-      componentProps: {
-        options: [
-          {
-            label: '男',
-            value: '0',
-          },
-          {
-            label: '女',
-            value: '1',
-          }, 
-          {
-            label: '未知',
-            value: '2',
-          },
-        ],
-     },
-      fieldName: 'sex',
-      label: '用户性别',
-      // rules: 'required',
-    },
-     {
     component: 'RadioGroup',
       componentProps: {
         options: [
@@ -195,6 +173,28 @@ const [Form, formApi] = useVbenForm({
       },
       fieldName: 'status',
       label: '状态',
+    },
+     {
+      component: 'DatePicker',
+      componentProps: {
+        allowClear: true,
+        class: 'w-full',
+        format: 'YYYY-MM-DD',
+        valueFormat: 'YYYY-MM-DD',
+      },
+      fieldName: 'entryDate',
+      label: '入职日期',
+    },
+     {
+      component: 'DatePicker',
+      componentProps: {
+        allowClear: true,
+        class: 'w-full',
+        format: 'YYYY-MM-DD',
+        valueFormat: 'YYYY-MM-DD',
+      },
+      fieldName: 'leaveDate',
+      label: '离职日期',
     },
      {
       component: 'Select',

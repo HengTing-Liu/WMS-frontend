@@ -164,6 +164,8 @@ export function inferCrudPrefix(tableCode: string): string {
     sys_user: '/api/wms/crud/sys_user',
     // 物料相关表和其他业务表
     inv_material: '/api/wms/crud/inv_material',
+    // 系统表（树形）
+    sys_dept: '/api/wms/crud/sys_dept',
   };
   if (entityMap[tableCode]) return entityMap[tableCode];
   // 系统表兜底
@@ -174,6 +176,23 @@ export function inferCrudPrefix(tableCode: string): string {
 }
 
 /** 闁氨鏁ら崚妤勩€冮弻銉嚄 */
+/** Tree all: fetch all records without pagination (for tree table) */
+export async function fetchTreeAll(params: {
+  tableCode: string;
+  prefix?: string;
+  tableMeta?: TableMeta | null;
+  query?: Record<string, any>;
+  queryModes?: Record<string, 'eq' | 'like'>;
+}) {
+  const { tableCode, prefix, tableMeta, query = {}, queryModes = {} } = params;
+  const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
+  const res = await requestClient.get<any>(`${basePrefix}/listAll`, {
+    params: { ...query, queryModes: JSON.stringify(queryModes) },
+  });
+  const rows = res?.rows ?? res?.data?.rows ?? res?.data ?? res ?? [];
+  return Array.isArray(rows) ? rows : [];
+}
+
 export async function fetchList(params: {
   tableCode: string;
   prefix?: string;

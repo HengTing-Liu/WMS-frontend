@@ -19,7 +19,9 @@
       :pagination="paginationConfig"
       :row-selection="computedRowSelection"
       :scroll="scroll"
+      :expanded-row-keys="expandedRowKeys"
       @change="handleTableChange"
+      @expand="onExpand"
     >
       <!-- 透传普通插槽 -->
       <template v-for="(_, name) in slots" #[name]="slotData: any" :key="name">
@@ -58,20 +60,26 @@ interface WmsDataTableProps {
   };
   /** 滚动配置 */
   scroll?: { x?: number | string; y?: number | string };
+  /** 展开的行 keys（用于树形表格） */
+  expandedRowKeys?: any[];
   /** 表格变更回调（排序、筛选等） */
   onTableChange?: (pagination: any, filters: any, sorter: any) => void;
+  /** 树形节点展开/折叠回调 */
+  onExpand?: (expanded: boolean, record: any) => void;
 }
 
 const props = withDefaults(defineProps<WmsDataTableProps>(), {
   loading: false,
   rowKey: 'id',
   pagination: undefined,
+  expandedRowKeys: () => [],
 });
 
 const emit = defineEmits<{
   (e: 'change', pagination: any, filters: any, sorter: any): void;
   (e: 'table-change', pagination: any, filters: any, sorter: any): void;
   (e: 'update:rowSelection', val: { keys: any[]; rows: any[] }): void;
+  (e: 'expand', expanded: boolean, record: any): void;
 }>();
 
 const attrs = useAttrs();
@@ -122,6 +130,11 @@ function handleTableChange(pagination: any, filters: any, sorter: any) {
   emit('change', pagination, filters, sorter);
   emit('table-change', pagination, filters, sorter);
   props.onTableChange?.(pagination, filters, sorter);
+}
+
+function onExpand(expanded: boolean, record: any) {
+  emit('expand', expanded, record);
+  props.onExpand?.(expanded, record);
 }
 </script>
 

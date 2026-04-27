@@ -106,7 +106,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
         if (userInfo?.token) {
           notification.success({
-            description: `${$t('authentication.loginSuccessDesc')}:${userInfo?.username}`,
+            description: `${$t('authentication.loginSuccessDesc')}:${userInfo?.realName}`,
             duration: 3,
             message: $t('authentication.loginSuccess'),
           });

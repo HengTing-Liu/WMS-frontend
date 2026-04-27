@@ -17,6 +17,31 @@ import { downloadBlob } from '#/utils/download';
 import type { LowcodeAction, ApiEventConfig, DownloadEventConfig, UploadEventConfig, RedirectEventConfig } from './types';
 import { expandAllPermissionCodes } from './permission-utils';
 
+/** 行删除/编辑等内置动作解析主键（兼容 sys_user.userId 等） */
+function resolveBuiltinRecordId(record: any): string | number | undefined {
+  if (!record) return undefined;
+  return (
+    record.userId ??
+    record.user_id ??
+    record.id ??
+    record.dictId ??
+    record.dictCode
+  );
+}
+
+/** 当前是否处于「启用」语义（与 LowcodeCrudController toggle 的 enabled 参数一致） */
+function isRecordApiEnabled(record: any): boolean {
+  const ie = record?.isEnabled ?? record?.is_enabled;
+  if (ie !== undefined && ie !== null && ie !== '') {
+    return ie === 1 || ie === true || ie === '1';
+  }
+  // RuoYi：status 0=正常(启用)，1=停用
+  const st = record?.status;
+  if (st === '0' || st === 0) return true;
+  if (st === '1' || st === 1) return false;
+  return false;
+}
+
 export interface ActionContext {
   crudPrefix?: string;
   tableCode: string;
@@ -48,10 +73,10 @@ export const BUILTIN_HANDLERS: Record<string, (ctx: ActionContext, record?: any)
   read: (ctx, record) => ctx.handleRead(record),
   /** 与 read 同义，兼容 operation_code = row_read */
   row_read: (ctx, record) => ctx.handleRead(record),
-  delete: (ctx, record) => ctx.handleDelete(record?.id ?? record?.dictId ?? record?.dictCode),
+  delete: (ctx, record) => ctx.handleDelete(resolveBuiltinRecordId(record) as any),
   /** 与 delete 同义，兼容 operation_code = row_delete */
-  row_delete: (ctx, record) => ctx.handleDelete(record?.id ?? record?.dictId ?? record?.dictCode),
-  toggle: (ctx, record) => ctx.handleToggle(record, !((record?.isEnabled ?? record?.is_enabled) === 1 || (record?.isEnabled ?? record?.is_enabled) === true)),
+  row_delete: (ctx, record) => ctx.handleDelete(resolveBuiltinRecordId(record) as any),
+  toggle: (ctx, record) => ctx.handleToggle(record, !isRecordApiEnabled(record)),
   export: (ctx) => ctx.handleExport(),
 };
 

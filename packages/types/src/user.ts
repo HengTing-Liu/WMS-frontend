@@ -16,7 +16,12 @@ interface UserInfo extends BasicUserInfo {
    */
   token: string;
   permissions?: string[];
-  
+
+  /**
+   * 真实姓名（来自 sys_user.name）
+   */
+  realName?: string;
+
 }
 
 export type { UserInfo };
