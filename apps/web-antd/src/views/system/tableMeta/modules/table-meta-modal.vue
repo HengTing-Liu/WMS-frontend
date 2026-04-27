@@ -54,6 +54,18 @@
           <Radio :value="0">否</Radio>
         </RadioGroup>
       </FormItem>
+      <FormItem label="是否可选">
+        <RadioGroup v-model:value="formData.showCheckbox">
+          <Radio :value="1">是</Radio>
+          <Radio :value="0">否</Radio>
+        </RadioGroup>
+      </FormItem>
+      <FormItem label="显示序号">
+        <RadioGroup v-model:value="formData.showIndex">
+          <Radio :value="1">是</Radio>
+          <Radio :value="0">否</Radio>
+        </RadioGroup>
+      </FormItem>
       <FormItem label="状态">
         <Switch v-model:checked="statusChecked" />
       </FormItem>
@@ -116,6 +128,8 @@ const formData = reactive<Record<string, any>>({
   permissionCode: '',
   pageSize: 20,
   isTree: 0,
+  showCheckbox: 0,
+  showIndex: 1,
   status: 1,
   remarks: '',
 });
@@ -182,6 +196,8 @@ function resetForm() {
     permissionCode: '',
     pageSize: 20,
     isTree: 0,
+    showCheckbox: 0,
+    showIndex: 1,
     status: 1,
     remarks: '',
   });
@@ -194,6 +210,8 @@ async function loadDetail(id: number) {
     Object.assign(formData, detail);
     // 归一化数值字段，确保 RadioGroup 匹配正确
     formData.isTree = Number(detail.isTree ?? 0) === 1 ? 1 : 0;
+    formData.showCheckbox = Number(detail.showCheckbox ?? 0) === 1 ? 1 : 0;
+    formData.showIndex = Number(detail.showIndex ?? 1) === 1 ? 1 : 0;
     // 旧数据若这三个字段为空则自动推导填充
     if (!formData.entityClass) deriveAutoFields();
   } catch (error: any) {

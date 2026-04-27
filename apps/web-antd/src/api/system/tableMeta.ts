@@ -13,6 +13,8 @@ export namespace TableMetaApi {
     permissionCode?: string;
     pageSize?: number;
     isTree?: number;
+    showCheckbox?: number;
+    showIndex?: number;
     status?: number;
     remarks?: string;
     createBy?: string;

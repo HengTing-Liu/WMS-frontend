@@ -386,6 +386,8 @@ function actionNeedsSelectedRows(action: LowcodeAction): boolean {
 
 const tableSelectionEnabled = computed(() => {
   if (props.enableSelection || selectedRowKeys.value.length > 0) return true;
+  const metaShowCheckbox = currentTableMeta.value?.showCheckbox;
+  if (metaShowCheckbox === 1 || metaShowCheckbox === true) return true;
   return visibleToolbarActions.value.some((action) => actionNeedsSelectedRows(action));
 });
 
@@ -397,9 +399,12 @@ const columns = computed<any[]>(() => {
   console.log('[LowcodePage-v2] computing columns, metaColumns.length:', metaColumns.value.length);
   if (!metaColumns.value.length) return [];
 
-  const cols: any[] = [
-    { title: '序号', key: 'seq', width: 60, align: 'center' },
-  ];
+  const cols: any[] = [];
+
+  const metaShowIndex = currentTableMeta.value?.showIndex;
+  if (metaShowIndex === undefined || metaShowIndex === 1 || metaShowIndex === true) {
+    cols.push({ title: '序号', key: 'seq', width: 60, align: 'center' });
+  }
 
   for (const col of metaColumns.value) {
     const code = col.code ?? col.field;

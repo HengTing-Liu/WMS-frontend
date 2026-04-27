@@ -17,6 +17,8 @@ export interface TableMeta {
   permissionCode?: string;
   pageSize?: number;
   isTree?: number | boolean; // 0/1 鎴?true/false
+  showCheckbox?: number;
+  showIndex?: number;
   status?: number;
   remark?: string;
 }

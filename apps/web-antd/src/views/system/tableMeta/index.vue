@@ -57,6 +57,12 @@
         <template v-if="column.key === 'isTree'">
           {{ record.isTree === 1 ? 'Yes' : 'No' }}
         </template>
+        <template v-else-if="column.key === 'showCheckbox'">
+          {{ record.showCheckbox === 1 ? 'Yes' : 'No' }}
+        </template>
+        <template v-else-if="column.key === 'showIndex'">
+          {{ record.showIndex === 1 ? 'Yes' : 'No' }}
+        </template>
         <template v-else-if="column.key === 'status'">
           <Switch
             :checked="record.status === 1"
@@ -196,6 +202,8 @@ const columns = computed<TableColumnsType<TableMetaResult>>(() => [
   { title: 'Permission', dataIndex: 'permissionCode', key: 'permissionCode', width: 180 },
   { title: 'Page Size', dataIndex: 'pageSize', key: 'pageSize', width: 110, align: 'center' },
   { title: 'Tree', key: 'isTree', width: 80, align: 'center' },
+  { title: '可选', key: 'showCheckbox', width: 80, align: 'center' },
+  { title: '序号', key: 'showIndex', width: 80, align: 'center' },
   { title: 'Status', key: 'status', width: 80, align: 'center' },
   { title: 'Remark', dataIndex: 'remark', key: 'remark', width: 200, ellipsis: true },
   { title: 'Create Time', dataIndex: 'createTime', key: 'createTime', width: 170 },
