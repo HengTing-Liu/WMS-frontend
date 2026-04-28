@@ -131,11 +131,23 @@ function resolveUserId(row: Record<string, any>): string | number | undefined {
   return row?.userId ?? row?.user_id ?? row?.id;
 }
 
-function handleDeptSelect(deptId: string | number) {
-  userLowcodeRef.value?.handleSearch({
-    deptId,
-    __queryModes: { deptId: 'eq' },
-  });
+function handleDeptSelect(deptIds: (string | number)[], includeSub: boolean) {
+  if (!deptIds || deptIds.length === 0) {
+    userLowcodeRef.value?.handleSearch({});
+    return;
+  }
+  const rootCode = deptIds[0];
+  if (includeSub) {
+    userLowcodeRef.value?.handleSearch({
+      deptCodeTree: rootCode,
+      __queryModes: { deptCodeTree: 'eq' },
+    });
+  } else {
+    userLowcodeRef.value?.handleSearch({
+      deptCode: rootCode,
+      __queryModes: { deptCode: 'eq' },
+    });
+  }
 }
 
 function openResetPwdModal(row: Record<string, any>) {

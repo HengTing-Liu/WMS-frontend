@@ -188,6 +188,7 @@ export async function fetchTreeAll(params: {
   const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
   const res = await requestClient.get<any>(`${basePrefix}/listAll`, {
     params: { ...query, queryModes: JSON.stringify(queryModes) },
+    paramsSerializer: 'brackets',
   });
   const rows = res?.rows ?? res?.data?.rows ?? res?.data ?? res ?? [];
   return Array.isArray(rows) ? rows : [];
@@ -231,6 +232,7 @@ export async function fetchList(params: {
       queryModes: JSON.stringify(queryModes),
       ...sortParams,
     },
+    paramsSerializer: 'brackets',
   });
   const rows = res?.rows ?? res?.data?.rows ?? res?.data ?? [];
   const total = res?.total ?? res?.data?.total ?? 0;

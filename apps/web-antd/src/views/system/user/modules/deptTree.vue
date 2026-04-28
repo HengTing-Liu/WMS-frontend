@@ -1,7 +1,7 @@
 
 <script lang="ts" setup>
   import { computed, watch, ref } from 'vue';
-  import { Tree, Input } from 'ant-design-vue';
+  import { Tree, Input, Checkbox } from 'ant-design-vue';
   import { IconifyIcon } from '@vben/icons';
 
   interface TreeNode {
@@ -52,12 +52,10 @@
     if (raw !== null && raw !== undefined && String(raw).trim() !== '') {
       return String(raw).trim();
     }
-    // 无独立名称字段时，才用 label（避免与编码重复拼接）
-    if (!pickDeptCode(node)) {
-      const lab = node?.label;
-      if (lab !== null && lab !== undefined && String(lab).trim() !== '') {
-        return String(lab).trim();
-      }
+    // TreeSelect / 低代码接口没有 deptName 时，直接用 label
+    const lab = node?.label;
+    if (lab !== null && lab !== undefined && String(lab).trim() !== '') {
+      return String(lab).trim();
     }
     return '';
   }
@@ -219,13 +217,74 @@
     return filterTree(sourceTreeData.value, q);
   });
 
-  const handleSelect = (keys: Array<string | number>) => {
-    emit('select', keys[0]);
+  const includeSubDept = ref<boolean>(true);
+
+  function collectDescendantIds(nodes: TreeNode[], targetId: string | number): (string | number)[] {
+    const findNode = (list: TreeNode[]): TreeNode | null => {
+      for (const n of list) {
+        if (n.id === targetId) return n;
+        if (n.children?.length) {
+          const f = findNode(n.children);
+          if (f) return f;
+        }
+      }
+      return null;
+    };
+    const target = findNode(nodes);
+    if (!target) return targetId != null ? [targetId] : [];
+    const result: (string | number)[] = [];
+    const walk = (list: TreeNode[]) => {
+      for (const n of list) {
+        if (n.id != null) result.push(n.id);
+        if (n.children?.length) walk(n.children);
+      }
+    };
+    walk([target]);
+    return result;
   }
+
+  const selectedKeys = ref<(string | number)[]>([]);
+
+  function doEmitSelect(keys: (string | number)[]) {
+    const targetId = keys[0];
+    if (targetId == null) {
+      emit('select', [], includeSubDept.value);
+      return;
+    }
+    if (includeSubDept.value) {
+      const ids = collectDescendantIds(sourceTreeData.value, targetId);
+      emit('select', ids.length ? ids : [targetId], includeSubDept.value);
+    } else {
+      emit('select', [targetId], includeSubDept.value);
+    }
+  }
+
+  watch(selectedKeys, (keys, oldKeys) => {
+    if (!keys || keys.length === 0) {
+      if (oldKeys && oldKeys.length > 0) {
+        // 重复点击已选中节点导致取消选中，恢复之前状态
+        selectedKeys.value = [...oldKeys];
+        return;
+      }
+      emit('select', []);
+      return;
+    }
+    doEmitSelect(keys);
+  });
+
+  // 切换“包含下级”时，若已选中部门则重新查询
+  watch(includeSubDept, () => {
+    if (selectedKeys.value.length > 0) {
+      doEmitSelect(selectedKeys.value);
+    }
+  });
 </script>
 <template>
    <div class="bg-white p-4 rounded-md h-full flex flex-col min-h-0">
     <div class="mb-2 text-sm font-medium text-gray-700">部门架构</div>
+    <div class="mb-2">
+      <Checkbox v-model:checked="includeSubDept">包含下级部门</Checkbox>
+    </div>
     <div class="mb-4">
       <Input v-model:value="searchValue" placeholder="请输入部门名称">
         <template #prefix>
@@ -243,7 +302,7 @@
         :click-row-to-expand="false"
         :tree-data="filteredTreeData"
         block-node
-        @select="handleSelect"
+        v-model:selectedKeys="selectedKeys"
       />
     </div>
    </div>
