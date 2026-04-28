@@ -39,6 +39,7 @@ export interface ColumnMeta {
   isShowInImport?: number | boolean;
   isSearchable?: number | boolean;
   isSortable?: number | boolean;
+  isUnique?: number | boolean;
   isRequired?: number | boolean;
   width?: number;
   sortOrder?: number;

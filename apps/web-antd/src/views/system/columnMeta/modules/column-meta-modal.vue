@@ -1177,6 +1177,7 @@ async function handleSubmit() {
       placeholder: formData.placeholder ?? '',
       readonly: formData.readonly ?? 0,
       editReadonly: formData.editReadonly ?? 0,
+      unique: formData.isUnique ?? 0,
       sectionKey: formData.sectionKey ?? '',
       sectionTitle: formData.sectionTitle ?? '',
       sectionOrder: formData.sectionOrder ?? 0,

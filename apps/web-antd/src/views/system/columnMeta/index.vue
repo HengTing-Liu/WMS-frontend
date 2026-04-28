@@ -128,18 +128,6 @@
           </Tag>
         </template>
 
-        <template v-else-if="column.key === 'sectionType'">
-          <Tag :color="record.sectionType === 'collapse' ? 'geekblue' : 'default'">
-            {{ record.sectionType === 'collapse' ? 'Collapse' : 'Card' }}
-          </Tag>
-        </template>
-
-        <template v-else-if="column.key === 'sectionOpen'">
-          <Tag :color="Number(record.sectionOpen ?? 1) === 1 ? 'green' : 'default'">
-            {{ Number(record.sectionOpen ?? 1) === 1 ? '是' : '否' }}
-          </Tag>
-        </template>
-
         <!-- 是否必填 -->
         <template v-else-if="column.key === 'required'">
           <Switch
@@ -191,6 +179,24 @@
             :checked="record.searchable === 1"
             size="small"
             @change="(checked) => void handleToggleSearchable(record, checked as boolean)"
+          />
+        </template>
+
+        <!-- 可排序 -->
+        <template v-else-if="column.key === 'sortable'">
+          <Switch
+            :checked="record.sortable === 1"
+            size="small"
+            @change="(checked) => void handleToggleSortable(record, checked as boolean)"
+          />
+        </template>
+
+        <!-- 唯一 -->
+        <template v-else-if="column.key === 'unique'">
+          <Switch
+            :checked="record.isUnique === 1"
+            size="small"
+            @change="(checked) => void handleToggleUnique(record, checked as boolean)"
           />
         </template>
 
@@ -426,7 +432,7 @@ function restorePageState() {
   return true;
 }
 
-type SwitchField = 'readonly' | 'editReadonly' | 'required' | 'searchable' | 'showInList' | 'showInForm' | 'showInExport' | 'showInImport' | 'status';
+type SwitchField = 'readonly' | 'editReadonly' | 'required' | 'searchable' | 'sortable' | 'unique' | 'showInList' | 'showInForm' | 'showInExport' | 'showInImport' | 'status';
 
 function isAllChecked(field: SwitchField) {
   if (tableData.value.length === 0) return false;
@@ -447,12 +453,14 @@ function getSwitchHeader(title: string, field: SwitchField) {
 
 async function handleBatchToggle(field: SwitchField, checked: boolean) {
   if (tableData.value.length === 0) return;
+  // 'unique' 字段在 record 上的属性名是 isUnique
+  const recordField = field === 'unique' ? 'isUnique' : field;
   try {
     const results = await Promise.allSettled(
       tableData.value.map((record) =>
         updateColumnMeta({
           ...record,
-          [field]: checked ? 1 : 0,
+          [recordField]: checked ? 1 : 0,
         }),
       ),
     );
@@ -476,19 +484,18 @@ const columns = computed<TableColumnsType>(() => [
   { title: '字段名称', dataIndex: 'title', key: 'title', width: 150 },
   { title: '列表宽度', dataIndex: 'width', key: 'width', width: 90, align: 'center' },
   { title: '栅格列宽', dataIndex: 'colSpan', key: 'colSpan', width: 90, align: 'center' },
-  { title: getSwitchHeader('只读', 'readonly'), key: 'readonly', width: 70, align: 'center' },
-  { title: getSwitchHeader('编辑只读', 'editReadonly'), key: 'editReadonly', width: 90, align: 'center' },
-  { title: '容器', dataIndex: 'sectionType', key: 'sectionType', width: 90, align: 'center' },
   { title: '字段类型', key: 'formType', width: 120, align: 'center' },
   { title: '数据类型', key: 'dataType', width: 100, align: 'center' },
   { title: getSwitchHeader('必填', 'required'), key: 'required', width: 70, align: 'center' },
+  { title: getSwitchHeader('只读', 'readonly'), key: 'readonly', width: 70, align: 'center' },
+  { title: getSwitchHeader('编辑只读', 'editReadonly'), key: 'editReadonly', width: 90, align: 'center' },
+  { title: getSwitchHeader('唯一', 'unique'), key: 'unique', width: 70, align: 'center' },
   { title: getSwitchHeader('可搜索', 'searchable'), key: 'searchable', width: 90, align: 'center' },
   { title: getSwitchHeader('列表显示', 'showInList'), key: 'showInList', width: 90, align: 'center' },
   { title: getSwitchHeader('表单显示', 'showInForm'), key: 'showInForm', width: 90, align: 'center' },
   { title: getSwitchHeader('导出显示', 'showInExport'), key: 'showInExport', width: 90, align: 'center' },
   { title: getSwitchHeader('导入显示', 'showInImport'), key: 'showInImport', width: 90, align: 'center' },
-  { title: '分组排序', dataIndex: 'sectionOrder', key: 'sectionOrder', width: 90, align: 'center' },
-  { title: '默认展开', dataIndex: 'sectionOpen', key: 'sectionOpen', width: 90, align: 'center' },
+  { title: getSwitchHeader('可排序', 'sortable'), key: 'sortable', width: 90, align: 'center' },
   { title: getSwitchHeader('状态', 'status'), key: 'status', width: 70, align: 'center' },
   { title: '操作', key: 'action', width: 120, align: 'center', fixed: 'right' },
 ]);
@@ -668,6 +675,34 @@ async function handleToggleSearchable(record: ColumnMetaApi.ColumnMeta, checked:
       searchable: checked ? 1 : 0,
     });
     message.success(checked ? '已设为可搜索' : '已取消可搜索');
+    loadData();
+  } catch (error: any) {
+    message.error(error?.message || '操作失败');
+    loadData();
+  }
+}
+
+async function handleToggleSortable(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
+  try {
+    await updateColumnMeta({
+      ...record,
+      sortable: checked ? 1 : 0,
+    });
+    message.success(checked ? '已设为可排序' : '已取消可排序');
+    loadData();
+  } catch (error: any) {
+    message.error(error?.message || '操作失败');
+    loadData();
+  }
+}
+
+async function handleToggleUnique(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
+  try {
+    await updateColumnMeta({
+      ...record,
+      isUnique: checked ? 1 : 0,
+    });
+    message.success(checked ? '已设为唯一' : '已取消唯一');
     loadData();
   } catch (error: any) {
     message.error(error?.message || '操作失败');

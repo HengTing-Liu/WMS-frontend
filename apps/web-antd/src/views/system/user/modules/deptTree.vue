@@ -1,8 +1,9 @@
 
 <script lang="ts" setup>
   import { computed, watch, ref } from 'vue';
-  import { Tree, Input, Checkbox } from 'ant-design-vue';
+  import { Tree, Input, Checkbox, Button, Tooltip } from 'ant-design-vue';
   import { IconifyIcon } from '@vben/icons';
+  import { MinusSquare, PlusSquare } from 'lucide-vue-next';
 
   interface TreeNode {
     /** 部门主键：接口可能为 number 或 string（如业务编码），不可强转 Number 否则整表被丢弃 */
@@ -218,6 +219,47 @@
   });
 
   const includeSubDept = ref<boolean>(true);
+  const expandedKeys = ref<(string | number)[]>([]);
+  const isAllExpanded = ref(true);
+
+  // 收集所有可展开的节点 key
+  function collectAllExpandableKeys(nodes: TreeNode[]): (string | number)[] {
+    const keys: (string | number)[] = [];
+    function walk(list: TreeNode[]) {
+      for (const n of list) {
+        if (n.children && n.children.length > 0) {
+          if (n.id != null) keys.push(n.id);
+          walk(n.children);
+        }
+      }
+    }
+    walk(nodes);
+    return keys;
+  }
+
+  // 初始化展开状态
+  function initExpandedKeys() {
+    if (isAllExpanded.value) {
+      expandedKeys.value = collectAllExpandableKeys(sourceTreeData.value);
+    } else {
+      expandedKeys.value = [];
+    }
+  }
+
+  // 切换展开/折叠
+  function toggleExpandAll() {
+    isAllExpanded.value = !isAllExpanded.value;
+    initExpandedKeys();
+  }
+
+  // 监听树数据变化时重新初始化展开状态
+  watch(
+    () => sourceTreeData.value,
+    () => {
+      initExpandedKeys();
+    },
+    { deep: true }
+  );
 
   function collectDescendantIds(nodes: TreeNode[], targetId: string | number): (string | number)[] {
     const findNode = (list: TreeNode[]): TreeNode | null => {
@@ -281,7 +323,24 @@
 </script>
 <template>
    <div class="bg-white p-4 rounded-md h-full flex flex-col min-h-0">
-    <div class="mb-2 text-sm font-medium text-gray-700">部门架构</div>
+    <div class="mb-2 flex items-center justify-between">
+      <div class="text-sm font-medium text-gray-700">部门架构</div>
+      <div class="flex items-center gap-1">
+        <Tooltip :title="isAllExpanded ? '折叠全部' : '展开全部'">
+          <Button
+            type="text"
+            size="small"
+            class="!p-1"
+            @click="toggleExpandAll"
+          >
+            <template #icon>
+              <MinusSquare v-if="isAllExpanded" class="w-4 h-4" />
+              <PlusSquare v-else class="w-4 h-4" />
+            </template>
+          </Button>
+        </Tooltip>
+      </div>
+    </div>
     <div class="mb-2">
       <Checkbox v-model:checked="includeSubDept">包含下级部门</Checkbox>
     </div>
@@ -294,8 +353,8 @@
     </div>
     <div class="flex-1 min-h-0 overflow-auto">
       <Tree
-        default-expand-all
-        :auto-expand-parent="true"
+        :expanded-keys="expandedKeys"
+        :auto-expand-parent="false"
         show-line
         show-icon
         :field-names="{ key: 'id', title: 'label' }"
@@ -303,6 +362,7 @@
         :tree-data="filteredTreeData"
         block-node
         v-model:selectedKeys="selectedKeys"
+        @update:expanded-keys="(keys: (string | number)[]) => expandedKeys = keys"
       />
     </div>
    </div>

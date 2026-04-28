@@ -56,6 +56,7 @@ export async function fetchColumnSchema(tableCode: string): Promise<ColumnMeta[]
       isShowInForm: item.showInForm ?? item.isShowInForm ?? item.show_in_form,
       isSearchable: item.searchable ?? item.isSearchable,
       isSortable: item.sortable ?? item.isSortable,
+      isUnique: item.unique ?? item.isUnique,
       isRequired: item.required ?? item.isRequired,
       width: item.width ?? item.listWidth,
       sortOrder: item.sortOrder,
