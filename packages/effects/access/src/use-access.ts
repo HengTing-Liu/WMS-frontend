@@ -27,7 +27,13 @@ function useAccess() {
    * @param codes
    */
   function hasAccessByCodes(codes: string[]) {
-    const userCodesSet = new Set(accessStore.accessCodes);
+    const userCodes = accessStore.accessCodes || [];
+    const userCodesSet = new Set(userCodes);
+
+    // 支持通配符 *:*:*（admin 等超级权限）
+    if (userCodesSet.has('*:*:*')) {
+      return true;
+    }
 
     const intersection = codes.filter((item) => userCodesSet.has(item));
     return intersection.length > 0;
