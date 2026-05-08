@@ -509,10 +509,10 @@ const rowSelection = computed(() => ({
 }));
 
 // ========== 加载数据 ==========
-async function loadTableList() {
+async function loadTableList(forceRefresh = false) {
   tableLoading.value = true;
   try {
-    const res = await getTableMetaListForSelect();
+    const res = await getTableMetaListForSelect(forceRefresh);
     tableList.value = res;
   } catch (error: any) {
     message.error(error?.message || '加载表列表失败');
@@ -900,9 +900,9 @@ function getDataTypeColor(type: string): string {
 // ========== 生命周期 ==========
 onMounted(async () => {
   const restored = restorePageState();
-  if (!tableList.value.length) {
-    await loadTableList();
-  }
+  // 强制刷新表列表，避免 sessionStorage 缓存了已被后端删除的表
+  await loadTableList(true);
+  // 验证恢复的 selectedTableCode 是否仍然存在于最新列表中
   if (
     selectedTableCode.value
     && !tableList.value.some((item) => item.tableCode === selectedTableCode.value)

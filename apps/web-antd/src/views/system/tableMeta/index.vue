@@ -205,7 +205,7 @@ const columns = computed<TableColumnsType<TableMetaResult>>(() => [
   { title: '可选', key: 'showCheckbox', width: 80, align: 'center' },
   { title: '序号', key: 'showIndex', width: 80, align: 'center' },
   { title: 'Status', key: 'status', width: 80, align: 'center' },
-  { title: 'Remark', dataIndex: 'remark', key: 'remark', width: 200, ellipsis: true },
+  { title: 'Remarks', dataIndex: 'remarks', key: 'remarks', width: 200, ellipsis: true },
   { title: 'Create Time', dataIndex: 'createTime', key: 'createTime', width: 170 },
   { title: 'Action', key: 'action', width: 140, fixed: 'right' },
 ]);

@@ -165,6 +165,10 @@ export function inferCrudPrefix(tableCode: string): string {
     sys_user: '/api/wms/crud/sys_user',
     // 物料相关表和其他业务表
     inv_material: '/api/wms/crud/inv_material',
+    inv_inventory: '/api/wms/crud/inv_inventory',
+    inv_inventory_change: '/api/wms/crud/inv_inventory_change',
+    inv_purchase_order: '/api/wms/crud/inv_purchase_order',
+    io_inventory: '/api/wms/crud/io_inventory',
     // 系统表（树形）
     sys_dept: '/api/wms/crud/sys_dept',
   };

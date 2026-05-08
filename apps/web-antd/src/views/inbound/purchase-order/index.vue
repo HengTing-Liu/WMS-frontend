@@ -1,12 +1,10 @@
 <template>
   <LowcodePage
     ref="lowcodePageRef"
-    table-code="io_inventory"
-    page-title="领用出库"
-    page-desc="查询和管理领用出库台账"
-    crud-prefix="/api/wms/crud/io_inventory"
-    permission-prefix="wms:outbound:use"
-    :fixed-params="{ ioType: '领用出库' }"
+    table-code="inv_purchase_order"
+    page-title="采购订单"
+    page-desc="查询和管理采购订单信息"
+    crud-prefix="/api/wms/crud/inv_purchase_order"
     @form-success="handleFormSuccess"
   />
 </template>

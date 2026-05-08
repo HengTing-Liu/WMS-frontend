@@ -22,6 +22,7 @@ import {
   updateDictData,
   type DictDataResult,
 } from '#/api/sys/dict';
+import { getDictDataList } from '#/api/system/dict';
 import {
   exportDictData,
   importDictData,
@@ -52,6 +53,7 @@ const total = ref(0);
 const pageNum = ref(1);
 const pageSize = ref(10);
 const statusSwitchLoading = ref<Record<number, boolean>>({});
+const languageTypeLoading = ref(false);
 
 const formModalVisible = ref(false);
 const formLoading = ref(false);
@@ -74,11 +76,32 @@ const rules = {
   dictValue: [{ required: true, message: '请输入字典值', trigger: 'blur' }],
 };
 
-const languageTypeOptions = [
-  { label: '简体中文', value: 'zh_CN' },
-  { label: 'English', value: 'en_US' },
-  { label: '繁體中文', value: 'zh_TW' },
-];
+const languageTypeOptions = ref<{ label: string; value: string }[]>([]);
+
+// 从字典数据 dict_type = 'language_type' 动态加载语言类型选项
+async function loadLanguageTypeOptions() {
+  languageTypeLoading.value = true;
+  try {
+    const res = await getDictDataList({ dictType: 'language_type', pageNum: 1, pageSize: 999 });
+    const rows = res?.rows || [];
+    languageTypeOptions.value = rows
+      .filter((r: any) => r.isEnabled !== 0 && r.status !== '1')
+      .map((r: any) => ({
+        label: r.dictLabel || r.dict_label,
+        value: r.dictValue || r.dict_value,
+      }));
+    // 若当前表单值不在选项中，回退到第一个选项
+    const currentValue = formState.value.languageType;
+    const exists = languageTypeOptions.value.some((o) => o.value === currentValue);
+    if (!exists && languageTypeOptions.value.length > 0) {
+      formState.value.languageType = languageTypeOptions.value[0].value;
+    }
+  } catch {
+    languageTypeOptions.value = [];
+  } finally {
+    languageTypeLoading.value = false;
+  }
+}
 
 const columns = [
   { title: '字典标签', dataIndex: 'dictLabel', key: 'dictLabel', width: 160 },
@@ -181,6 +204,7 @@ async function handleDownloadTemplate() {
 const handleAdd = () => {
   editId.value = undefined;
   resetForm();
+  loadLanguageTypeOptions();
   formModalVisible.value = true;
 };
 
@@ -190,12 +214,13 @@ const handleEdit = async (record: DictDataResult) => {
   formLoading.value = true;
   try {
     const data = await getDictDataDetail(record.id);
+    await loadLanguageTypeOptions();
     formState.value = {
       dictLabel: data.dictLabel || '',
       dictValue: data.dictValue || '',
       sortOrder: data.sortOrder ?? 0,
       isEnabled: data.isEnabled ?? 1,
-      languageType: data.languageType || 'zh_CN',
+      languageType: data.languageType || (languageTypeOptions.value[0]?.value ?? ''),
       remarks: data.remarks || '',
     };
     formModalVisible.value = true;
@@ -320,7 +345,7 @@ watch(
 );
 
 const getLanguageTypeLabel = (value?: string) => {
-  const option = languageTypeOptions.find((o) => o.value === value);
+  const option = languageTypeOptions.value.find((o) => o.value === value);
   return option ? option.label : (value || '-');
 };
 
@@ -439,7 +464,12 @@ defineExpose({ open });
           <Input v-model:value="formState.dictValue" placeholder="如：1" />
         </Form.Item>
         <Form.Item label="语言类型" name="languageType">
-          <Select v-model:value="formState.languageType" :options="languageTypeOptions" style="width: 100%" />
+          <Select
+            v-model:value="formState.languageType"
+            :options="languageTypeOptions"
+            style="width: 100%"
+            :loading="languageTypeLoading"
+          />
         </Form.Item>
         <Form.Item label="排序" name="sortOrder">
           <InputNumber v-model:value="formState.sortOrder" :min="0" :max="9999" style="width: 100%" />

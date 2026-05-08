@@ -18,6 +18,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/inbound/production/index.vue'),
       },
       {
+        meta: { title: '采购订单' },
+        name: 'InboundPurchaseOrder',
+        path: 'purchase-order',
+        component: () => import('#/views/inbound/purchase-order/index.vue'),
+      },
+      {
         meta: { title: '采购入库' },
         name: 'InboundPurchase',
         path: 'purchase',

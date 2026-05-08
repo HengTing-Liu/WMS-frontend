@@ -1,63 +1,24 @@
 <template>
-  <Page auto-content-height>
-    <div class="page-content">
-      <div class="toolbar-tools">
-        <Button
-          v-access:code="'wms:inbound:production:query'"
-          type="primary"
-          class="mr-2"
-          @click="handleQuery"
-        >
-          <IconifyIcon icon="material-symbols:search" class="size-5" />
-          {{ $t('page.common.search') }}
-        </Button>
-        <Button
-          v-access:code="'wms:inbound:production:add'"
-          type="primary"
-          class="mr-2"
-          @click="handleAdd"
-        >
-          <IconifyIcon icon="material-symbols:add" class="size-5" />
-          {{ $t('page.common.add') }}
-        </Button>
-        <Button
-          v-access:code="'wms:inbound:production:import'"
-          class="mr-2"
-          @click="handleImport"
-        >
-          <IconifyIcon icon="material-symbols:upload" class="size-5" />
-          {{ $t('page.common.import') }}
-        </Button>
-        <Button
-          v-access:code="'wms:inbound:production:export'"
-          @click="handleExport"
-        >
-          <IconifyIcon icon="material-symbols:download" class="size-5" />
-          {{ $t('page.common.export') }}
-        </Button>
-      </div>
-    </div>
-  </Page>`r`n</template>`r`n`r`n<script setup lang="ts">
-import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
-import { Button } from 'ant-design-vue';
+  <LowcodePage
+    ref="lowcodePageRef"
+    table-code="io_inventory"
+    page-title="生产入库"
+    page-desc="查询和管理生产入库台账"
+    crud-prefix="/api/wms/crud/io_inventory"
+    permission-prefix="wms:inbound:production"
+    :fixed-params="{ ioType: '生产入库' }"
+    @form-success="handleFormSuccess"
+  />
+</template>
 
+<script setup lang="ts">
+import { ref } from 'vue';
 
+import LowcodePage from '#/lowcode/LowcodePage.vue';
 
-function handleQuery() {
-  console.log($t('page.inbound.production.queryLog'));
-}
+const lowcodePageRef = ref<InstanceType<typeof LowcodePage> | null>(null);
 
-function handleAdd() {
-  console.log($t('page.inbound.production.addLog'));
-}
-
-function handleImport() {
-  console.log($t('page.inbound.production.importLog'));
-}
-
-function handleExport() {
-  console.log($t('page.inbound.production.exportLog'));
+function handleFormSuccess() {
+  lowcodePageRef.value?.reload();
 }
 </script>
-

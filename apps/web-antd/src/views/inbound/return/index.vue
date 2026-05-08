@@ -1,34 +1,24 @@
 <template>
-  <Page auto-content-height>
-    <div class="page-content">
-      <div class="toolbar-tools">
-        <Button v-access:code="'wms:inbound:return:query'" type="primary" class="mr-2" @click="handleQuery">
-          <IconifyIcon icon="material-symbols:search" class="size-5" /> ²éÑ¯
-        </Button>
-        <Button v-access:code="'wms:inbound:return:add'" type="primary" class="mr-2" @click="handleAdd">
-          <IconifyIcon icon="material-symbols:add" class="size-5" /> ĞÂÔö
-        </Button>
-        <Button v-access:code="'wms:inbound:return:export'" @click="handleExport">
-          <IconifyIcon icon="material-symbols:download" class="size-5" /> µ¼³ö
-        </Button>
-      </div>
-    </div>
-  </Page>`r`n</template>`r`n`r`n<script setup lang="ts">
-import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
-import { Button } from 'ant-design-vue';
+  <LowcodePage
+    ref="lowcodePageRef"
+    table-code="io_inventory"
+    page-title="å”®åé€€è´§å…¥åº“"
+    page-desc="æŸ¥è¯¢å’Œç®¡ç†å”®åé€€è´§å…¥åº“å°è´¦"
+    crud-prefix="/api/wms/crud/io_inventory"
+    permission-prefix="wms:inbound:return"
+    :fixed-params="{ ioType: 'é”€å”®é€€è´§å…¥åº“' }"
+    @form-success="handleFormSuccess"
+  />
+</template>
 
+<script setup lang="ts">
+import { ref } from 'vue';
 
-function handleQuery() {
-  console.log('²éÑ¯ÊÛºóÍË»õÈë¿â');
-}
+import LowcodePage from '#/lowcode/LowcodePage.vue';
 
-function handleAdd() {
-  console.log('ĞÂÔöÊÛºóÍË»õÈë¿â');
-}
+const lowcodePageRef = ref<InstanceType<typeof LowcodePage> | null>(null);
 
-function handleExport() {
-  console.log('µ¼³öÊÛºóÍË»õÈë¿â');
+function handleFormSuccess() {
+  lowcodePageRef.value?.reload();
 }
 </script>
-

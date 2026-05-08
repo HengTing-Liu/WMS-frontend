@@ -1,34 +1,20 @@
-<template>
-  <Page auto-content-height>
-    <div class="page-content">
-      <div class="toolbar-tools">
-        <Button v-access:code="'wms:query:material:query'" type="primary" class="mr-2" @click="handleQuery">
-          <IconifyIcon icon="material-symbols:search" class="size-5" /> ²éÑ¯
-        </Button>
-        <Button v-access:code="'wms:query:material:add'" type="primary" class="mr-2" @click="handleAdd">
-          <IconifyIcon icon="material-symbols:add" class="size-5" /> ĞÂÔö
-        </Button>
-        <Button v-access:code="'wms:query:material:export'" @click="handleExport">
-          <IconifyIcon icon="material-symbols:download" class="size-5" /> µ¼³ö
-        </Button>
-      </div>
-    </div>
-  </Page>`r`n</template>`r`n`r`n<script setup lang="ts">
-import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
-import { Button } from 'ant-design-vue';
+ï»¿<template>
+  <LowcodePage
+    ref="lowcodePageRef"
+    table-code="inv_inventory"
+    page-title="æŸ¥è¯¢åº“ä½ä½™é‡"
+    crud-prefix="/api/wms/crud/inv_inventory"
+    @form-success="handleFormSuccess"
+  />
+</template>
 
+<script setup lang="ts">
+import { ref } from 'vue';
+import LowcodePage from '#/lowcode/LowcodePage.vue';
 
-function handleQuery() {
-  console.log('²éÑ¯²éÑ¯ÎïÁÏ');
-}
+const lowcodePageRef = ref<InstanceType<typeof LowcodePage> | null>(null);
 
-function handleAdd() {
-  console.log('ĞÂÔö²éÑ¯ÎïÁÏ');
-}
-
-function handleExport() {
-  console.log('µ¼³ö²éÑ¯ÎïÁÏ');
+function handleFormSuccess() {
+  lowcodePageRef.value?.reload();
 }
 </script>
-

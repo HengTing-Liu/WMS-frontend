@@ -1,34 +1,22 @@
 <template>
-  <Page auto-content-height>
-    <div class="page-content">
-      <div class="toolbar-tools">
-        <Button v-access:code="'wms:query:flow:query'" type="primary" class="mr-2" @click="handleQuery">
-          <IconifyIcon icon="material-symbols:search" class="size-5" /> 查询
-        </Button>
-        <Button v-access:code="'wms:query:flow:add'" type="primary" class="mr-2" @click="handleAdd">
-          <IconifyIcon icon="material-symbols:add" class="size-5" /> 新增
-        </Button>
-        <Button v-access:code="'wms:query:flow:export'" @click="handleExport">
-          <IconifyIcon icon="material-symbols:download" class="size-5" /> 导出
-        </Button>
-      </div>
-    </div>
-  </Page>`r`n</template>`r`n`r`n<script setup lang="ts">
-import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
-import { Button } from 'ant-design-vue';
+  <LowcodePage
+    ref="lowcodePageRef"
+    table-code="inv_inventory_change"
+    page-title="搴撳瓨娴佹按"
+    page-desc="鏌ヨ搴撳瓨鍙樺姩娴佹按璁板綍"
+    crud-prefix="/api/wms/crud/inv_inventory_change"
+    @form-success="handleFormSuccess"
+  />
+</template>
 
+<script setup lang="ts">
+import { ref } from 'vue';
 
-function handleQuery() {
-  console.log('查询查询流水');
-}
+import LowcodePage from '#/lowcode/LowcodePage.vue';
 
-function handleAdd() {
-  console.log('新增查询流水');
-}
+const lowcodePageRef = ref<InstanceType<typeof LowcodePage> | null>(null);
 
-function handleExport() {
-  console.log('导出查询流水');
+function handleFormSuccess() {
+  lowcodePageRef.value?.reload();
 }
 </script>
-

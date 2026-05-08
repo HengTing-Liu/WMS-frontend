@@ -241,6 +241,10 @@ interface Props {
   staticOperations?: LowcodeAction[];
   /** 是否显示表格 */
   showTable?: boolean;
+  /** 固定查询参数（始终附加到请求，不参与搜索栏显示与重置） */
+  fixedParams?: Record<string, any>;
+  /** 覆盖按钮权限前缀（如传入 wms:inbound:production，则把后端 meta 的 wms:io:inventory:add 替换为 wms:inbound:production:add） */
+  permissionPrefix?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -251,6 +255,7 @@ const props = withDefaults(defineProps<Props>(), {
   staticColumns: () => [],
   staticOperations: () => [],
   showTable: true,
+  fixedParams: () => ({}),
 });
 
 const emit = defineEmits<{
@@ -494,6 +499,15 @@ async function loadData() {
       queryModes[snakeKey] = mode === 'eq' ? 'eq' : 'like';
     }
 
+    // 合并固定参数（fixedParams 中的 key 允许驼峰或蛇形，统一转蛇形）
+    for (const [key, val] of Object.entries(props.fixedParams)) {
+      if (val !== undefined && val !== null && val !== '') {
+        const snakeKey = key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
+        query[snakeKey] = val;
+        queryModes[snakeKey] = 'eq';
+      }
+    }
+
     const res = await fetchList({
       tableCode: props.tableCode,
       prefix: props.crudPrefix,
@@ -556,7 +570,18 @@ function canRenderAction(action: LowcodeAction): boolean {
   if (action.status !== undefined && Number(action.status) !== 1) return false;
   if (action.showButton === 0 || action.showButton === false || action.showButton === '0') return false;
 
-  const codes = expandAllPermissionCodes(action.permission);
+  let permission = action.permission ?? '';
+  // permissionPrefix 覆盖：把后端 meta 的前缀替换为页面指定前缀
+  if (props.permissionPrefix && currentTableMeta.value?.permissionCode && permission) {
+    const metaPrefix = currentTableMeta.value.permissionCode;
+    permission = permission
+      .split(',')
+      .map((p) => p.trim())
+      .map((p) => (p.startsWith(metaPrefix) ? p.replace(metaPrefix, props.permissionPrefix!) : p))
+      .join(',');
+  }
+
+  const codes = expandAllPermissionCodes(permission);
   if (codes.length === 0) return true;
   const matched = codes.find((code) => hasAccessByCodes([code]));
   if (!matched && import.meta.env.DEV && props.tableCode === 'inv_warehouse') {
