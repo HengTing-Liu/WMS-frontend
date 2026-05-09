@@ -1,0 +1,15 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "outputs": ["$TURBO_EXTENDS$", "../../dist/**", "../../dist.zip"]
+    },
+    "build:analyze": {
+      "outputs": ["$TURBO_EXTENDS$", "../../dist/**"]
+    },
+    "preview": {
+      "outputs": ["$TURBO_EXTENDS$", "../../dist/**"]
+    }
+  }
+}

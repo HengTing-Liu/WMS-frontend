@@ -1,0 +1,1273 @@
+{
+  "formInfo": {
+    "languageList": [
+      {
+        "code": "zh_cn",
+        "name": "简体中文"
+      },
+      {
+        "code": "en_us",
+        "name": "English (US)"
+      },
+      {
+        "code": "ja_jp",
+        "name": "日本語"
+      },
+      {
+        "code": "ko_kr",
+        "name": "한국어"
+      },
+      {
+        "code": "fr_fr",
+        "name": "Français"
+      },
+      {
+        "code": "de_de",
+        "name": "Deutsch"
+      },
+      {
+        "code": "es_es",
+        "name": "Español"
+      },
+      {
+        "code": "ru_ru",
+        "name": "Русский"
+      }
+    ],
+    // 产品基本信息对象
+    "basicInfo": {
+      "fields": [
+        {
+          "fieldCode": "productNo",
+          "fieldName": {
+            "zh_cn": "货号",
+            "en_us": "Product No.",
+            "ja_jp": "品番",
+            "ko_kr": "품번",
+            "fr_fr": "Référence produit",
+            "de_de": "Artikelnummer",
+            "es_es": "Número de producto",
+            "ru_ru": "Артикул"
+          },
+          "fieldType": "text",
+          "isRequired": true,
+          "isMultilang": false,
+          "maxLength": 50,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 1,
+          "defaultValue": "A0007"
+        },
+        {
+          "fieldCode": "productName",
+          "fieldName": {
+            "zh_cn": "名称",
+            "en_us": "Product Name",
+            "ja_jp": "製品名",
+            "ko_kr": "제품명",
+            "fr_fr": "Nom du produit",
+            "de_de": "Produktname",
+            "es_es": "Nombre del producto",
+            "ru_ru": "Название продукта"
+          },
+          "fieldType": "text",
+          "isRequired": true,
+          "isMultilang": true,
+          "maxLength": 200,
+          "searchType": "fulltext",
+          "esFieldType": "text",
+          "sortNum": 2,
+          "defaultValue": "TLR4 Rabbit pAb"
+        },
+        {
+          "fieldCode": "brand",
+          "fieldName": {
+            "zh_cn": "品牌",
+            "en_us": "Brand",
+            "ja_jp": "ブランド",
+            "ko_kr": "브랜드",
+            "fr_fr": "Marque",
+            "de_de": "Marke",
+            "es_es": "Marca",
+            "ru_ru": "Бренд"
+          },
+          "fieldType": "select",
+          "isRequired": true,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 3,
+          "options": [
+            {
+              "value": "ABclonal",
+              "label": {
+                "zh_cn": "ABclonal",
+                "en_us": "ABclonal",
+                "ja_jp": "ABclonal",
+                "ko_kr": "ABclonal",
+                "fr_fr": "ABclonal",
+                "de_de": "ABclonal",
+                "es_es": "ABclonal",
+                "ru_ru": "ABclonal"
+              }
+            }
+          ],
+          "defaultValue": "ABclonal"
+        },
+        {
+          "fieldCode": "productStatus",
+          "fieldName": {
+            "zh_cn": "产品状态",
+            "en_us": "Product Status",
+            "ja_jp": "製品ステータス",
+            "ko_kr": "제품 상태",
+            "fr_fr": "Statut du produit",
+            "de_de": "Produktstatus",
+            "es_es": "Estado del producto",
+            "ru_ru": "Статус продукта"
+          },
+          "fieldType": "select",
+          "isRequired": true,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 4,
+          "options": [
+            {
+              "value": "可售",
+              "label": {
+                "zh_cn": "可售",
+                "en_us": "For Sale",
+                "ja_jp": "販売可",
+                "ko_kr": "판매 가능",
+                "fr_fr": "En vente",
+                "de_de": "Verkäuflich",
+                "es_es": "Disponible para la venta",
+                "ru_ru": "В продаже"
+              }
+            },
+            {
+              "value": "停售",
+              "label": {
+                "zh_cn": "停售",
+                "en_us": "Discontinued",
+                "ja_jp": "販売停止",
+                "ko_kr": "판매 중지",
+                "fr_fr": "Arrêté",
+                "de_de": "Eingestellt",
+                "es_es": "Descontinuado",
+                "ru_ru": "Снят с продажи"
+              }
+            }
+          ],
+          "defaultValue": "可售"
+        },
+        {
+          "fieldCode": "saleRegion",
+          "fieldName": {
+            "zh_cn": "可售区域",
+            "en_us": "Sale Region",
+            "ja_jp": "販売可能地域",
+            "ko_kr": "판매 가능 지역",
+            "fr_fr": "Région de vente",
+            "de_de": "Verkaufsregion",
+            "es_es": "Región de venta",
+            "ru_ru": "Регион продажи"
+          },
+          "fieldType": "select",
+          "isRequired": true,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 5,
+          "options": [
+            {
+              "value": "中国",
+              "label": {
+                "zh_cn": "中国",
+                "en_us": "China",
+                "ja_jp": "中国",
+                "ko_kr": "중국",
+                "fr_fr": "Chine",
+                "de_de": "China",
+                "es_es": "China",
+                "ru_ru": "Китай"
+              }
+            },
+            {
+              "value": "全球",
+              "label": {
+                "zh_cn": "全球",
+                "en_us": "Global",
+                "ja_jp": "グローバル",
+                "ko_kr": "글로벌",
+                "fr_fr": "Global",
+                "de_de": "Global",
+                "es_es": "Global",
+                "ru_ru": "Глобальный"
+              }
+            }
+          ],
+          "defaultValue": "中国"
+        },
+        {
+          "fieldCode": "BU",
+          "fieldName": {
+            "zh_cn": "BU",
+            "en_us": "BU",
+            "ja_jp": "BU",
+            "ko_kr": "BU",
+            "fr_fr": "BU",
+            "de_de": "BU",
+            "es_es": "BU",
+            "ru_ru": "BU"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 200,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 6,
+          "defaultValue": ""
+        },
+        {
+          "fieldCode": "SBU",
+          "fieldName": {
+            "zh_cn": "SBU",
+            "en_us": "SBU",
+            "ja_jp": "SBU",
+            "ko_kr": "SBU",
+            "fr_fr": "SBU",
+            "de_de": "SBU",
+            "es_es": "SBU",
+            "ru_ru": "SBU"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 200,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 7,
+          "defaultValue": ""
+        },
+        {
+          "fieldCode": "productCategory",
+          "fieldName": {
+            "zh_cn": "产品分类",
+            "en_us": "Product Category",
+            "ja_jp": "製品分類",
+            "ko_kr": "제품 분류",
+            "fr_fr": "Catégorie de produit",
+            "de_de": "Produktkategorie",
+            "es_es": "Categoría de producto",
+            "ru_ru": "Категория продукта"
+          },
+          "fieldType": "select",
+          "isRequired": true,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 8,
+          "options": [
+            {
+              "value": "抗体",
+              "label": {
+                "zh_cn": "抗体",
+                "en_us": "Antibody",
+                "ja_jp": "抗体",
+                "ko_kr": "항체",
+                "fr_fr": "Anticorps",
+                "de_de": "Antikörper",
+                "es_es": "Anticuerpo",
+                "ru_ru": "Антитело"
+              }
+            },
+            {
+              "value": "蛋白",
+              "label": {
+                "zh_cn": "蛋白",
+                "en_us": "Protein",
+                "ja_jp": "タンパク質",
+                "ko_kr": "단백질",
+                "fr_fr": "Protéine",
+                "de_de": "Protein",
+                "es_es": "Proteína",
+                "ru_ru": "Белок"
+              }
+            }
+          ],
+          "defaultValue": "抗体"
+        },
+        {
+          "fieldCode": "customerType",
+          "fieldName": {
+            "zh_cn": "客户类型",
+            "en_us": "Customer Type",
+            "ja_jp": "顧客タイプ",
+            "ko_kr": "고객 유형",
+            "fr_fr": "Type de client",
+            "de_de": "Kundentyp",
+            "es_es": "Tipo de cliente",
+            "ru_ru": "Тип клиента"
+          },
+          "fieldType": "select",
+          "isRequired": true,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 9,
+          "options": [
+            {
+              "value": "全部",
+              "label": {
+                "zh_cn": "全部",
+                "en_us": "All",
+                "ja_jp": "全て",
+                "ko_kr": "전체",
+                "fr_fr": "Tout",
+                "de_de": "Alle",
+                "es_es": "Todos",
+                "ru_ru": "Все"
+              }
+            },
+            {
+              "value": "科研",
+              "label": {
+                "zh_cn": "科研",
+                "en_us": "Research",
+                "ja_jp": "研究用",
+                "ko_kr": "연구용",
+                "fr_fr": "Recherche",
+                "de_de": "Forschung",
+                "es_es": "Investigación",
+                "ru_ru": "Научные исследования"
+              }
+            },
+            {
+              "value": "工业",
+              "label": {
+                "zh_cn": "工业",
+                "en_us": "Industrial",
+                "ja_jp": "産業用",
+                "ko_kr": "산업용",
+                "fr_fr": "Industriel",
+                "de_de": "Industriell",
+                "es_es": "Industrial",
+                "ru_ru": "Промышленный"
+              }
+            }
+          ],
+          "defaultValue": "全部"
+        }
+      ]
+    },
+    // 分类属性对象
+    "classificationInfo": {
+      "fields": [
+        {
+          "fieldCode": "geneId",
+          "fieldName": {
+            "zh_cn": "基因ID",
+            "en_us": "Gene ID",
+            "ja_jp": "遺伝子ID",
+            "ko_kr": "유전자 ID",
+            "fr_fr": "ID du gène",
+            "de_de": "Gen-ID",
+            "es_es": "ID del gen",
+            "ru_ru": "ID гена"
+          },
+          "fieldType": "select",
+          "isRequired": true,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 1,
+          "options": [
+            {
+              "value": "70991",
+              "label": {
+                "zh_cn": "70991",
+                "en_us": "70991",
+                "ja_jp": "70991",
+                "ko_kr": "70991",
+                "fr_fr": "70991",
+                "de_de": "70991",
+                "es_es": "70991",
+                "ru_ru": "70991"
+              }
+            }
+          ],
+          "defaultValue": "70991"
+        },
+        {
+          "fieldCode": "humanGeneId",
+          "fieldName": {
+            "zh_cn": "人类基因ID",
+            "en_us": "Human Gene ID",
+            "ja_jp": "ヒト遺伝子ID",
+            "ko_kr": "인간 유전자 ID",
+            "fr_fr": "ID du gène humain",
+            "de_de": "Humane Gen-ID",
+            "es_es": "ID del gen humano",
+            "ru_ru": "ID гена человека"
+          },
+          "fieldType": "select",
+          "isRequired": true,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 2,
+          "options": [
+            {
+              "value": "1356",
+              "label": {
+                "zh_cn": "1356",
+                "en_us": "1356",
+                "ja_jp": "1356",
+                "ko_kr": "1356",
+                "fr_fr": "1356",
+                "de_de": "1356",
+                "es_es": "1356",
+                "ru_ru": "1356"
+              }
+            }
+          ],
+          "defaultValue": "1356"
+        },
+        {
+          "fieldCode": "swissProt",
+          "fieldName": {
+            "zh_cn": "Swiss-Prot",
+            "en_us": "Swiss-Prot",
+            "ja_jp": "Swiss-Prot",
+            "ko_kr": "Swiss-Prot",
+            "fr_fr": "Swiss-Prot",
+            "de_de": "Swiss-Prot",
+            "es_es": "Swiss-Prot",
+            "ru_ru": "Swiss-Prot"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 50,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 3,
+          "defaultValue": "O00208"
+        },
+        {
+          "fieldCode": "alias",
+          "fieldName": {
+            "zh_cn": "别名",
+            "en_us": "Alias",
+            "ja_jp": "エイリアス",
+            "ko_kr": "별칭",
+            "fr_fr": "Alias",
+            "de_de": "Alias",
+            "es_es": "Alias",
+            "ru_ru": "Алиас"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 200,
+          "searchType": "fulltext",
+          "esFieldType": "text",
+          "sortNum": 4,
+          "defaultValue": "TOLL; CD284; TLR-4; ARMD10; TLR4"
+        },
+        {
+          "fieldCode": "geneSymbol",
+          "fieldName": {
+            "zh_cn": "基因符号",
+            "en_us": "Gene Symbol",
+            "ja_jp": "遺伝子シンボル",
+            "ko_kr": "유전자 기호",
+            "fr_fr": "Symbole du gène",
+            "de_de": "Gensymbol",
+            "es_es": "Símbolo del gen",
+            "ru_ru": "Символ гена"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 100,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 5,
+          "defaultValue": "TLR4"
+        },
+        {
+          "fieldCode": "cellLocation",
+          "fieldName": {
+            "zh_cn": "细胞定位",
+            "en_us": "Cellular Location",
+            "ja_jp": "細胞内局在",
+            "ko_kr": "세포 내 위치",
+            "fr_fr": "Localisation cellulaire",
+            "de_de": "Zelluläre Lokalisation",
+            "es_es": "Localización celular",
+            "ru_ru": "Клеточная локализация"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 100,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 6,
+          "defaultValue": "Cell membrane,Single-pass"
+        },
+        {
+          "fieldCode": "researchField",
+          "fieldName": {
+            "zh_cn": "研究领域",
+            "en_us": "Research Field",
+            "ja_jp": "研究領域",
+            "ko_kr": "연구 분야",
+            "fr_fr": "Domaine de recherche",
+            "de_de": "Forschungsbereich",
+            "es_es": "Campo de investigación",
+            "ru_ru": "Область исследований"
+          },
+          "fieldType": "textarea",
+          "isRequired": false,
+          "isMultilang": true,
+          "maxLength": 500,
+          "searchType": "fulltext",
+          "esFieldType": "text",
+          "sortNum": 7,
+          "defaultValue": "Immunology\nInflammation,CDs,N\nF-kB Signaling"
+        },
+        {
+          "fieldCode": "keyword",
+          "fieldName": {
+            "zh_cn": "关键字",
+            "en_us": "Keyword",
+            "ja_jp": "キーワード",
+            "ko_kr": "키워드",
+            "fr_fr": "Mot-clé",
+            "de_de": "Schlüsselwort",
+            "es_es": "Palabra clave",
+            "ru_ru": "Ключевое слово"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 200,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 8,
+          "defaultValue": "Toll-like Receptor"
+        },
+        {
+          "fieldCode": "background",
+          "fieldName": {
+            "zh_cn": "背景",
+            "en_us": "Background",
+            "ja_jp": "背景",
+            "ko_kr": "배경",
+            "fr_fr": "Contexte",
+            "de_de": "Hintergrund",
+            "es_es": "Contexto",
+            "ru_ru": "Фон"
+          },
+          "fieldType": "textarea",
+          "isRequired": false,
+          "isMultilang": true,
+          "maxLength": 1000,
+          "searchType": "fulltext",
+          "esFieldType": "text",
+          "sortNum": 9,
+          "defaultValue": "receptor (TLR) family which plays a fundamental role in pathogen recognition"
+        },
+        {
+          "fieldCode": "signalingPathway",
+          "fieldName": {
+            "zh_cn": "信号通路",
+            "en_us": "Signaling Pathway",
+            "ja_jp": "シグナル経路",
+            "ko_kr": "신호 전달 경로",
+            "fr_fr": "Voie de signalisation",
+            "de_de": "Signalweg",
+            "es_es": "Vía de señalización",
+            "ru_ru": "Сигнальный путь"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 200,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 10,
+          "defaultValue": "XXX"
+        },
+        {
+          "fieldCode": "theoreticalMw",
+          "fieldName": {
+            "zh_cn": "理论分子量",
+            "en_us": "Theoretical Molecular Weight",
+            "ja_jp": "理論分子量",
+            "ko_kr": "이론 분자량",
+            "fr_fr": "Pondération moléculaire théorique",
+            "de_de": "Theoretisches Molekulargewicht",
+            "es_es": "Peso molecular teórico",
+            "ru_ru": "Теоретическая молекулярная масса"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 50,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 11,
+          "defaultValue": "96kDa"
+        },
+        {
+          "fieldCode": "actualMw",
+          "fieldName": {
+            "zh_cn": "实际分子量",
+            "en_us": "Actual Molecular Weight",
+            "ja_jp": "実測分子量",
+            "ko_kr": "실측 분자량",
+            "fr_fr": "Pondération moléculaire réelle",
+            "de_de": "Tatsächliches Molekulargewicht",
+            "es_es": "Peso molecular real",
+            "ru_ru": "Фактическая молекулярная масса"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 50,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 12,
+          "defaultValue": "100-135kDa"
+        },
+        {
+          "fieldCode": "species",
+          "fieldName": {
+            "zh_cn": "物种",
+            "en_us": "Species",
+            "ja_jp": "種",
+            "ko_kr": "종",
+            "fr_fr": "Espèce",
+            "de_de": "Spezies",
+            "es_es": "Especie",
+            "ru_ru": "Вид"
+          },
+          "fieldType": "select",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 13,
+          "options": [
+            {
+              "value": "Human",
+              "label": {
+                "zh_cn": "人",
+                "en_us": "Human",
+                "ja_jp": "ヒト",
+                "ko_kr": "인간",
+                "fr_fr": "Humain",
+                "de_de": "Mensch",
+                "es_es": "Humano",
+                "ru_ru": "Человек"
+              }
+            }
+          ],
+          "defaultValue": "Human"
+        },
+        {
+          "fieldCode": "source",
+          "fieldName": {
+            "zh_cn": "来源",
+            "en_us": "Source",
+            "ja_jp": "ソース",
+            "ko_kr": "출처",
+            "fr_fr": "Source",
+            "de_de": "Quelle",
+            "es_es": "Fuente",
+            "ru_ru": "Источник"
+          },
+          "fieldType": "select",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 14,
+          "options": [
+            {
+              "value": "Rabbit",
+              "label": {
+                "zh_cn": "兔",
+                "en_us": "Rabbit",
+                "ja_jp": "ウサギ",
+                "ko_kr": "토끼",
+                "fr_fr": "Lapin",
+                "de_de": "Kaninchen",
+                "es_es": "Conejo",
+                "ru_ru": "Кролик"
+              }
+            }
+          ],
+          "defaultValue": "Rabbit"
+        },
+        {
+          "fieldCode": "immunogen",
+          "fieldName": {
+            "zh_cn": "免疫原",
+            "en_us": "Immunogen",
+            "ja_jp": "免疫原",
+            "ko_kr": "면역원",
+            "fr_fr": "Immunogène",
+            "de_de": "Immunogen",
+            "es_es": "Inmunógeno",
+            "ru_ru": "Иммуноген"
+          },
+          "fieldType": "textarea",
+          "isRequired": false,
+          "isMultilang": true,
+          "maxLength": 500,
+          "searchType": "fulltext",
+          "esFieldType": "text",
+          "sortNum": 15,
+          "defaultValue": "Recombinant fusion protein containing a"
+        },
+        {
+          "fieldCode": "antigenAssay",
+          "fieldName": {
+            "zh_cn": "抗原测定",
+            "en_us": "Antigen Assay",
+            "ja_jp": "抗原測定",
+            "ko_kr": "항원 측정",
+            "fr_fr": "Dosage antigénique",
+            "de_de": "Antigen-Assay",
+            "es_es": "Ensayo de antígeno",
+            "ru_ru": "Определение антигена"
+          },
+          "fieldType": "textarea",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 500,
+          "searchType": "fulltext",
+          "esFieldType": "text",
+          "sortNum": 16,
+          "defaultValue": "EPCVEVWVPNITY\nQCMELNFYKIPD\nNLPFSTKNLDLS"
+        },
+        {
+          "fieldCode": "crossReactivity",
+          "fieldName": {
+            "zh_cn": "交叉反应性",
+            "en_us": "Cross Reactivity",
+            "ja_jp": "交叉反応性",
+            "ko_kr": "교차 반응성",
+            "fr_fr": "Réactivité croisée",
+            "de_de": "Kreuzreaktivität",
+            "es_es": "Reactividad cruzada",
+            "ru_ru": "Перекрестная реактивность"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 200,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 17,
+          "defaultValue": "Human, Mouse1"
+        },
+        {
+          "fieldCode": "applicationType",
+          "fieldName": {
+            "zh_cn": "应用类型",
+            "en_us": "Application Type",
+            "ja_jp": "アプリケーション種別",
+            "ko_kr": "응용 유형",
+            "fr_fr": "Type d'application",
+            "de_de": "Anwendungstyp",
+            "es_es": "Tipo de aplicación",
+            "ru_ru": "Тип приложения"
+          },
+          "fieldType": "select",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 18,
+          "options": [
+            {
+              "value": "IF/ICC",
+              "label": {
+                "zh_cn": "IF/ICC",
+                "en_us": "IF/ICC",
+                "ja_jp": "IF/ICC",
+                "ko_kr": "IF/ICC",
+                "fr_fr": "IF/ICC",
+                "de_de": "IF/ICC",
+                "es_es": "IF/ICC",
+                "ru_ru": "IF/ICC"
+              }
+            }
+          ],
+          "defaultValue": "IF/ICC"
+        },
+        {
+          "fieldCode": "recommendedDilution",
+          "fieldName": {
+            "zh_cn": "推荐稀释比",
+            "en_us": "Recommended Dilution",
+            "ja_jp": "推奨希釈比",
+            "ko_kr": "추천 희석비",
+            "fr_fr": "Dilution recommandée",
+            "de_de": "Empfohlene Verdünnung",
+            "es_es": "Dilución recomendada",
+            "ru_ru": "Рекомендуемое разведение"
+          },
+          "fieldType": "textarea",
+          "isRequired": false,
+          "isMultilang": true,
+          "maxLength": 500,
+          "searchType": "fulltext",
+          "esFieldType": "text",
+          "sortNum": 19,
+          "defaultValue": "WB,1:500 - 1:1000|IF/ICC,1:50 - 1:200|ELISA,Reco"
+        },
+        {
+          "fieldCode": "cloneNo",
+          "fieldName": {
+            "zh_cn": "克隆号",
+            "en_us": "Clone No",
+            "ja_jp": "クローン番号",
+            "ko_kr": "클론 번호",
+            "fr_fr": "Numéro de clone",
+            "de_de": "Klone-Nr.",
+            "es_es": "Número de clon",
+            "ru_ru": "Номер клона"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 100,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 20,
+          "defaultValue": "3566"
+        },
+        {
+          "fieldCode": "positiveSample",
+          "fieldName": {
+            "zh_cn": "阳性样本",
+            "en_us": "Positive Sample",
+            "ja_jp": "陽性サンプル",
+            "ko_kr": "양성 샘플",
+            "fr_fr": "Échantillon positif",
+            "de_de": "Positive Probe",
+            "es_es": "Muestra positiva",
+            "ru_ru": "Положительный образец"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 200,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 21,
+          "defaultValue": "RAW264.7"
+        },
+        {
+          "fieldCode": "storageBuffer",
+          "fieldName": {
+            "zh_cn": "存储/缓冲液",
+            "en_us": "Storage/Buffer",
+            "ja_jp": "保存/バッファー",
+            "ko_kr": "보관/완충액",
+            "fr_fr": "Stockage/Tampon",
+            "de_de": "Lagerung/Puffer",
+            "es_es": "Almacenamiento/Buffer",
+            "ru_ru": "Хранение/Буфер"
+          },
+          "fieldType": "textarea",
+          "isRequired": false,
+          "isMultilang": true,
+          "maxLength": 500,
+          "searchType": "fulltext",
+          "esFieldType": "text",
+          "sortNum": 22,
+          "defaultValue": "Store at -20°C. Avoid freeze / thaw cycles.|Buffer: PBS with 0.05% proclin300,50%"
+        },
+        {
+          "fieldCode": "rrid",
+          "fieldName": {
+            "zh_cn": "RRID",
+            "en_us": "RRID",
+            "ja_jp": "RRID",
+            "ko_kr": "RRID",
+            "fr_fr": "RRID",
+            "de_de": "RRID",
+            "es_es": "RRID",
+            "ru_ru": "RRID"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 200,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 23,
+          "defaultValue": "1234"
+        },
+        {
+          "fieldCode": "isotype",
+          "fieldName": {
+            "zh_cn": "同种型",
+            "en_us": "Isotype",
+            "ja_jp": "アイソタイプ",
+            "ko_kr": "아이소타입",
+            "fr_fr": "Isotype",
+            "de_de": "Isotyp",
+            "es_es": "Isotipo",
+            "ru_ru": "Изотип"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 100,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 24,
+          "defaultValue": "IgG"
+        },
+        {
+          "fieldCode": "purificationMethod",
+          "fieldName": {
+            "zh_cn": "纯化方式",
+            "en_us": "Purification Method",
+            "ja_jp": "精製方法",
+            "ko_kr": "정제 방식",
+            "fr_fr": "Méthode de purification",
+            "de_de": "Reinigungsmethode",
+            "es_es": "Método de purificación",
+            "ru_ru": "Метод очистки"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 200,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 25,
+          "defaultValue": "Affinity purification"
+        },
+        {
+          "fieldCode": "productForm",
+          "fieldName": {
+            "zh_cn": "产品形式",
+            "en_us": "Product Form",
+            "ja_jp": "製品形態",
+            "ko_kr": "제품 형태",
+            "fr_fr": "Forme du produit",
+            "de_de": "Produktform",
+            "es_es": "Forma del producto",
+            "ru_ru": "Форма продукта"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 100,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 26,
+          "defaultValue": "Liquid"
+        },
+        {
+          "fieldCode": "conjugate",
+          "fieldName": {
+            "zh_cn": "偶联物",
+            "en_us": "Conjugate",
+            "ja_jp": "コンジュゲート",
+            "ko_kr": "컨쥬게이트",
+            "fr_fr": "Conjugué",
+            "de_de": "Konjugat",
+            "es_es": "Conjugado",
+            "ru_ru": "Конъюгат"
+          },
+          "fieldType": "select",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 27,
+          "options": [
+            {
+              "value": "Unconjugated",
+              "label": {
+                "zh_cn": "未偶联",
+                "en_us": "Unconjugated",
+                "ja_jp": "未コンジュゲート",
+                "ko_kr": "미컨쥬게이트",
+                "fr_fr": "Non conjugué",
+                "de_de": "Unkonjugiert",
+                "es_es": "No conjugado",
+                "ru_ru": "Неконъюгированный"
+              }
+            }
+          ],
+          "defaultValue": "Unconjugated"
+        },
+        {
+          "fieldCode": "laser",
+          "fieldName": {
+            "zh_cn": "激光器",
+            "en_us": "Laser",
+            "ja_jp": "レーザー",
+            "ko_kr": "레이저",
+            "fr_fr": "Laser",
+            "de_de": "Laser",
+            "es_es": "Láser",
+            "ru_ru": "Лазер"
+          },
+          "fieldType": "select",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 28,
+          "options": [
+            {
+              "value": "ass",
+              "label": {
+                "zh_cn": "ass",
+                "en_us": "ass",
+                "ja_jp": "ass",
+                "ko_kr": "ass",
+                "fr_fr": "ass",
+                "de_de": "ass",
+                "es_es": "ass",
+                "ru_ru": "ass"
+              }
+            }
+          ],
+          "defaultValue": "ass"
+        },
+        {
+          "fieldCode": "fluorophore",
+          "fieldName": {
+            "zh_cn": "荧光素",
+            "en_us": "Fluorophore",
+            "ja_jp": "フルオロフォア",
+            "ko_kr": "형광단",
+            "fr_fr": "Fluorophore",
+            "de_de": "Fluorophor",
+            "es_es": "Fluoróforo",
+            "ru_ru": "Флуорофор"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 100,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 29,
+          "defaultValue": "XXX"
+        }
+      ]
+    },
+    //应用信息对象
+    "applicationInfo": {
+      "fields": [
+        {
+          "fieldCode": "applicationList",
+          "fieldName": {
+            "zh_cn": "应用信息列表",
+            "en_us": "Application List",
+            "ja_jp": "アプリケーションリスト",
+            "ko_kr": "애플리케이션 목록",
+            "fr_fr": "Liste des applications",
+            "de_de": "Anwendungsliste",
+            "es_es": "Lista de aplicaciones",
+            "ru_ru": "Список приложений"
+          },
+          "fieldType": "table",
+          "isRequired": false,
+          "isMultilang": false,
+          "maxLength": 0,
+          "searchType": "filter",
+          "esFieldType": "keyword",
+          "sortNum": 1,
+          "columns": [
+            {
+              "fieldCode": "application",
+              "fieldName": {
+                "zh_cn": "应用类型",
+                "en_us": "Application Type",
+                "ja_jp": "アプリケーションタイプ",
+                "ko_kr": "애플리케이션 유형",
+                "fr_fr": "Type d'application",
+                "de_de": "Anwendungstyp",
+                "es_es": "Tipo de aplicación",
+                "ru_ru": "Тип приложения"
+              },
+              "fieldType": "select",
+              "isRequired": true,
+              "defaultValue": "",
+              "apiUrl": "/api/v1/general/application" // 仅保留接口地址
+            },
+            {
+              "fieldCode": "recommandDilution",
+              "fieldName": {
+                "zh_cn": "推荐稀释比",
+                "en_us": "Recommended Dilution",
+                "ja_jp": "推奨希釈比",
+                "ko_kr": "추천 희석비",
+                "fr_fr": "Dilution recommandée",
+                "de_de": "Empfohlene Verdünnung",
+                "es_es": "Dilución recomendada",
+                "ru_ru": "Рекомендуемое разведение"
+              },
+              "fieldType": "textarea",
+              "isRequired": true,
+              "maxLength": 500,
+              "defaultValue": ""
+            }
+          ]
+        }
+      ]
+    },
+    //其他信息对象
+    "otherInfo": {
+      "fields": [
+        {
+          "fieldCode": "transport_condition",
+          "fieldName": {
+            "zh_cn": "运输条件",
+            "en_us": "Transport Condition",
+            "ja_jp": "輸送条件",
+            "ko_kr": "운송 조건",
+            "fr_fr": "Condition de transport",
+            "de_de": "Transportbedingung",
+            "es_es": "Condición de transporte",
+            "ru_ru": "Условия транспортировки"
+          },
+          "fieldType": "select",
+          "isRequired": true,
+          "defaultValue": "-20℃",
+          "options": [
+            {
+              "value": "-20℃",
+              "label": {
+                "zh_cn": "-20℃",
+                "en_us": "-20℃"
+              }
+            },
+            {
+              "value": "4℃",
+              "label": {
+                "zh_cn": "4℃",
+                "en_us": "4℃"
+              }
+            },
+            {
+              "value": "常温",
+              "label": {
+                "zh_cn": "常温",
+                "en_us": "Room Temperature"
+              }
+            }
+          ]
+        },
+        {
+          "fieldCode": "website_category",
+          "fieldName": {
+            "zh_cn": "网站类别",
+            "en_us": "Website Category",
+            "ja_jp": "ウェブサイトカテゴリ",
+            "ko_kr": "웹사이트 카테고리",
+            "fr_fr": "Catégorie du site web",
+            "de_de": "Website-Kategorie",
+            "es_es": "Categoría del sitio web",
+            "ru_ru": "Категория сайта"
+          },
+          "fieldType": "select",
+          "isRequired": true,
+          "defaultValue": "抗体试剂/一抗/多克隆抗体",
+          "options": [
+            {
+              "value": "抗体试剂/一抗/多克隆抗体",
+              "label": {
+                "zh_cn": "抗体试剂/一抗/多克隆抗体",
+                "en_us": "Antibody Reagents/Primary Antibodies/Polyclonal Antibodies"
+              }
+            }
+          ],
+          "apiUrl": "/api/v1/general/website-category"
+        },
+        {
+          "fieldCode": "remark",
+          "fieldName": {
+            "zh_cn": "备注",
+            "en_us": "Remark",
+            "ja_jp": "備考",
+            "ko_kr": "비고",
+            "fr_fr": "Remarque",
+            "de_de": "Bemerkung",
+            "es_es": "Observación",
+            "ru_ru": "Примечание"
+          },
+          "fieldType": "textarea",
+          "isRequired": false,
+          "maxLength": 500,
+          "defaultValue": ""
+        },
+        {
+          "fieldCode": "export_name",
+          "fieldName": {
+            "zh_cn": "出口品名",
+            "en_us": "Export Name",
+            "ja_jp": "輸出品名",
+            "ko_kr": "수출 품명",
+            "fr_fr": "Nom d'exportation",
+            "de_de": "Exportname",
+            "es_es": "Nombre de exportación",
+            "ru_ru": "Название экспорта"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "maxLength": 200,
+          "defaultValue": ""
+        },
+        {
+          "fieldCode": "tax_classification_code",
+          "fieldName": {
+            "zh_cn": "税收分类编码",
+            "en_us": "Tax Classification Code",
+            "ja_jp": "税収分類コード",
+            "ko_kr": "세금 분류 코드",
+            "fr_fr": "Code de classification fiscale",
+            "de_de": "Steuerklassifizierungscode",
+            "es_es": "Código de clasificación fiscal",
+            "ru_ru": "Код классификации налогов"
+          },
+          "fieldType": "text",
+          "isRequired": false,
+          "maxLength": 200,
+          "defaultValue": ""
+        }
+      ]
+    }
+  }
+}

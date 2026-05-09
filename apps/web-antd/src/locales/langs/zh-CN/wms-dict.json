@@ -1,0 +1,70 @@
+{
+  "page": {
+    "wms": {
+      "dict": {
+        "listTitle": "字典管理",
+        "listDescription": "管理字典类型与字典数据",
+        "addType": "新增字典类型",
+        "addData": "新增字典数据",
+        "export": "导出",
+        "exportFileName": "字典数据",
+        "tabs": {
+          "type": "字典类型",
+          "data": "字典数据"
+        },
+        "status": {
+          "all": "全部",
+          "enabled": "启用",
+          "disabled": "停用"
+        },
+        "filter": {
+          "dictCode": "字典编码",
+          "dictName": "字典名称",
+          "dictType": "字典类型",
+          "dictLabel": "字典标签",
+          "dictValue": "字典键值"
+        },
+        "columns": {
+          "dictCode": "字典编码",
+          "dictName": "字典名称",
+          "dictType": "字典类型",
+          "dictTypeName": "字典类型名称",
+          "dictLabel": "字典标签",
+          "dictValue": "字典键值",
+          "sortOrder": "排序"
+        },
+        "stats": {
+          "type": {
+            "total": "类型总数",
+            "enabled": "启用类型",
+            "disabled": "停用类型",
+            "customType": "自定义类型"
+          },
+          "data": {
+            "total": "数据总数",
+            "enabled": "启用数据",
+            "disabled": "停用数据",
+            "type": "类型数量"
+          }
+        },
+        "deleteTypeConfirm": "确定删除该字典类型吗？",
+        "deleteDataConfirm": "确定删除该字典数据吗？",
+        "batchDeleteTypeConfirm": "确定批量删除选中的字典类型吗？",
+        "batchDeleteDataConfirm": "确定批量删除选中的字典数据吗？",
+        "messages": {
+          "loadTypeFail": "加载字典类型失败",
+          "loadDataFail": "加载字典数据失败",
+          "deleteSuccess": "删除成功",
+          "deleteFail": "删除失败",
+          "batchDeleteFail": "批量删除失败",
+          "selectToDelete": "请先选择要删除的数据",
+          "enableSuccess": "启用成功",
+          "disableSuccess": "停用成功",
+          "statusToggleFail": "状态切换失败",
+          "exportSuccess": "导出成功",
+          "exportFail": "导出失败"
+        }
+      }
+    }
+  }
+}

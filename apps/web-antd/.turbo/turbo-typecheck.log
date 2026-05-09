@@ -1,0 +1,67 @@
+
+> @vben/web-antd@20260316.01 typecheck D:\gitwms\WMS-frontend\apps\web-antd
+> vue-tsc --noEmit --skipLibCheck
+
+src/views/location/index.vue(410,8): error TS1005: '>' expected.
+src/views/location/index.vue(410,15): error TS1005: ';' expected.
+src/views/location/index.vue(411,1): error TS1109: Expression expected.
+src/views/location/index.vue(411,16): error TS1005: ';' expected.
+src/views/location/index.vue(412,3): error TS1128: Declaration or statement expected.
+src/views/location/index.vue(412,9): error TS1135: Argument expression expected.
+src/views/location/index.vue(412,24): error TS1005: ';' expected.
+src/views/location/index.vue(417,1): error TS1128: Declaration or statement expected.
+src/views/location/index.vue(417,18): error TS1005: ';' expected.
+src/views/location/index.vue(419,15): error TS1109: Expression expected.
+src/views/location/index.vue(420,13): error TS1005: ';' expected.
+src/views/location/index.vue(420,23): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+src/views/location/index.vue(420,31): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+src/views/location/index.vue(424,1): error TS1128: Declaration or statement expected.
+src/views/location/index.vue(424,13): error TS1005: ';' expected.
+src/views/location/index.vue(425,13): error TS1109: Expression expected.
+src/views/location/index.vue(426,14): error TS1005: ';' expected.
+src/views/location/index.vue(428,15): error TS1005: ';' expected.
+src/views/location/index.vue(428,18): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+src/views/location/index.vue(428,21): error TS1434: Unexpected keyword or identifier.
+src/views/location/index.vue(431,3): error TS1128: Declaration or statement expected.
+src/views/location/index.vue(431,9): error TS1135: Argument expression expected.
+src/views/location/index.vue(431,20): error TS1005: ';' expected.
+src/views/location/index.vue(432,17): error TS1109: Expression expected.
+src/views/location/index.vue(436,1): error TS1128: Declaration or statement expected.
+src/views/location/index.vue(436,15): error TS1005: ';' expected.
+src/views/location/index.vue(438,12): error TS1005: ';' expected.
+src/views/location/index.vue(439,14): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+src/views/location/index.vue(443,1): error TS1128: Declaration or statement expected.
+src/views/location/index.vue(443,18): error TS1005: ';' expected.
+src/views/location/index.vue(445,14): error TS1005: ';' expected.
+src/views/location/index.vue(446,9): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+src/views/location/index.vue(448,3): error TS1128: Declaration or statement expected.
+src/views/location/index.vue(448,14): error TS1005: ';' expected.
+src/views/location/index.vue(449,12): error TS1127: Invalid character.
+src/views/location/index.vue(449,13): error TS1005: ';' expected.
+src/views/location/index.vue(449,17): error TS1005: ';' expected.
+src/views/location/index.vue(449,17): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+src/views/location/index.vue(450,14): error TS1005: ';' expected.
+src/views/location/index.vue(450,18): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+src/views/location/index.vue(453,3): error TS1128: Declaration or statement expected.
+src/views/location/index.vue(453,14): error TS1005: ';' expected.
+src/views/location/index.vue(456,18): error TS1005: ';' expected.
+src/views/location/index.vue(457,16): error TS1005: ';' expected.
+src/views/location/index.vue(460,3): error TS1128: Declaration or statement expected.
+src/views/location/index.vue(460,14): error TS1005: ';' expected.
+src/views/location/index.vue(461,12): error TS1127: Invalid character.
+src/views/location/index.vue(461,13): error TS1005: ';' expected.
+src/views/location/index.vue(462,14): error TS1005: ';' expected.
+src/views/location/index.vue(462,18): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+src/views/location/index.vue(466,1): error TS1128: Declaration or statement expected.
+src/views/location/index.vue(466,16): error TS1005: ';' expected.
+src/views/location/index.vue(468,14): error TS1005: ';' expected.
+src/views/location/index.vue(469,9): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+src/views/location/index.vue(471,3): error TS1128: Declaration or statement expected.
+src/views/location/index.vue(471,18): error TS1005: ';' expected.
+src/views/location/index.vue(472,14): error TS1005: ';' expected.
+src/views/location/index.vue(472,18): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+src/views/location/index.vue(473,12): error TS1127: Invalid character.
+src/views/location/index.vue(473,13): error TS1005: ';' expected.
+src/views/location/index.vue(474,16): error TS1005: ';' expected.
+src/views/location/index.vue(477,2): error TS1110: Type expected.
+ ELIFECYCLE  Command failed with exit code 2.
