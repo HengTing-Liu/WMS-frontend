@@ -92,6 +92,10 @@ interface ArchiverPluginOptions {
    * @default '.'
    */
   outputDir?: string;
+  /**
+   * 待压缩目录（相对 `process.cwd()`，默认 `dist`）
+   */
+  sourceDir?: string;
 }
 
 /**

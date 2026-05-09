@@ -4,7 +4,7 @@ import type { ArchiverPluginOptions } from '../typing';
 
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 
 import archiver from 'archiver';
 
@@ -15,12 +15,16 @@ export const viteArchiverPlugin = (
     apply: 'build',
     closeBundle: {
       handler() {
-        const { name = 'dist', outputDir = '.' } = options;
+        const { name = 'dist', outputDir = '.', sourceDir = 'dist' } = options;
 
         setTimeout(async () => {
-          const folderToZip = 'dist';
+          const folderToZip = isAbsolute(sourceDir)
+            ? sourceDir
+            : join(process.cwd(), sourceDir);
 
-          const zipOutputDir = join(process.cwd(), outputDir);
+          const zipOutputDir = isAbsolute(outputDir)
+            ? outputDir
+            : join(process.cwd(), outputDir);
           const zipOutputPath = join(zipOutputDir, `${name}.zip`);
           try {
             await fsp.mkdir(zipOutputDir, { recursive: true });
