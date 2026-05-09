@@ -19,14 +19,14 @@ function fetch(url, options = {}) {
 }
 
 async function main() {
-  const loginResp = await fetch('http://localhost:8080/api/login', {
+  const loginResp = await fetch('http://localhost:8087/api/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: 'admin', password: 'admin123' })
   });
   const token = loginResp.data.access_token;
 
-  const menuResp = await fetch('http://localhost:8080/api/menu/getRouters', {
+  const menuResp = await fetch('http://localhost:8087/api/menu/getRouters', {
     headers: { 'Authorization': 'Bearer ' + token }
   });
 
