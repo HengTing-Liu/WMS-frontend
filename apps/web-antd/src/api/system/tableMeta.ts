@@ -7,6 +7,7 @@ export namespace TableMetaApi {
     id?: number;
     tableCode: string;
     pageType?: string;
+    defaultQueryJson?: string;
     tableName: string;
     module: string;
     entityClass?: string;
@@ -41,6 +42,7 @@ export interface TableMetaQuery {
   module?: string;
   pageNum?: number;
   pageSize?: number;
+  pageType?: string;
 }
 
 /**

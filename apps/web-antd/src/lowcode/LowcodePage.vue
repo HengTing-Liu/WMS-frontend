@@ -510,6 +510,27 @@ async function loadData() {
       }
     }
 
+    // 合并后台配置的默认查询条件（tableMeta.defaultQueryJson）
+    // props.fixedParams 优先级高于后台配置，可以覆盖
+    try {
+      const metaQueryJson = currentTableMeta.value?.defaultQueryJson;
+      if (metaQueryJson) {
+        const metaQuery = JSON.parse(metaQueryJson);
+        for (const [key, val] of Object.entries(metaQuery)) {
+          if (val !== undefined && val !== null && val !== '') {
+            const snakeKey = key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
+            // 只有当 fixedParams 没有显式覆盖时才使用后台默认值
+            if (query[snakeKey] === undefined) {
+              query[snakeKey] = val;
+              queryModes[snakeKey] = 'eq';
+            }
+          }
+        }
+      }
+    } catch {
+      // JSON 解析失败时静默忽略，避免阻断页面加载
+    }
+
     const res = await fetchList({
       tableCode: props.tableCode,
       prefix: props.crudPrefix,

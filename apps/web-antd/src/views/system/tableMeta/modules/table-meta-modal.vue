@@ -23,6 +23,20 @@
           @blur="handleTableCodeChange"
         />
       </FormItem>
+      <FormItem label="页面类型" name="pageType">
+        <Input
+          v-model:value="formData.pageType"
+          placeholder="default"
+          :maxlength="50"
+        />
+      </FormItem>
+      <FormItem label="默认查询条件(JSON)" name="defaultQueryJson">
+        <Textarea
+          v-model:value="formData.defaultQueryJson"
+          placeholder='{"ledgerType":"equipment"}'
+          :rows="2"
+        />
+      </FormItem>
       <FormItem label="表名称" name="tableName">
         <Input v-model:value="formData.tableName" placeholder="请输入表名称" :maxlength="100" />
       </FormItem>
@@ -126,6 +140,8 @@ const formData = reactive<Record<string, any>>({
   entityClass: '',
   serviceClass: '',
   permissionCode: '',
+  pageType: 'default',
+  defaultQueryJson: '',
   pageSize: 20,
   isTree: 0,
   showCheckbox: 0,
@@ -194,6 +210,8 @@ function resetForm() {
     entityClass: '',
     serviceClass: '',
     permissionCode: '',
+    pageType: 'default',
+    defaultQueryJson: '',
     pageSize: 20,
     isTree: 0,
     showCheckbox: 0,
