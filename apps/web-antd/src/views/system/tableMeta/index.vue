@@ -199,16 +199,12 @@ const columns = computed<TableColumnsType<TableMetaResult>>(() => [
   { title: 'Page Type', dataIndex: 'pageType', key: 'pageType', width: 120 },
   { title: 'Default Query', dataIndex: 'defaultQueryJson', key: 'defaultQueryJson', width: 180, ellipsis: true },
   { title: 'Module', dataIndex: 'module', key: 'module', width: 100 },
-  { title: 'Entity Class', dataIndex: 'entityClass', key: 'entityClass', width: 220, ellipsis: true },
-  { title: 'Service Class', dataIndex: 'serviceClass', key: 'serviceClass', width: 240, ellipsis: true },
-  { title: 'Permission', dataIndex: 'permissionCode', key: 'permissionCode', width: 180 },
   { title: 'Page Size', dataIndex: 'pageSize', key: 'pageSize', width: 110, align: 'center' },
   { title: 'Tree', key: 'isTree', width: 80, align: 'center' },
   { title: '可选', key: 'showCheckbox', width: 80, align: 'center' },
   { title: '序号', key: 'showIndex', width: 80, align: 'center' },
   { title: 'Status', key: 'status', width: 80, align: 'center' },
   { title: 'Remarks', dataIndex: 'remarks', key: 'remarks', width: 200, ellipsis: true },
-  { title: 'Create Time', dataIndex: 'createTime', key: 'createTime', width: 170 },
   { title: 'Action', key: 'action', width: 140, fixed: 'right' },
 ]);
 

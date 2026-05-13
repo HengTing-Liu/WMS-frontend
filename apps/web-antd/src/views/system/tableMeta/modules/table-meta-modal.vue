@@ -41,13 +41,17 @@
         <Input v-model:value="formData.tableName" placeholder="请输入表名称" :maxlength="100" />
       </FormItem>
       <FormItem label="所属模块" name="module">
-        <Select v-model:value="formData.module" placeholder="请选择所属模块" @change="handleModuleChange">
-          <SelectOption value="sys">sys - 系统管理</SelectOption>
-          <SelectOption value="inv">inv - 库存管理</SelectOption>
-          <SelectOption value="inbound">inbound - 入库管理</SelectOption>
-          <SelectOption value="outbound">outbound - 出库管理</SelectOption>
-          <SelectOption value="location">location - 库位管理</SelectOption>
-          <SelectOption value="base">base - 基础数据</SelectOption>
+        <Select
+          v-model:value="formData.module"
+          placeholder="请选择所属模块（来自 sys_menu 顶级菜单）"
+          :loading="moduleOptionsLoading"
+          show-search
+          option-filter-prop="label"
+          @change="handleModuleChange"
+        >
+          <SelectOption v-for="opt in moduleSelectOptions" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </SelectOption>
         </Select>
       </FormItem>
       <FormItem label="实体类名">
@@ -111,7 +115,9 @@ import type { FormInstance } from 'ant-design-vue/es/form';
 import {
   addTableMeta,
   getTableMetaById,
+  getTableMetaModuleOptions,
   updateTableMeta,
+  type TableMetaModuleOption,
   type TableMetaResult,
 } from '#/api/system/tableMeta';
 
@@ -128,7 +134,19 @@ const visible = defineModel<boolean>('visible', { required: true });
 
 const formRef = ref<FormInstance>();
 const loading = ref(false);
+const moduleOptionsFromApi = ref<TableMetaModuleOption[]>([]);
+const moduleOptionsLoading = ref(false);
 const isEdit = computed(() => props.mode === 'edit');
+
+/** 接口选项 + 当前记录 module（若不在顶级菜单中仍可展示） */
+const moduleSelectOptions = computed(() => {
+  const rows = [...moduleOptionsFromApi.value];
+  const v = (formData.module ?? '').trim();
+  if (v && !rows.some((r) => r.value === v)) {
+    rows.unshift({ value: v, label: `${v} - （当前值）` });
+  }
+  return rows;
+});
 
 const modalTitle = computed(() => (isEdit.value ? '编辑表元数据' : '新增表元数据'));
 
@@ -221,6 +239,18 @@ function resetForm() {
   });
 }
 
+async function loadModuleOptions() {
+  moduleOptionsLoading.value = true;
+  try {
+    moduleOptionsFromApi.value = await getTableMetaModuleOptions();
+  } catch (error: any) {
+    message.error(error?.message || '加载所属模块失败');
+    moduleOptionsFromApi.value = [];
+  } finally {
+    moduleOptionsLoading.value = false;
+  }
+}
+
 async function loadDetail(id: number) {
   try {
     loading.value = true;
@@ -275,10 +305,11 @@ function handleCancel() {
   visible.value = false;
 }
 
-watch(visible, (val) => {
+watch(visible, async (val) => {
   if (!val) return;
+  await loadModuleOptions();
   if (isEdit.value && props.data?.id) {
-    loadDetail(props.data.id);
+    await loadDetail(props.data.id);
   } else {
     resetForm();
   }

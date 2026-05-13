@@ -1,4 +1,3 @@
-import type { Recordable } from '@vben/types';
 import { requestClient } from '#/api/request';
 
 export namespace TableMetaApi {
@@ -33,7 +32,17 @@ export namespace TableMetaApi {
 
   // 单条记录结果
   export interface TableMetaResult extends TableMeta {}
+
+  /** 表元数据「所属模块」下拉（sys_menu parent_id=0） */
+  export interface TableMetaModuleOption {
+    value: string;
+    label: string;
+    menuId?: number;
+  }
 }
+
+export type TableMetaResult = TableMetaApi.TableMetaResult;
+export type TableMetaModuleOption = TableMetaApi.TableMetaModuleOption;
 
 // 导出请求参数
 export interface TableMetaQuery {
@@ -57,6 +66,15 @@ export async function getTableMetaList(params?: TableMetaQuery) {
     total: res?.total || 0,
     rows: res?.rows || [],
   };
+}
+
+/**
+ * 表元数据「所属模块」选项（后端：sys_menu parent_id = 0）
+ */
+export async function getTableMetaModuleOptions() {
+  return requestClient.get<TableMetaApi.TableMetaModuleOption[]>(
+    '/api/system/meta/table/module-options',
+  );
 }
 
 /**

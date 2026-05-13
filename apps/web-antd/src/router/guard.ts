@@ -1,4 +1,4 @@
-import type { Router } from 'vue-router';
+import type { RouteLocationNormalized, Router } from 'vue-router';
 
 import type { MenuRecordRaw } from '@vben-core/typings';
 
@@ -26,6 +26,15 @@ function getFirstMenuPath(menus: MenuRecordRaw[]): string | null {
   }
   if (first.children?.length) return getFirstMenuPath(first.children);
   return menus.length > 1 ? getFirstMenuPath(menus.slice(1)) : null;
+}
+
+/**
+ * 仅解析到 Root 布局、无业务子路由时内容区为空；此时不应把「能 resolve」当作有效落地页。
+ */
+function isBareRootShell(router: Router, to: RouteLocationNormalized): boolean {
+  const resolved = router.resolve(to.fullPath);
+  const matched = resolved.matched.filter((m) => m.name !== 'FallbackNotFound');
+  return matched.length === 1 && matched[0]?.name === 'Root';
 }
 
 /**
@@ -116,7 +125,7 @@ function setupAccessGuard(router: Router) {
           accessStore.setAccessRoutes(routes);
 
           // Dynamic routes were regenerated: if current target now exists, stay on it.
-          if (canResolveToTarget()) {
+          if (canResolveToTarget() && !isBareRootShell(router, to)) {
             return {
               path: to.path,
               query: to.query,
@@ -188,7 +197,7 @@ function setupAccessGuard(router: Router) {
     accessStore.setIsAccessChecked(true);
 
     // After first-time dynamic route generation, keep the original refresh target when possible.
-    if (canResolveToTarget()) {
+    if (canResolveToTarget() && !isBareRootShell(router, to)) {
       return {
         path: to.path,
         query: to.query,
