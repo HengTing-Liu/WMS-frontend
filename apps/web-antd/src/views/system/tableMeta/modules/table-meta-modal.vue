@@ -46,9 +46,10 @@
           <FormItem label="默认条件(JSON)" name="defaultQueryJson" :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }">
             <Textarea
               v-model:value="formData.defaultQueryJson"
-              placeholder='{"ledgerType":"equipment"}'
+              placeholder='{"io_type":"生产入库"}'
               :rows="2"
               style="width: 100%"
+              @update:value="onDefaultQueryJsonInput"
             />
           </FormItem>
         </Col>
@@ -126,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 import {
   Col,
   Form,
@@ -215,6 +216,25 @@ function toPascalCase(str: string): string {
     .replace(/^(.)/, (_, c) => c.toUpperCase());
 }
 
+/** 默认查询条件：非空时须为合法 JSON（对象或数组等） */
+function validateDefaultQueryJson(_rule: unknown, value: unknown) {
+  if (value == null) return Promise.resolve();
+  const s = String(value).trim();
+  if (!s) return Promise.resolve();
+  try {
+    JSON.parse(s);
+    return Promise.resolve();
+  } catch {
+    return Promise.reject(new Error('请输入合法的 JSON（注意括号、引号与逗号），例如 {"io_type":"生产入库"}'));
+  }
+}
+
+function onDefaultQueryJsonInput() {
+  nextTick(() => {
+    formRef.value?.validateFields(['defaultQueryJson']).catch(() => {});
+  });
+}
+
 /** 根据 tableCode 自动推导三个自动字段 */
 function deriveAutoFields() {
   const code = formData.tableCode?.trim();
@@ -249,6 +269,9 @@ const formRules = {
     { max: 100, message: '表名称最多100个字符', trigger: 'blur' },
   ],
   module: [{ required: true, message: '请选择所属模块', trigger: 'change' }],
+  defaultQueryJson: [
+    { validator: validateDefaultQueryJson, trigger: ['change', 'blur'] },
+  ],
 };
 
 function resetForm() {
@@ -295,6 +318,8 @@ async function loadDetail(id: number) {
     formData.showIndex = Number(detail.showIndex ?? 1) === 1 ? 1 : 0;
     // 旧数据若这三个字段为空则自动推导填充
     if (!formData.entityClass) deriveAutoFields();
+    await nextTick();
+    formRef.value?.clearValidate(['defaultQueryJson']);
   } catch (error: any) {
     message.error(error?.message || '加载详情失败');
   } finally {
@@ -315,6 +340,8 @@ async function handleSubmit() {
       entityClass: formData.entityClass?.trim() || '',
       serviceClass: formData.serviceClass?.trim() || '',
       permissionCode: formData.permissionCode?.trim() || '',
+      pageType: (formData.pageType ?? '').trim() || 'default',
+      defaultQueryJson: typeof formData.defaultQueryJson === 'string' ? formData.defaultQueryJson.trim() : '',
       remarks: formData.remarks?.trim() || '',
     };
 

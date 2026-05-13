@@ -8,7 +8,7 @@
  * - redirect: 页面跳转
  *
  * 使用方式：
- * 在 sys_table_operation 表中配置 event_type 和 event_config
+ * 在 sys_table_operation_meta 表中配置 event_type 和 event_config
  */
 
 import { message, Modal } from 'ant-design-vue';

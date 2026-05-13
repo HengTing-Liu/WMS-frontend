@@ -1,6 +1,6 @@
 /**
- * Lowcode 妯″潡 - 鍏变韩绫诲瀷瀹氫箟
- * 涓庡悗绔?sys_table_meta / sys_column_meta / sys_table_operation 瀵归綈
+ * 低代码模块 - 公共类型定义
+ * 与后端元数据表 sys_table_meta、sys_column_meta、sys_column_group_meta、sys_table_operation_meta 对齐
  */
 
 // ==================== 鍚庣杩斿洖绫诲瀷 ====================

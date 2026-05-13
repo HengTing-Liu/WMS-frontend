@@ -1,34 +1,41 @@
 <template>
-  <WmsPageLayout title="Table Meta" description="Manage lowcode table meta config">
+  <WmsPageLayout title="表元数据" description="管理低代码表元数据配置">
     <template #filter>
       <Card :bordered="false">
         <Space wrap>
           <Input
             v-model:value="queryForm.tableCode"
-            placeholder="Table code"
+            placeholder="表编码"
             allow-clear
             style="width: 220px"
             @press-enter="handleSearch"
           />
           <Input
             v-model:value="queryForm.tableName"
-            placeholder="Table name"
+            placeholder="表名称"
             allow-clear
             style="width: 220px"
             @press-enter="handleSearch"
           />
           <Select
             v-model:value="queryForm.module"
-            placeholder="Module"
+            placeholder="所属模块"
             allow-clear
-            style="width: 180px"
+            show-search
+            option-filter-prop="label"
+            :loading="moduleFilterLoading"
+            style="width: 240px"
           >
-            <SelectOption value="base">base</SelectOption>
-            <SelectOption value="wms">wms</SelectOption>
-            <SelectOption value="sys">sys</SelectOption>
+            <SelectOption
+              v-for="opt in moduleFilterSelectOptions"
+              :key="opt.value"
+              :value="opt.value"
+            >
+              {{ opt.label }}
+            </SelectOption>
           </Select>
-          <Button type="primary" @click="handleSearch">Search</Button>
-          <Button @click="handleReset">Reset</Button>
+          <Button type="primary" @click="handleSearch">查询</Button>
+          <Button @click="handleReset">重置</Button>
         </Space>
       </Card>
     </template>
@@ -36,11 +43,11 @@
     <template #actions>
       <Button type="primary" :loading="exporting" @click="handleExport">
         <template #icon><Download /></template>
-        Export
+        导出
       </Button>
       <Button type="primary" @click="handleAdd">
         <template #icon><Plus /></template>
-        Create
+        新增
       </Button>
     </template>
 
@@ -55,13 +62,13 @@
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'isTree'">
-          {{ record.isTree === 1 ? 'Yes' : 'No' }}
+          {{ record.isTree === 1 ? '是' : '否' }}
         </template>
         <template v-else-if="column.key === 'showCheckbox'">
-          {{ record.showCheckbox === 1 ? 'Yes' : 'No' }}
+          {{ record.showCheckbox === 1 ? '是' : '否' }}
         </template>
         <template v-else-if="column.key === 'showIndex'">
-          {{ record.showIndex === 1 ? 'Yes' : 'No' }}
+          {{ record.showIndex === 1 ? '是' : '否' }}
         </template>
         <template v-else-if="column.key === 'status'">
           <Switch
@@ -71,14 +78,14 @@
         </template>
         <template v-else-if="column.key === 'action'">
           <Space>
-            <Button type="link" size="small" @click="handleEdit(record)">Edit</Button>
+            <Button type="link" size="small" @click="handleEdit(record)">编辑</Button>
             <Popconfirm
-              title="Delete this record?"
-              ok-text="OK"
-              cancel-text="Cancel"
+              title="确定删除该条表元数据？"
+              ok-text="确定"
+              cancel-text="取消"
               @confirm="handleDelete(record)"
             >
-              <Button type="link" size="small" danger>Delete</Button>
+              <Button type="link" size="small" danger>删除</Button>
             </Popconfirm>
           </Space>
         </template>
@@ -105,7 +112,9 @@ import {
   deleteTableMeta,
   exportTableMeta,
   getTableMetaList,
+  getTableMetaModuleOptions,
   toggleTableMetaStatus,
+  type TableMetaModuleOption,
   type TableMetaQuery,
   type TableMetaResult,
 } from '#/api/system/tableMeta';
@@ -178,7 +187,7 @@ const pagination = reactive<TablePaginationConfig>({
   pageSize: 10,
   total: 0,
   showSizeChanger: true,
-  showTotal: (total: number) => `Total ${total}`,
+  showTotal: (total: number) => `共 ${total} 条`,
 });
 
 const queryForm = reactive<TableMetaQuery>({
@@ -187,25 +196,49 @@ const queryForm = reactive<TableMetaQuery>({
   module: '',
 });
 
+const moduleFilterFromApi = ref<TableMetaModuleOption[]>([]);
+const moduleFilterLoading = ref(false);
+
+/** 与编辑弹窗同源；当前筛选值若不在接口列表中（历史数据）仍可选 */
+const moduleFilterSelectOptions = computed(() => {
+  const rows = [...moduleFilterFromApi.value];
+  const v = (queryForm.module ?? '').trim();
+  if (v && !rows.some((r) => r.value === v)) {
+    rows.unshift({ value: v, label: `${v}（当前筛选）` });
+  }
+  return rows;
+});
+
+async function loadModuleFilterOptions() {
+  moduleFilterLoading.value = true;
+  try {
+    moduleFilterFromApi.value = await getTableMetaModuleOptions();
+  } catch {
+    moduleFilterFromApi.value = [];
+  } finally {
+    moduleFilterLoading.value = false;
+  }
+}
+
 const columns = computed<TableColumnsType<TableMetaResult>>(() => [
   {
-    title: 'No.',
+    title: '序号',
     key: 'index',
     width: 70,
     customRender: ({ index }) => `${((pagination.current || 1) - 1) * (pagination.pageSize || 10) + index + 1}`,
   },
-  { title: 'Table Code', dataIndex: 'tableCode', key: 'tableCode', width: 150 },
-  { title: 'Table Name', dataIndex: 'tableName', key: 'tableName', width: 180 },
-  { title: 'Page Type', dataIndex: 'pageType', key: 'pageType', width: 120 },
-  { title: 'Default Query', dataIndex: 'defaultQueryJson', key: 'defaultQueryJson', width: 180, ellipsis: true },
-  { title: 'Module', dataIndex: 'module', key: 'module', width: 100 },
-  { title: 'Page Size', dataIndex: 'pageSize', key: 'pageSize', width: 110, align: 'center' },
-  { title: 'Tree', key: 'isTree', width: 80, align: 'center' },
-  { title: '可选', key: 'showCheckbox', width: 80, align: 'center' },
-  { title: '序号', key: 'showIndex', width: 80, align: 'center' },
-  { title: 'Status', key: 'status', width: 80, align: 'center' },
-  { title: 'Remarks', dataIndex: 'remarks', key: 'remarks', width: 200, ellipsis: true },
-  { title: 'Action', key: 'action', width: 140, fixed: 'right' },
+  { title: '表编码', dataIndex: 'tableCode', key: 'tableCode', width: 150 },
+  { title: '表名称', dataIndex: 'tableName', key: 'tableName', width: 180 },
+  { title: '页面类型', dataIndex: 'pageType', key: 'pageType', width: 120 },
+  { title: '默认条件(JSON)', dataIndex: 'defaultQueryJson', key: 'defaultQueryJson', width: 200, ellipsis: true },
+  { title: '所属模块', dataIndex: 'module', key: 'module', width: 100 },
+  { title: '分页大小', dataIndex: 'pageSize', key: 'pageSize', width: 100, align: 'center' },
+  { title: '是否树形', key: 'isTree', width: 96, align: 'center' },
+  { title: '是否可选', key: 'showCheckbox', width: 96, align: 'center' },
+  { title: '显示序号', key: 'showIndex', width: 96, align: 'center' },
+  { title: '状态', key: 'status', width: 80, align: 'center' },
+  { title: '备注', dataIndex: 'remarks', key: 'remarks', width: 200, ellipsis: true },
+  { title: '操作', key: 'action', width: 140, fixed: 'right' },
 ]);
 
 const rowSelection = computed(() => ({
@@ -236,7 +269,7 @@ async function loadData() {
   } catch (error: any) {
     tableData.value = [];
     pagination.total = 0;
-    message.error(error?.message || 'Load table meta failed');
+    message.error(error?.message || '加载表元数据失败');
   } finally {
     loading.value = false;
   }
@@ -278,24 +311,24 @@ async function handleDelete(record: TableMetaResult) {
   if (!record.id) return;
   try {
     await deleteTableMeta(record.id);
-    message.success('Delete success');
+    message.success('删除成功');
     if (tableData.value.length === 1 && (pagination.current || 1) > 1) {
       pagination.current = (pagination.current || 1) - 1;
     }
     selectedRowKeys.value = selectedRowKeys.value.filter((key) => key !== record.id);
     await loadData();
   } catch (error: any) {
-    message.error(error?.message || 'Delete failed');
+    message.error(error?.message || '删除失败');
   }
 }
 
 async function handleToggleStatus(record: TableMetaResult, checked: boolean) {
   try {
     await toggleTableMetaStatus(record.id!, checked ? 1 : 0);
-    message.success(checked ? 'Enable success' : 'Disable success');
+    message.success(checked ? '已启用' : '已停用');
     await loadData();
   } catch (error: any) {
-    message.error(error?.message || 'Toggle status failed');
+    message.error(error?.message || '切换状态失败');
     await loadData();
   }
 }
@@ -312,9 +345,9 @@ async function handleExport() {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    message.success('Export success');
+    message.success('导出成功');
   } catch (error: any) {
-    message.error(error?.message || 'Export failed');
+    message.error(error?.message || '导出失败');
   } finally {
     exporting.value = false;
   }
@@ -325,6 +358,7 @@ function handleModalSuccess() {
 }
 
 onMounted(async () => {
+  await loadModuleFilterOptions();
   restorePageState();
   if (!tableData.value.length) {
     await loadData();
@@ -344,6 +378,9 @@ onActivated(() => {
     if (!tableData.value.length) {
       loadData();
     }
+  }
+  if (moduleFilterFromApi.value.length === 0) {
+    loadModuleFilterOptions();
   }
 });
 onDeactivated(() => {

@@ -1,6 +1,6 @@
 /**
  * 低代码操作按钮权限：兼容 meta 与菜单里历史上不一致的 perms 写法。
- * 例如 sys_table_operation 填 system:warehouse:add，而 sys_menu 为 base:warehouse:add。
+ * 例如 sys_table_operation_meta 填 system:warehouse:add，而 sys_menu 为 base:warehouse:add。
  * 又如 meta 填 remove，菜单为 delete（或反之）。
  */
 
