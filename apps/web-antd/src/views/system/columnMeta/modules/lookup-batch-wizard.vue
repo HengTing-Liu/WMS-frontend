@@ -244,10 +244,11 @@ import type { TableColumnsType } from 'ant-design-vue';
 import {
   batchAddColumnMeta,
   getColumnMetaByTableId,
+  getColumnMetaList,
   getTableMetaListForSelect,
 } from '#/api/system/columnMeta';
 
-const props = defineProps<{ tableCode?: string }>();
+const props = defineProps<{ tableCode?: string; tableMetaId?: number }>();
 const emit = defineEmits<{ success: [] }>();
 const visible = defineModel<boolean>('visible', { required: true });
 
@@ -308,13 +309,13 @@ const localFieldCamelSet = ref<Set<string>>(new Set());
 const localFieldOptions = ref<LocalFieldOption[]>([]);
 
 async function loadLocalFields() {
-  if (!props.tableCode) {
+  if (!props.tableMetaId) {
     localFieldOptions.value = [];
     return;
   }
   localFieldLoading.value = true;
   try {
-    const list = await getColumnMetaByTableId(props.tableCode);
+    const list = await getColumnMetaByTableId(props.tableMetaId);
     const options: LocalFieldOption[] = [];
     const snakeSet = new Set<string>();
     const camelSet = new Set<string>();
@@ -375,7 +376,8 @@ async function handleRefTableChange(code?: string) {
   if (!code) return;
   refFieldLoading.value = true;
   try {
-    const list = await getColumnMetaByTableId(code);
+    const res = await getColumnMetaList({ tableCode: code, pageNum: 1, pageSize: 1000 });
+    const list = res.rows || [];
     refFieldsRaw.value = list.map((item: any) => ({
       field: String(item.field || ''),
       snake: camelToSnake(String(item.field || '')),
@@ -614,8 +616,8 @@ function handleNext() {
 }
 
 async function submit() {
-  if (!props.tableCode) {
-    message.error('缺少当前表 tableCode');
+  if (!props.tableCode || !props.tableMetaId) {
+    message.error('缺少当前表信息');
     return;
   }
   const selected = candidateFields.value.filter((f) => f.selected);
@@ -631,6 +633,7 @@ async function submit() {
   const localFieldFinal = state.refLocalField;
   const payload = selected.map((f) => ({
     tableCode: props.tableCode!,
+    tableMetaId: props.tableMetaId!,
     field: f.field.trim(),
     columnName: camelToSnake(f.field.trim()),
     title: f.title.trim() || f.field.trim(),

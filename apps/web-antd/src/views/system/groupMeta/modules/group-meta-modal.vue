@@ -95,6 +95,7 @@ const props = defineProps<{
   mode: 'add' | 'edit';
   data?: GroupMetaApi.GroupMeta | null;
   tableCode?: string;
+  tableMetaId?: number;
 }>();
 
 const emit = defineEmits<{
@@ -208,6 +209,7 @@ async function handleSubmit() {
     const payload = {
       ...formData,
       tableCode: props.tableCode || formData.tableCode,
+      tableMetaId: props.tableMetaId,
       groupCode: formData.groupCode.trim(),
       groupTitle: formData.groupTitle.trim(),
       remarks: formData.remarks?.trim() || '',

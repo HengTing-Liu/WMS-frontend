@@ -268,6 +268,7 @@ const props = defineProps<{
   mode: 'add' | 'edit';
   data?: OperationMetaApi.OperationMeta | null;
   tableCode?: string;
+  tableMetaId?: number;
 }>();
 
 const emit = defineEmits<{
@@ -616,6 +617,7 @@ async function handleSubmit() {
     const payload: Partial<OperationMetaApi.OperationMeta> = {
       ...formData,
       tableCode: props.tableCode || formData.tableCode,
+      tableMetaId: props.tableMetaId,
       operationCode: formData.operationCode?.trim(),
       operationName: formData.operationName?.trim(),
       eventConfig: buildEventConfigString(),

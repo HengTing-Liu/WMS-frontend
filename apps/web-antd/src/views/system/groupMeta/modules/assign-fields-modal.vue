@@ -28,6 +28,7 @@ import {
 
 const props = defineProps<{
   tableCode: string;
+  tableMetaId?: number;
   groupCode: string;
   groupTitle: string;
   groupType: string;
@@ -45,9 +46,9 @@ const targetKeys = ref<string[]>([]);
 const originalTargetKeys = ref<string[]>([]);
 
 async function loadData() {
-  if (!props.tableCode) return;
+  if (!props.tableMetaId) return;
   try {
-    const list = await getColumnMetaByTableId(props.tableCode);
+    const list = await getColumnMetaByTableId(props.tableMetaId);
     dataSource.value = (list || []).map((item: any) => ({
       key: String(item.id),
       title: `${item.field} - ${item.title || item.columnName || item.field}`,

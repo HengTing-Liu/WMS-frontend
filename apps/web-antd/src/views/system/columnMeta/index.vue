@@ -264,11 +264,13 @@
       :mode="modalMode"
       :data="currentRecord"
       :table-code="selectedTableCode"
+      :table-meta-id="selectedTableMetaId"
       @success="handleModalSuccess"
     />
     <BatchSetGroupModal
       v-model:visible="batchSetGroupVisible"
       :table-code="selectedTableCode || ''"
+      :table-meta-id="selectedTableMetaId"
       :selected-ids="selectedRowKeys.map((k) => Number(k))"
       @success="handleModalSuccess"
     />
@@ -280,6 +282,7 @@
     <LookupBatchWizard
       v-model:visible="lookupWizardVisible"
       :table-code="selectedTableCode"
+      :table-meta-id="selectedTableMetaId"
       @success="handleModalSuccess"
     />
   </WmsPageLayout>

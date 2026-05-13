@@ -278,6 +278,14 @@ async function generateAccess(options: GenerateAccessOptions) {
             if (newRoute.component && typeof newRoute.component === 'string') {
               newRoute.component = mapComponent(newRoute.component);
             }
+            // 把后端 menu.query 桥接到 meta.query，让菜单导航时自动带上 query 参数
+            if (newRoute.query && typeof newRoute.query === 'string') {
+              const queryObj: Record<string, string> = {};
+              new URLSearchParams(newRoute.query).forEach((value, key) => {
+                queryObj[key] = value;
+              });
+              newRoute.meta = { ...(newRoute.meta ?? {}), query: queryObj };
+            }
             if (newRoute.children) {
               newRoute.children = mapRoutes(newRoute.children, fullPath);
             }

@@ -107,12 +107,14 @@
       :mode="modalMode"
       :data="currentRecord"
       :table-code="selectedTableCode"
+      :table-meta-id="selectedTableMetaId"
       @success="handleModalSuccess"
     />
     <AssignFieldsModal
       v-if="assignRecord"
       v-model:visible="assignModalVisible"
       :table-code="selectedTableCode"
+      :table-meta-id="selectedTableMetaId"
       :group-code="assignRecord.groupCode"
       :group-title="assignRecord.groupTitle"
       :group-type="assignRecord.groupType || 'card'"

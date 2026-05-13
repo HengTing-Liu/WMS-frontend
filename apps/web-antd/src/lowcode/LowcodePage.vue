@@ -299,6 +299,11 @@ const actionLoading = ref<Record<string, boolean>>({});
 const router = useRouter();
 const route = useRoute();
 
+/** 实际使用的 pageType：props 优先级最高，其次从 URL query 读取，最后默认 default */
+const effectivePageType = computed(() =>
+  props.pageType ?? (route.query.pageType as string) ?? 'default'
+);
+
 // 表格滚动高度（固定表头）
 const tableScrollY = 'calc(100vh - 280px)';
 
@@ -361,7 +366,7 @@ const dictLabelMapByField = computed(() => {
 
 // ==================== 搜索栏 URL ====================
 const searchFieldsUrl = computed(() =>
-  `/api/system/meta/column/schema?tableCode=${props.tableCode}&pageType=${props.pageType ?? 'default'}`
+  `/api/system/meta/column/schema?tableCode=${props.tableCode}&pageType=${effectivePageType.value}`
 );
 
 // ==================== 解析操作按钮 ====================
@@ -867,7 +872,7 @@ function navigateToLowcodeForm(mode: 'create' | 'edit' | 'view', id?: string) {
     desc: props.pageDesc,
     from: route.fullPath,
     title: props.pageTitle,
-    pageType: props.pageType ?? 'default',
+    pageType: effectivePageType.value,
   };
 
   if (routeName) {
@@ -946,7 +951,7 @@ async function handleDelete(id: number | string) {
 async function init() {
   try {
     // 加载 meta 配置（字段 + 操作按钮）
-    const { columns: metaCols, operations, tableMeta } = await fetchPageMeta(props.tableCode, props.pageType ?? 'default');
+    const { columns: metaCols, operations, tableMeta } = await fetchPageMeta(props.tableCode, effectivePageType.value);
     console.log('[LowcodePage] fetchPageMeta result:', { tableCode: props.tableCode, metaColCount: metaCols?.length, opCount: operations?.length });
     metaColumns.value = metaCols;
     currentTableMeta.value = tableMeta ?? null;

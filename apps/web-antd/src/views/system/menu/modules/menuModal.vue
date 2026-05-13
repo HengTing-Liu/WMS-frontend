@@ -377,7 +377,7 @@ defineExpose({ modalApi });
           v-if="form.menuType === 'C'"
           label="路由参数"
         >
-          <Input v-model:value="form.query" placeholder="请输入路由参数" />
+          <Input v-model:value="form.query" placeholder="格式：key1=value1&key2=value2，如 pageType=equipment" />
         </Form.Item>
 
         <!-- 是否缓存（菜单） -->

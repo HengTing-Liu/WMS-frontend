@@ -584,7 +584,7 @@ import {
   updateColumnMeta,
   type ColumnMetaApi,
 } from '#/api/system/columnMeta';
-import { getGroupMetaList, type GroupMetaApi } from '#/api/system/groupMeta';
+import { getGroupMetaListByMetaId, type GroupMetaApi } from '#/api/system/groupMeta';
 import { getSerialRuleList } from '#/api/system/serial-number';
 import type { Rule } from 'ant-design-vue/es/form';
 
@@ -592,6 +592,7 @@ const props = defineProps<{
   mode: 'add' | 'edit';
   data?: ColumnMetaApi.ColumnMeta | null;
   tableCode?: string;
+  tableMetaId?: number;
 }>();
 
 const emit = defineEmits<{
@@ -1008,14 +1009,14 @@ function getActiveTableCode() {
 }
 
 async function loadFieldOptions() {
-  const tableCode = getActiveTableCode();
-  if (!tableCode) {
+  const tableMetaId = props.tableMetaId;
+  if (!tableMetaId) {
     fieldOptions.value = [];
     return;
   }
   fieldLoading.value = true;
   try {
-    const list = await getColumnMetaByTableId(tableCode);
+    const list = await getColumnMetaByTableId(tableMetaId);
     fieldOptions.value = (list || []).map((item: any) => {
       const field = String(item?.field || '').trim();
       const title = String(item?.title || item?.columnName || field || '').trim();
@@ -1034,14 +1035,14 @@ async function loadFieldOptions() {
 }
 
 async function loadGroupMetaOptions() {
-  const tableCode = getActiveTableCode();
-  if (!tableCode) {
+  const tableMetaId = props.tableMetaId;
+  if (!tableMetaId) {
     groupMetaOptions.value = [];
     return;
   }
   groupLoading.value = true;
   try {
-    const res = await getGroupMetaList(tableCode);
+    const res = await getGroupMetaListByMetaId(tableMetaId);
     groupMetaOptions.value = (res.rows || [])
       .filter((item) => Number(item.status ?? 1) === 1)
       .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));
@@ -1170,6 +1171,7 @@ async function handleSubmit() {
     const payload = {
       ...formData,
       tableCode: props.tableCode || formData.tableCode,
+      tableMetaId: props.tableMetaId,
       field: formData.field?.trim(),
       title: formData.title?.trim(),
       dictType: formData.dictType?.trim() || '',

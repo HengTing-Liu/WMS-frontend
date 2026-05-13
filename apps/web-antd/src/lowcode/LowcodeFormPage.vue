@@ -892,7 +892,7 @@ async function loadPage() {
   try {
     const [columns, tableMeta, groupMetas] = await Promise.all([
       fetchColumnSchema(tableCode.value, pageType.value),
-      fetchTableMeta(tableCode.value),
+      fetchTableMeta(tableCode.value, pageType.value),
       fetchFormGroups(tableCode.value, pageType.value),
     ]);
 

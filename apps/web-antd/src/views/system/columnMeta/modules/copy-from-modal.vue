@@ -100,7 +100,7 @@ import {
   message,
 } from 'ant-design-vue';
 import {
-  getColumnMetaByTableId,
+  getColumnMetaList,
   batchAddColumnMeta,
   type ColumnMetaApi,
 } from '#/api/system/columnMeta';
@@ -145,7 +145,8 @@ async function selectSourceTable(tableCode: string) {
   selectedColumnIds.value = [];
 
   try {
-    const columns = await getColumnMetaByTableId(tableCode);
+    const res = await getColumnMetaList({ tableCode, pageNum: 1, pageSize: 1000 });
+    const columns = res.rows || [];
     sourceColumns.value = columns.sort(
       (a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)
     );

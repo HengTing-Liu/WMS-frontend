@@ -84,9 +84,11 @@ export async function fetchColumnSchema(tableCode: string, pageType: string = 'd
 /**
  * 閼惧嘲褰囩悰銊ュ帗閺佺増宓? * 閹恒儱褰涢敍娆窫T /api/system/meta/table/{tableCode}
  */
-export async function fetchTableMeta(tableCode: string): Promise<TableMeta | null> {
+export async function fetchTableMeta(tableCode: string, pageType: string = 'default'): Promise<TableMeta | null> {
   try {
-    const res = await requestClient.get<any>(`/api/system/meta/table/${tableCode}`);
+    const res = await requestClient.get<any>(`/api/system/meta/table/${tableCode}`, {
+      params: { pageType },
+    });
     return res?.data ?? res ?? null;
   } catch {
     return null;
@@ -146,7 +148,7 @@ export async function fetchFormGroups(tableCode: string, pageType: string = 'def
 export async function fetchPageMeta(tableCode: string, pageType: string = 'default') {
   const [columns, tableMeta, operations, groups] = await Promise.all([
     fetchColumnSchema(tableCode, pageType),
-    fetchTableMeta(tableCode),
+    fetchTableMeta(tableCode, pageType),
     fetchTableOperations(tableCode, pageType),
     fetchFormGroups(tableCode, pageType),
   ]);

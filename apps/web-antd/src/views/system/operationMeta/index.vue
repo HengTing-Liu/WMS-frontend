@@ -101,6 +101,7 @@
       :mode="modalMode"
       :data="currentRecord"
       :table-code="selectedTableCode"
+      :table-meta-id="selectedTableMetaId"
       @success="handleModalSuccess"
     />
   </WmsPageLayout>

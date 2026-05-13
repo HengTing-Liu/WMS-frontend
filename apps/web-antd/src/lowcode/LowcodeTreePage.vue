@@ -842,6 +842,7 @@ function navigateToLowcodeForm(mode: 'create' | 'edit' | 'view', id?: string) {
     desc: props.pageDesc,
     from: route.fullPath,
     title: props.pageTitle,
+    pageType: props.pageType ?? 'default',
   };
 
   if (routeName) {

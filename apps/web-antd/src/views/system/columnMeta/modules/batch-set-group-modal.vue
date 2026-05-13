@@ -52,10 +52,11 @@ import {
 import type { FormInstance } from 'ant-design-vue/es/form';
 
 import { batchUpdateColumnSection } from '#/api/system/columnMeta';
-import { getGroupMetaList, type GroupMetaApi } from '#/api/system/groupMeta';
+import { getGroupMetaListByMetaId, type GroupMetaApi } from '#/api/system/groupMeta';
 
 const props = defineProps<{
   tableCode: string;
+  tableMetaId?: number;
   selectedIds: number[];
 }>();
 
@@ -72,10 +73,10 @@ const formRef = ref<FormInstance>();
 const formData = reactive<{ groupCode: string }>({ groupCode: '' });
 
 async function loadGroups() {
-  if (!props.tableCode) return;
+  if (!props.tableMetaId) return;
   groupLoading.value = true;
   try {
-    const res = await getGroupMetaList(props.tableCode);
+    const res = await getGroupMetaListByMetaId(props.tableMetaId);
     groupOptions.value = (res.rows || [])
       .filter((item) => Number(item.status ?? 1) === 1)
       .sort((a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0));

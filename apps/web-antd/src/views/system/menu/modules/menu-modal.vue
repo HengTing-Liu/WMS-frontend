@@ -71,6 +71,16 @@
         />
       </FormItem>
 
+      <!-- 路由参数 query（菜单） -->
+      <FormItem v-if="formData.menuType === 'C'" :label="$t('page.system.menu.query')" name="query">
+        <Input
+          v-model:value="formData.query"
+          placeholder="格式：key1=value1&key2=value2。如 pageType=equipment 或 pageType=material&status=1"
+          :max-length="255"
+          show-count
+        />
+      </FormItem>
+
       <!-- 权限标识 -->
       <FormItem v-if="formData.menuType !== 'M'" :label="$t('page.system.menu.perms')" name="perms">
         <Input
@@ -225,6 +235,7 @@ const open = async (row?: any) => {
     orderNum: 0,
     path: '',
     component: '',
+    query: '',
     isFrame: '1',
     isCache: '0',
     menuType: 'M',

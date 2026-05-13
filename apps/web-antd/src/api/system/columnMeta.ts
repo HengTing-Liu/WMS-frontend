@@ -8,6 +8,7 @@ let tableMetaSelectLoading: Promise<
 export namespace ColumnMetaApi {
   export interface ColumnMeta {
     id?: number;
+    tableMetaId?: number;
     tableCode: string;
     field: string;
     title: string;
