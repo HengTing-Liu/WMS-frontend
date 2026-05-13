@@ -501,11 +501,19 @@ async function loadData() {
       queryModes[snakeKey] = mode === 'eq' ? 'eq' : 'like';
     }
 
+    // 辅助：数组值序列化为 JSON 字符串，后端解析为 List 做 IN 查询
+    function serializeQueryValue(val: any): any {
+      if (Array.isArray(val)) {
+        return JSON.stringify(val);
+      }
+      return val;
+    }
+
     // 合并固定参数（fixedParams 中的 key 允许驼峰或蛇形，统一转蛇形）
     for (const [key, val] of Object.entries(props.fixedParams)) {
       if (val !== undefined && val !== null && val !== '') {
         const snakeKey = key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
-        query[snakeKey] = val;
+        query[snakeKey] = serializeQueryValue(val);
         queryModes[snakeKey] = 'eq';
       }
     }
@@ -521,7 +529,7 @@ async function loadData() {
             const snakeKey = key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
             // 只有当 fixedParams 没有显式覆盖时才使用后台默认值
             if (query[snakeKey] === undefined) {
-              query[snakeKey] = val;
+              query[snakeKey] = serializeQueryValue(val);
               queryModes[snakeKey] = 'eq';
             }
           }
