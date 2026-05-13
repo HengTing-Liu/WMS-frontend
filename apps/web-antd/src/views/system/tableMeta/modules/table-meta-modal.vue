@@ -3,7 +3,7 @@
     v-model:open="visible"
     :title="modalTitle"
     :confirm-loading="loading"
-    width="700px"
+    width="920px"
     @ok="handleSubmit"
     @cancel="handleCancel"
   >
@@ -11,85 +11,116 @@
       ref="formRef"
       :model="formData"
       :rules="formRules"
-      :label-col="{ span: 6 }"
+      :label-col="{ span: 8 }"
       :wrapper-col="{ span: 16 }"
     >
-      <FormItem label="表编码" name="tableCode">
-        <Input
-          v-model:value="formData.tableCode"
-          placeholder="请输入表编码，如 WMS0010"
-          :disabled="isEdit"
-          :maxlength="100"
-          @blur="handleTableCodeChange"
-        />
-      </FormItem>
-      <FormItem label="页面类型" name="pageType">
-        <Input
-          v-model:value="formData.pageType"
-          placeholder="default"
-          :maxlength="50"
-        />
-      </FormItem>
-      <FormItem label="默认查询条件(JSON)" name="defaultQueryJson">
-        <Textarea
-          v-model:value="formData.defaultQueryJson"
-          placeholder='{"ledgerType":"equipment"}'
-          :rows="2"
-        />
-      </FormItem>
-      <FormItem label="表名称" name="tableName">
-        <Input v-model:value="formData.tableName" placeholder="请输入表名称" :maxlength="100" />
-      </FormItem>
-      <FormItem label="所属模块" name="module">
-        <Select
-          v-model:value="formData.module"
-          placeholder="请选择所属模块（来自 sys_menu 顶级菜单）"
-          :loading="moduleOptionsLoading"
-          show-search
-          option-filter-prop="label"
-          @change="handleModuleChange"
-        >
-          <SelectOption v-for="opt in moduleSelectOptions" :key="opt.value" :value="opt.value">
-            {{ opt.label }}
-          </SelectOption>
-        </Select>
-      </FormItem>
-      <FormItem label="实体类名">
-        <Input v-model:value="formData.entityClass" placeholder="自动生成，可手动修改" />
-      </FormItem>
-      <FormItem label="服务类名">
-        <Input v-model:value="formData.serviceClass" placeholder="自动生成，可手动修改" />
-      </FormItem>
-      <FormItem label="权限标识">
-        <Input v-model:value="formData.permissionCode" placeholder="自动生成，可手动修改" />
-      </FormItem>
-      <FormItem label="默认分页大小">
-        <InputNumber v-model:value="formData.pageSize" :min="1" :max="500" style="width: 100%" />
-      </FormItem>
-      <FormItem label="是否树形">
-        <RadioGroup v-model:value="formData.isTree">
-          <Radio :value="1">是</Radio>
-          <Radio :value="0">否</Radio>
-        </RadioGroup>
-      </FormItem>
-      <FormItem label="是否可选">
-        <RadioGroup v-model:value="formData.showCheckbox">
-          <Radio :value="1">是</Radio>
-          <Radio :value="0">否</Radio>
-        </RadioGroup>
-      </FormItem>
-      <FormItem label="显示序号">
-        <RadioGroup v-model:value="formData.showIndex">
-          <Radio :value="1">是</Radio>
-          <Radio :value="0">否</Radio>
-        </RadioGroup>
-      </FormItem>
-      <FormItem label="状态">
-        <Switch v-model:checked="statusChecked" />
-      </FormItem>
-      <FormItem label="备注">
-        <Textarea v-model:value="formData.remarks" :rows="3" />
-      </FormItem>
+      <Row :gutter="[16, 12]">
+        <Col :span="12">
+          <FormItem label="表编码" name="tableCode">
+            <Input
+              v-model:value="formData.tableCode"
+              placeholder="请输入表编码，如 WMS0010"
+              :disabled="isEdit"
+              :maxlength="100"
+              @blur="handleTableCodeChange"
+            />
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="所属模块" name="module">
+            <Select
+              v-model:value="formData.module"
+              placeholder="请选择所属模块（来自 sys_menu 顶级菜单）"
+              :loading="moduleOptionsLoading"
+              show-search
+              option-filter-prop="label"
+              @change="handleModuleChange"
+            >
+              <SelectOption v-for="opt in moduleSelectOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </SelectOption>
+            </Select>
+          </FormItem>
+        </Col>
+        <Col :span="24">
+          <FormItem label="默认条件(JSON)" name="defaultQueryJson" :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }">
+            <Textarea
+              v-model:value="formData.defaultQueryJson"
+              placeholder='{"ledgerType":"equipment"}'
+              :rows="2"
+              style="width: 100%"
+            />
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="表名称" name="tableName">
+            <Input v-model:value="formData.tableName" placeholder="请输入表名称" :maxlength="100" />
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="页面类型" name="pageType">
+            <Input
+              v-model:value="formData.pageType"
+              placeholder="default"
+              :maxlength="50"
+            />
+          </FormItem>
+        </Col>
+        <Col :span="24">
+          <FormItem label="实体类名" :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }">
+            <Input v-model:value="formData.entityClass" placeholder="自动生成，可手动修改" />
+          </FormItem>
+        </Col>
+        <Col :span="24">
+          <FormItem label="服务类名" :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }">
+            <Input v-model:value="formData.serviceClass" placeholder="自动生成，可手动修改" />
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="权限标识">
+            <Input v-model:value="formData.permissionCode" placeholder="自动生成，可手动修改" />
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="默认分页大小">
+            <InputNumber v-model:value="formData.pageSize" :min="1" :max="500" style="width: 100%" />
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="是否树形">
+            <RadioGroup v-model:value="formData.isTree">
+              <Radio :value="1">是</Radio>
+              <Radio :value="0">否</Radio>
+            </RadioGroup>
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="是否可选">
+            <RadioGroup v-model:value="formData.showCheckbox">
+              <Radio :value="1">是</Radio>
+              <Radio :value="0">否</Radio>
+            </RadioGroup>
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="显示序号">
+            <RadioGroup v-model:value="formData.showIndex">
+              <Radio :value="1">是</Radio>
+              <Radio :value="0">否</Radio>
+            </RadioGroup>
+          </FormItem>
+        </Col>
+        <Col :span="12">
+          <FormItem label="状态">
+            <Switch v-model:checked="statusChecked" />
+          </FormItem>
+        </Col>
+        <Col :span="24">
+          <FormItem label="备注" :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }">
+            <Textarea v-model:value="formData.remarks" :rows="2" style="width: 100%" />
+          </FormItem>
+        </Col>
+      </Row>
     </Form>
   </Modal>
 </template>
@@ -97,11 +128,13 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
 import {
+  Col,
   Form,
   FormItem,
   Input,
   InputNumber,
   Modal,
+  Row,
   Select,
   SelectOption,
   Switch,
