@@ -9,6 +9,7 @@
   用法：
   <LowcodeTreePage
     table-code="sys_dept"
+    page-type="default"
     page-title="部门管理"
     :crud-prefix="'/api/wms/crud/sys_dept'"
     :tree-config="{
@@ -250,6 +251,8 @@ interface TreeConfig {
 interface Props {
   /** 表编码，对应 sys_table_meta.table_code */
   tableCode: string;
+  /** 页面类型 */
+  pageType?: string;
   /** 页面标题 */
   pageTitle: string;
   /** 页面描述 */
@@ -382,7 +385,7 @@ const dictLabelMapByField = computed(() => {
 });
 
 const searchFieldsUrl = computed(() =>
-  `/api/system/meta/column/schema?tableCode=${props.tableCode}`
+  `/api/system/meta/column/schema?tableCode=${props.tableCode}&pageType=${props.pageType ?? 'default'}`
 );
 
 // ==================== 操作按钮 ====================
@@ -914,7 +917,7 @@ function handleAddChildAction(action: LowcodeAction, record: any) {
 // ==================== 初始化 ====================
 async function init() {
   try {
-    const { columns: metaCols, operations, tableMeta } = await fetchPageMeta(props.tableCode);
+    const { columns: metaCols, operations, tableMeta } = await fetchPageMeta(props.tableCode, props.pageType ?? 'default');
     metaColumns.value = metaCols;
     currentTableMeta.value = tableMeta ?? null;
     const configuredPageSize = Number(tableMeta?.pageSize);

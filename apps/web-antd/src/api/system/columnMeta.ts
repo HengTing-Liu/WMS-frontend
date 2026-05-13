@@ -1,8 +1,8 @@
 import { requestClient } from '#/api/request';
 
-let tableMetaSelectCache: { id: number; tableCode: string; tableName: string }[] | null = null;
+let tableMetaSelectCache: { id: number; tableCode: string; pageType?: string; tableName: string }[] | null = null;
 let tableMetaSelectLoading: Promise<
-  { id: number; tableCode: string; tableName: string }[]
+  { id: number; tableCode: string; pageType?: string; tableName: string }[]
 > | null = null;
 
 export namespace ColumnMetaApi {
@@ -178,6 +178,27 @@ function normalizeSchemaColumn(item: any): ColumnMetaApi.ColumnMeta {
 
 export async function getColumnMetaList(params?: ColumnMetaQuery) {
   const tableCode = params?.tableCode;
+  const tableId = params?.tableId;
+
+  if (tableId) {
+    const res = await requestClient.get<any>(
+      `/api/system/meta/column/schemaByMetaId/${tableId}`,
+    );
+    const rows = Array.isArray(res)
+      ? res
+      : Array.isArray(res?.rows)
+        ? res.rows
+        : Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.data?.rows)
+            ? res.data.rows
+            : [];
+    return {
+      total: rows.length,
+      rows: rows.map((item) => normalizeSchemaColumn(item)),
+    };
+  }
+
   if (!tableCode) {
     return { total: 0, rows: [] };
   }
@@ -297,7 +318,7 @@ export async function getTableMetaListForSelect(forceRefresh = false) {
   tableMetaSelectLoading = requestClient
     .get<{
       total: number;
-      rows: { id: number; tableCode: string; tableName: string }[];
+      rows: { id: number; tableCode: string; pageType?: string; tableName: string }[];
     }>('/api/system/meta/table', {
       params: { pageNum: 1, pageSize: 1000 },
     })
@@ -313,9 +334,9 @@ export async function getTableMetaListForSelect(forceRefresh = false) {
   return tableMetaSelectLoading;
 }
 
-export async function getColumnMetaByTableId(tableCode: string) {
+export async function getColumnMetaByTableId(tableMetaId: number | string) {
   const res = await requestClient.get<any>(
-    `/api/system/meta/column/list/${tableCode}`,
+    `/api/system/meta/column/schemaByMetaId/${tableMetaId}`,
   );
   const rows = Array.isArray(res)
     ? res

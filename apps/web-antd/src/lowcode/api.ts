@@ -21,9 +21,9 @@ import type { ColumnMeta, FormGroupMeta, TableMeta, TableOperation } from './typ
 /**
  * 閼惧嘲褰囩€涙顔?Schema閿涘牅绶甸崜宥囶伂濞撳弶鐓嬮幖婊呭偍閺嶅繐鎷扮悰銊︾壐閸掓绱? * 閹恒儱褰涢敍娆窫T /api/system/meta/column/schema?tableCode=xxx
  */
-export async function fetchColumnSchema(tableCode: string): Promise<ColumnMeta[]> {
+export async function fetchColumnSchema(tableCode: string, pageType: string = 'default'): Promise<ColumnMeta[]> {
   const res = await requestClient.get<any>('/api/system/meta/column/schema', {
-    params: { tableCode },
+    params: { tableCode, pageType },
   });
   // 閸忕厧顔愭径姘湴閸栧懓顥婇敍姝瀉ta.rows / data / 閻╁瓨甯撮弫鎵矋
   const rows = res?.data?.rows ?? res?.data ?? res ?? [];
@@ -96,9 +96,11 @@ export async function fetchTableMeta(tableCode: string): Promise<TableMeta | nul
 /**
  * 閼惧嘲褰囬幙宥勭稊閹稿鎸抽崚妤勩€? * 閹恒儱褰涢敍娆窫T /api/system/meta/operation/list/{tableCode}
  */
-export async function fetchTableOperations(tableCode: string): Promise<TableOperation[]> {
+export async function fetchTableOperations(tableCode: string, pageType: string = 'default'): Promise<TableOperation[]> {
   try {
-    const res = await requestClient.get<any>(`/api/system/meta/operation/list/${tableCode}`);
+    const res = await requestClient.get<any>(`/api/system/meta/operation/list/${tableCode}`, {
+      params: { pageType },
+    });
     const rows =
       res?.rows ??
       res?.data?.rows ??
@@ -112,9 +114,11 @@ export async function fetchTableOperations(tableCode: string): Promise<TableOper
   }
 }
 
-export async function fetchFormGroups(tableCode: string): Promise<FormGroupMeta[]> {
+export async function fetchFormGroups(tableCode: string, pageType: string = 'default'): Promise<FormGroupMeta[]> {
   try {
-    const res = await requestClient.get<any>(`/api/system/meta/group/list/${tableCode}`);
+    const res = await requestClient.get<any>(`/api/system/meta/group/list/${tableCode}`, {
+      params: { pageType },
+    });
     const rows = res?.data?.rows ?? res?.data ?? res ?? [];
     const list = Array.isArray(rows) ? rows : [];
     return list
@@ -139,12 +143,12 @@ export async function fetchFormGroups(tableCode: string): Promise<FormGroupMeta[
  * 閹靛綊鍣洪懢宄板絿鐎涙顔?Schema + 鐞涖劌鍘撻弫鐗堝祦 + 閹垮秳缍旈幐澶愭尦
  * 娑撯偓濞嗏剝濯洪崣鏍电礉妞ょ敻娼伴崚婵嗩潗閸栨牗妞傜拫鍐暏
  */
-export async function fetchPageMeta(tableCode: string) {
+export async function fetchPageMeta(tableCode: string, pageType: string = 'default') {
   const [columns, tableMeta, operations, groups] = await Promise.all([
-    fetchColumnSchema(tableCode),
+    fetchColumnSchema(tableCode, pageType),
     fetchTableMeta(tableCode),
-    fetchTableOperations(tableCode),
-    fetchFormGroups(tableCode),
+    fetchTableOperations(tableCode, pageType),
+    fetchFormGroups(tableCode, pageType),
   ]);
   return { columns, tableMeta, operations, groups };
 }
