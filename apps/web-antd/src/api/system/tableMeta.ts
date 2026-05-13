@@ -6,6 +6,7 @@ export namespace TableMetaApi {
   export interface TableMeta {
     id?: number;
     tableCode: string;
+    pageType?: string;
     tableName: string;
     module: string;
     entityClass?: string;

@@ -5,6 +5,7 @@ import { requestClient } from '#/api/request';
 export namespace OperationMetaApi {
   export interface OperationMeta {
     id?: number;
+    tableMetaId?: number;
     tableCode: string;
     operationCode: string;
     operationName: string;
@@ -61,6 +62,17 @@ function normalizeOperation(item: Recordable<any>): OperationMetaApi.OperationMe
 export async function getOperationMetaList(tableCode: string): Promise<OperationMetaListResult> {
   if (!tableCode) return { total: 0, rows: [] };
   const res = await requestClient.get<any>(`/api/system/meta/operation/list/${tableCode}`);
+  const data = unwrapData<any>(res);
+  const rows = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : [];
+  return {
+    total: Number(data?.total ?? rows.length),
+    rows: rows.map((item) => normalizeOperation(item)),
+  };
+}
+
+export async function getOperationMetaListByMetaId(tableMetaId: number | string): Promise<OperationMetaListResult> {
+  if (!tableMetaId) return { total: 0, rows: [] };
+  const res = await requestClient.get<any>(`/api/system/meta/operation/listByMetaId/${tableMetaId}`);
   const data = unwrapData<any>(res);
   const rows = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : [];
   return {

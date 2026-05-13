@@ -5,21 +5,21 @@
         <div class="toolbar-row">
           <div class="left-tools">
             <Select
-              v-model:value="selectedTableCode"
+              v-model:value="selectedTableMetaId"
               placeholder="请选择表编码"
               :loading="tableLoading"
               style="width: 320px"
               show-search
               option-filter-prop="label"
-              @change="(value) => handleTableChange(value as string | number | undefined)"
+              @change="(value) => handleTableChange(value as number | undefined)"
             >
               <SelectOption
                 v-for="table in tableList"
-                :key="table.tableCode"
-                :value="table.tableCode"
-                :label="`${table.tableCode} - ${table.tableName}`"
+                :key="table.id"
+                :value="table.id"
+                :label="`${table.tableCode}(${table.pageType || 'default'}) - ${table.tableName}`"
               >
-                {{ table.tableCode }} - {{ table.tableName }}
+                {{ table.tableCode }}({{ table.pageType || 'default' }}) - {{ table.tableName }}
               </SelectOption>
             </Select>
 
@@ -33,8 +33,8 @@
           </div>
 
           <div class="right-tools">
-            <Button type="primary" :disabled="!selectedTableCode" @click="handleAdd">新增分组</Button>
-            <Button :disabled="!selectedTableCode" @click="handleSaveSort">保存排序</Button>
+            <Button type="primary" :disabled="!selectedTableMetaId" @click="handleAdd">新增分组</Button>
+            <Button :disabled="!selectedTableMetaId" @click="handleSaveSort">保存排序</Button>
           </div>
         </div>
       </Card>
@@ -144,7 +144,7 @@ import { getColumnMetaByTableId, getTableMetaListForSelect } from '#/api/system/
 import {
   batchSortGroupMeta,
   deleteGroupMeta,
-  getGroupMetaList,
+  getGroupMetaListByMetaId,
   type GroupMetaApi,
 } from '#/api/system/groupMeta';
 
@@ -154,8 +154,13 @@ import AssignFieldsModal from './modules/assign-fields-modal.vue';
 const loading = ref(false);
 const tableLoading = ref(false);
 const searchKeyword = ref('');
-const selectedTableCode = ref<string>('');
-const tableList = ref<Array<{ id: number; tableCode: string; tableName: string }>>([]);
+const selectedTableMetaId = ref<number | undefined>(undefined);
+const tableList = ref<Array<{ id: number; tableCode: string; tableName: string; pageType?: string }>>([]);
+
+const selectedTableCode = computed(() => {
+  const table = tableList.value.find((t) => t.id === selectedTableMetaId.value);
+  return table?.tableCode;
+});
 type GroupMetaRow = GroupMetaApi.GroupMeta & { refCount: number };
 const tableDataRaw = ref<GroupMetaRow[]>([]);
 const tableData = computed(() => {
@@ -177,24 +182,24 @@ const assignRecord = ref<GroupMetaApi.GroupMeta | null>(null);
 
 type GroupMetaPageState = {
   searchKeyword: string;
-  selectedTableCode: string;
-  tableList: Array<{ id: number; tableCode: string; tableName: string }>;
+  selectedTableMetaId?: number;
+  tableList: Array<{ id: number; tableCode: string; tableName: string; pageType?: string }>;
   tableDataRaw: GroupMetaRow[];
 };
-const GROUP_META_STATE_KEY = 'system-group-meta-page-state-v1';
-const GROUP_META_NON_EMPTY_STATE_KEY = 'system-group-meta-page-state-non-empty-v1';
+const GROUP_META_STATE_KEY = 'system-group-meta-page-state-v2';
+const GROUP_META_NON_EMPTY_STATE_KEY = 'system-group-meta-page-state-non-empty-v2';
 let groupMetaStateCache: GroupMetaPageState | null = null;
 let groupMetaNonEmptyStateCache: GroupMetaPageState | null = null;
 
 function savePageState() {
   const state: GroupMetaPageState = {
     searchKeyword: searchKeyword.value,
-    selectedTableCode: selectedTableCode.value,
+    selectedTableMetaId: selectedTableMetaId.value,
     tableList: [...tableList.value],
     tableDataRaw: [...tableDataRaw.value],
   };
   // Guard against transient empty snapshots during tab switch.
-  if (!state.selectedTableCode && state.tableDataRaw.length === 0 && groupMetaNonEmptyStateCache) {
+  if (!state.selectedTableMetaId && state.tableDataRaw.length === 0 && groupMetaNonEmptyStateCache) {
     return;
   }
   groupMetaStateCache = state;
@@ -203,7 +208,7 @@ function savePageState() {
   } catch {
     // ignore
   }
-  if (state.selectedTableCode || state.tableDataRaw.length > 0) {
+  if (state.selectedTableMetaId || state.tableDataRaw.length > 0) {
     groupMetaNonEmptyStateCache = state;
     try {
       sessionStorage.setItem(GROUP_META_NON_EMPTY_STATE_KEY, JSON.stringify(state));
@@ -223,7 +228,7 @@ function restorePageState() {
       // ignore
     }
   }
-  if (!state || (!state.selectedTableCode && state.tableDataRaw.length === 0)) {
+  if (!state || (!state.selectedTableMetaId && state.tableDataRaw.length === 0)) {
     let fallback = groupMetaNonEmptyStateCache;
     if (!fallback) {
       try {
@@ -243,7 +248,7 @@ function restorePageState() {
   if (!state) return false;
   groupMetaStateCache = state;
   searchKeyword.value = state.searchKeyword || '';
-  selectedTableCode.value = state.selectedTableCode || '';
+  selectedTableMetaId.value = state.selectedTableMetaId;
   tableList.value = [...(state.tableList || [])];
   tableDataRaw.value = [...(state.tableDataRaw || [])];
   return true;
@@ -270,8 +275,8 @@ async function loadTableList() {
   tableLoading.value = true;
   try {
     tableList.value = await getTableMetaListForSelect();
-    if (!selectedTableCode.value && tableList.value.length > 0) {
-      selectedTableCode.value = tableList.value[0]!.tableCode;
+    if (!selectedTableMetaId.value && tableList.value.length > 0) {
+      selectedTableMetaId.value = tableList.value[0]!.id;
     }
   } catch (error: any) {
     message.error(error?.message || '加载表列表失败');
@@ -281,15 +286,15 @@ async function loadTableList() {
 }
 
 async function loadData() {
-  if (!selectedTableCode.value) {
+  if (!selectedTableMetaId.value) {
     // Keep current data when table code is transiently empty during tab switches.
     return;
   }
   loading.value = true;
   try {
     const [res, columnList] = await Promise.all([
-      getGroupMetaList(selectedTableCode.value),
-      getColumnMetaByTableId(selectedTableCode.value),
+      getGroupMetaListByMetaId(selectedTableMetaId.value),
+      getColumnMetaByTableId(selectedTableMetaId.value),
     ]);
     const refCountMap = (columnList || []).reduce<Record<string, number>>((result, item: any) => {
       const key = String(item?.sectionKey || '').trim();
@@ -312,7 +317,7 @@ async function loadData() {
 }
 
 function handleAdd() {
-  if (!selectedTableCode.value) {
+  if (!selectedTableMetaId.value) {
     message.warning('请先选择表编码');
     return;
   }
@@ -362,9 +367,9 @@ function handleModalSuccess() {
   loadData();
 }
 
-function handleTableChange(value?: string | number) {
+function handleTableChange(value?: number) {
   if (!value) return;
-  selectedTableCode.value = String(value);
+  selectedTableMetaId.value = value;
   void loadData();
 }
 
@@ -378,7 +383,7 @@ onMounted(async () => {
   }
 });
 
-watch([searchKeyword, selectedTableCode, tableList, tableDataRaw], savePageState, {
+watch([searchKeyword, selectedTableMetaId, tableList, tableDataRaw], savePageState, {
   deep: true,
 });
 

@@ -158,6 +158,7 @@ const allFields = ref<ColumnMeta[]>([]);
 const currentTableMeta = ref<TableMeta | null>(null);
 
 const tableCode = computed(() => String(route.params.tableCode ?? ''));
+const pageType = computed(() => String(route.query.pageType ?? route.params.pageType ?? 'default'));
 const mode = computed(() => String(route.params.mode ?? 'create'));
 const recordId = computed(() => route.params.id as string | undefined);
 const crudPrefix = computed(() => {
@@ -890,9 +891,9 @@ async function loadPage() {
   loading.value = true;
   try {
     const [columns, tableMeta, groupMetas] = await Promise.all([
-      fetchColumnSchema(tableCode.value),
+      fetchColumnSchema(tableCode.value, pageType.value),
       fetchTableMeta(tableCode.value),
-      fetchFormGroups(tableCode.value),
+      fetchFormGroups(tableCode.value, pageType.value),
     ]);
 
     currentTableMeta.value = tableMeta ?? null;

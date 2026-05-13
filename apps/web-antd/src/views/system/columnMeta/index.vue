@@ -10,21 +10,21 @@
           <div class="filter-item">
             <span class="filter-label">所属表：</span>
             <Select
-              v-model:value="selectedTableCode"
+              v-model:value="selectedTableMetaId"
               :loading="tableLoading"
               placeholder="请选择表"
               style="width: 280px"
               show-search
               option-filter-prop="label"
-              @change="(value) => handleTableChange(value as string | number | undefined)"
+              @change="(value) => handleTableChange(value as number | undefined)"
             >
               <Select.Option
                 v-for="table in tableList"
-                :key="table.tableCode"
-                :value="table.tableCode"
-                :label="`${table.tableCode} - ${table.tableName}`"
+                :key="table.id"
+                :value="table.id"
+                :label="`${table.tableCode}(${table.pageType || 'default'}) - ${table.tableName}`"
               >
-                {{ table.tableCode }} - {{ table.tableName }}
+                {{ table.tableCode }}({{ table.pageType || 'default' }}) - {{ table.tableName }}
               </Select.Option>
             </Select>
           </div>
@@ -42,10 +42,10 @@
 
           <!-- 操作按钮 -->
           <div class="filter-actions">
-            <Button type="primary" :disabled="!selectedTableCode" @click="handleAdd">
+            <Button type="primary" :disabled="!selectedTableMetaId" @click="handleAdd">
               <Plus class="btn-icon" /> 新增字段
             </Button>
-            <Button :disabled="!selectedTableCode" @click="handleOpenLookupWizard">
+            <Button :disabled="!selectedTableMetaId" @click="handleOpenLookupWizard">
               <IconifyIcon icon="material-symbols:table-view" class="btn-icon" />
               批量添加关联字段
             </Button>
@@ -85,7 +85,7 @@
 
     <!-- 拖拽排序提示 -->
     <Alert
-      v-if="selectedTableCode"
+      v-if="selectedTableMetaId"
       type="info"
       show-icon
       class="sort-hint"
@@ -253,7 +253,7 @@
     </WmsDataTable>
 
     <!-- 空状态 -->
-    <div v-if="!selectedTableCode" class="empty-state">
+    <div v-if="!selectedTableMetaId" class="empty-state">
       <IconifyIcon icon="material-symbols:table" class="empty-icon" />
       <p>请先选择一个表</p>
     </div>
@@ -320,15 +320,15 @@ import { useSortable } from '@vben/hooks';
 
 type ColumnMetaPageState = {
   selectedRowKeys: Array<number | string>;
-  selectedTableCode?: string;
+  selectedTableMetaId?: number;
   tableData: ColumnMetaApi.ColumnMeta[];
-  tableList: { id: number; tableCode: string; tableName: string }[];
+  tableList: { id: number; tableCode: string; tableName: string; pageType?: string }[];
   searchKeyword: string;
 };
 
 const PAGE_STATE_CACHE_KEY = 'system-column-meta-page-state';
-const PAGE_STATE_STORAGE_KEY = `${PAGE_STATE_CACHE_KEY}:session-v1`;
-const PAGE_STATE_NON_EMPTY_STORAGE_KEY = `${PAGE_STATE_CACHE_KEY}:session-non-empty-v1`;
+const PAGE_STATE_STORAGE_KEY = `${PAGE_STATE_CACHE_KEY}:session-v2`;
+const PAGE_STATE_NON_EMPTY_STORAGE_KEY = `${PAGE_STATE_CACHE_KEY}:session-non-empty-v2`;
 const pageStateCache = new Map<string, ColumnMetaPageState>();
 let nonEmptyPageStateCache: ColumnMetaPageState | null = null;
 let restoringPageState = false;
@@ -338,8 +338,13 @@ const loading = ref(false);
 const tableLoading = ref(false);
 const tableData = ref<ColumnMetaApi.ColumnMeta[]>([]);
 const selectedRowKeys = ref<Array<number | string>>([]);
-const selectedTableCode = ref<string | undefined>(undefined);
-const tableList = ref<{ id: number; tableCode: string; tableName: string }[]>([]);
+const selectedTableMetaId = ref<number | undefined>(undefined);
+const tableList = ref<{ id: number; tableCode: string; tableName: string; pageType?: string }[]>([]);
+
+const selectedTableCode = computed(() => {
+  const table = tableList.value.find((t) => t.id === selectedTableMetaId.value);
+  return table?.tableCode;
+});
 const searchKeyword = ref('');
 
 // 弹窗状态
@@ -352,7 +357,7 @@ const batchSetColspanVisible = ref(false);
 const lookupWizardVisible = ref(false);
 
 function handleOpenLookupWizard() {
-  if (!selectedTableCode.value) {
+  if (!selectedTableMetaId.value) {
     message.warning('请先选择表');
     return;
   }
@@ -362,14 +367,14 @@ function handleOpenLookupWizard() {
 function savePageState() {
   const state: ColumnMetaPageState = {
     selectedRowKeys: [...selectedRowKeys.value],
-    selectedTableCode: selectedTableCode.value,
+    selectedTableMetaId: selectedTableMetaId.value,
     tableData: [...tableData.value],
     tableList: [...tableList.value],
     searchKeyword: searchKeyword.value,
   };
 
   // Guard against transient empty snapshots during tab switch.
-  if (!state.selectedTableCode && state.tableData.length === 0 && nonEmptyPageStateCache) {
+  if (!state.selectedTableMetaId && state.tableData.length === 0 && nonEmptyPageStateCache) {
     return;
   }
 
@@ -380,7 +385,7 @@ function savePageState() {
     // ignore storage failures
   }
 
-  if (state.selectedTableCode || state.tableData.length > 0) {
+  if (state.selectedTableMetaId || state.tableData.length > 0) {
     nonEmptyPageStateCache = state;
     try {
       sessionStorage.setItem(PAGE_STATE_NON_EMPTY_STORAGE_KEY, JSON.stringify(state));
@@ -403,7 +408,7 @@ function restorePageState() {
       // ignore parse/storage failures
     }
   }
-  if (!cached || (!cached.selectedTableCode && cached.tableData.length === 0)) {
+  if (!cached || (!cached.selectedTableMetaId && cached.tableData.length === 0)) {
     let fallback = nonEmptyPageStateCache;
     if (!fallback) {
       try {
@@ -424,7 +429,7 @@ function restorePageState() {
   if (!cached) return false;
   restoringPageState = true;
   selectedRowKeys.value = [...cached.selectedRowKeys];
-  selectedTableCode.value = cached.selectedTableCode;
+  selectedTableMetaId.value = cached.selectedTableMetaId;
   tableData.value = [...cached.tableData];
   tableList.value = [...cached.tableList];
   searchKeyword.value = cached.searchKeyword;
@@ -522,7 +527,7 @@ async function loadTableList(forceRefresh = false) {
 }
 
 async function loadData() {
-  if (!selectedTableCode.value) {
+  if (!selectedTableMetaId.value) {
     // Keep current data when table code is transiently empty during tab switches.
     return;
   }
@@ -530,7 +535,7 @@ async function loadData() {
   loading.value = true;
   try {
     const res = await getColumnMetaList({
-      tableCode: selectedTableCode.value,
+      tableId: selectedTableMetaId.value,
       pageNum: 1,
       pageSize: 1000,
     });
@@ -558,10 +563,10 @@ async function loadData() {
 }
 
 // ========== 事件处理 ==========
-function handleTableChange(value?: string | number) {
+function handleTableChange(value?: number) {
   // Ignore transient clear events from Select during options/layout updates.
   if (!value) return;
-  selectedTableCode.value = String(value);
+  selectedTableMetaId.value = value;
   searchKeyword.value = '';
 }
 
@@ -570,7 +575,7 @@ function handleSearch() {
 }
 
 function handleAdd() {
-  if (!selectedTableCode.value) {
+  if (!selectedTableMetaId.value) {
     message.warning('请先选择表');
     return;
   }
@@ -902,21 +907,21 @@ onMounted(async () => {
   const restored = restorePageState();
   // 强制刷新表列表，避免 sessionStorage 缓存了已被后端删除的表
   await loadTableList(true);
-  // 验证恢复的 selectedTableCode 是否仍然存在于最新列表中
+  // 验证恢复的 selectedTableMetaId 是否仍然存在于最新列表中
   if (
-    selectedTableCode.value
-    && !tableList.value.some((item) => item.tableCode === selectedTableCode.value)
+    selectedTableMetaId.value
+    && !tableList.value.some((item) => item.id === selectedTableMetaId.value)
   ) {
-    selectedTableCode.value = undefined;
+    selectedTableMetaId.value = undefined;
     tableData.value = [];
   }
-  if (!restored && selectedTableCode.value) {
+  if (!restored && selectedTableMetaId.value) {
     await loadData();
   }
 });
 
 watch(
-  () => selectedTableCode.value,
+  () => selectedTableMetaId.value,
   (val, oldVal) => {
     if (restoringPageState) return;
     if (val !== oldVal) {
@@ -947,7 +952,7 @@ watch(
 );
 
 watch(
-  [selectedRowKeys, selectedTableCode, tableData, tableList, searchKeyword],
+  [selectedRowKeys, selectedTableMetaId, tableData, tableList, searchKeyword],
   () => {
     if (!restoringPageState) {
       savePageState();

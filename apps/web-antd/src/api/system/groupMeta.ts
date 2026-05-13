@@ -3,6 +3,7 @@ import { requestClient } from '#/api/request';
 export namespace GroupMetaApi {
   export interface GroupMeta {
     id?: number;
+    tableMetaId?: number;
     tableCode: string;
     groupCode: string;
     groupTitle: string;
@@ -49,6 +50,22 @@ export async function getGroupMetaList(tableCode: string): Promise<GroupMetaList
   if (!tableCode) return { total: 0, rows: [] };
   const res = await requestClient.get<any>(`/api/system/meta/group/list/${tableCode}`);
   // 后端分组接口直接返回数组（而非 { rows: [] } 结构），需兼容两种格式
+  const rows = Array.isArray(res)
+    ? res
+    : Array.isArray(res?.rows)
+      ? res.rows
+      : Array.isArray(res?.data)
+        ? res.data
+        : [];
+  return {
+    total: rows.length,
+    rows: rows.map((item: any) => normalizeGroup(item)),
+  };
+}
+
+export async function getGroupMetaListByMetaId(tableMetaId: number | string): Promise<GroupMetaListResult> {
+  if (!tableMetaId) return { total: 0, rows: [] };
+  const res = await requestClient.get<any>(`/api/system/meta/group/listByMetaId/${tableMetaId}`);
   const rows = Array.isArray(res)
     ? res
     : Array.isArray(res?.rows)

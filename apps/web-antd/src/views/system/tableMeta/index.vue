@@ -196,6 +196,7 @@ const columns = computed<TableColumnsType<TableMetaResult>>(() => [
   },
   { title: 'Table Code', dataIndex: 'tableCode', key: 'tableCode', width: 150 },
   { title: 'Table Name', dataIndex: 'tableName', key: 'tableName', width: 180 },
+  { title: 'Page Type', dataIndex: 'pageType', key: 'pageType', width: 120 },
   { title: 'Module', dataIndex: 'module', key: 'module', width: 100 },
   { title: 'Entity Class', dataIndex: 'entityClass', key: 'entityClass', width: 220, ellipsis: true },
   { title: 'Service Class', dataIndex: 'serviceClass', key: 'serviceClass', width: 240, ellipsis: true },

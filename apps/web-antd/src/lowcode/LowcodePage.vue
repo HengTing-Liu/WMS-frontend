@@ -221,6 +221,8 @@ function isRowApiEnabled(record: any): boolean {
 interface Props {
   /** 表编码，对应 sys_table_meta.table_code */
   tableCode: string;
+  /** 页面类型 */
+  pageType?: string;
   /** 页面标题 */
   pageTitle: string;
   /** 页面描述 */
@@ -359,7 +361,7 @@ const dictLabelMapByField = computed(() => {
 
 // ==================== 搜索栏 URL ====================
 const searchFieldsUrl = computed(() =>
-  `/api/system/meta/column/schema?tableCode=${props.tableCode}`
+  `/api/system/meta/column/schema?tableCode=${props.tableCode}&pageType=${props.pageType ?? 'default'}`
 );
 
 // ==================== 解析操作按钮 ====================
@@ -836,6 +838,7 @@ function navigateToLowcodeForm(mode: 'create' | 'edit' | 'view', id?: string) {
     desc: props.pageDesc,
     from: route.fullPath,
     title: props.pageTitle,
+    pageType: props.pageType ?? 'default',
   };
 
   if (routeName) {
@@ -914,7 +917,7 @@ async function handleDelete(id: number | string) {
 async function init() {
   try {
     // 加载 meta 配置（字段 + 操作按钮）
-    const { columns: metaCols, operations, tableMeta } = await fetchPageMeta(props.tableCode);
+    const { columns: metaCols, operations, tableMeta } = await fetchPageMeta(props.tableCode, props.pageType ?? 'default');
     console.log('[LowcodePage] fetchPageMeta result:', { tableCode: props.tableCode, metaColCount: metaCols?.length, opCount: operations?.length });
     metaColumns.value = metaCols;
     currentTableMeta.value = tableMeta ?? null;
