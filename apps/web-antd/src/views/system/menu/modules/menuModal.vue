@@ -2,15 +2,24 @@
 import { computed, reactive, ref } from 'vue';
 import { IconPicker, useVbenModal } from '@vben/common-ui';
 import { Form, Input, InputNumber, Radio, TreeSelect, Spin, message } from 'ant-design-vue';
-import { getMenuDetail, getMenuList, addMenu, updateMenu, type MenuItem } from '#/api';
+import {
+  getMenuDetail,
+  getMenuList,
+  getMenuTreeselect,
+  addMenu,
+  updateMenu,
+  type MenuItem,
+} from '#/api';
 
 const emit = defineEmits<{
   (e: 'success'): void;
 }>();
 
+/** Ant Design Vue 4 TreeSelect：label / value / children；key 与 value 一致便于展开与搜索 */
 interface MenuTreeOption {
-  title: string;
+  label: string;
   value: number;
+  key: number;
   children?: MenuTreeOption[];
 }
 
@@ -46,10 +55,16 @@ const form = reactive({
 });
 
 const menuTreeOptions = ref<MenuTreeOption[]>([]);
+/** 树数据更新后强制重挂 TreeSelect，保证 defaultExpandAll 对异步数据生效 */
+const parentTreeSelectKey = ref(0);
 
-function resetForm(parentId = 0) {
+function resetForm(parentId: number | string = 0) {
   form.menuId = undefined;
-  form.parentId = parentId;
+  const pid =
+    parentId === '' || parentId === null || parentId === undefined
+      ? 0
+      : Number(parentId);
+  form.parentId = Number.isFinite(pid) ? pid : 0;
   form.menuType = 'M';
   form.icon = 'carbon:logo-github';
   form.orderNum = 0;
@@ -65,41 +80,93 @@ function resetForm(parentId = 0) {
   form.status = '0';
 }
 
-function buildMenuTree(list: MenuItem[]): MenuTreeOption[] {
-  const map = new Map<number, MenuTreeOption & { children: MenuTreeOption[] }>();
-  list.forEach((item) => {
-    map.set(item.menuId, {
-      title: item.menuName,
-      value: item.menuId,
-      children: [],
-    });
-  });
-  const roots: (MenuTreeOption & { children: MenuTreeOption[] })[] = [];
-  map.forEach((node, id) => {
-    const item = list.find((m) => m.menuId === id)!;
-    if (!item.parentId || !map.has(item.parentId)) {
-      roots.push(node);
-    } else {
-      map.get(item.parentId)!.children.push(node);
+/** 与菜单列表页一致，兼容若依 R.ok({ data: { rows, total } }) 等返回体 */
+function extractMenuListFromResponse(res: any): MenuItem[] {
+  if (Array.isArray(res)) return res;
+  if (Array.isArray(res?.rows)) return res.rows;
+  if (Array.isArray(res?.data)) return res.data;
+  if (Array.isArray(res?.data?.rows)) return res.data.rows;
+  if (Array.isArray(res?.data?.data)) return res.data.data;
+  return [];
+}
+
+/** 编辑时不能选自己或子节点为上级，否则成环 */
+function collectSelfAndDescendantIds(flat: MenuItem[], selfId: number): Set<number> {
+  const ids = new Set<number>([selfId]);
+  const queue = [selfId];
+  while (queue.length) {
+    const pid = queue.shift()!;
+    for (const m of flat) {
+      const mid = m.menuId == null ? NaN : Number(m.menuId);
+      if (Number.isNaN(mid)) continue;
+      if (Number(m.parentId) === pid && !ids.has(mid)) {
+        ids.add(mid);
+        queue.push(mid);
+      }
     }
-  });
-  return roots;
+  }
+  return ids;
+}
+
+/** 解析 /api/menu/treeselect 经 request 返回后的结构（data 直出数组或少数包装形态） */
+function extractTreeselectList(res: any): any[] {
+  if (Array.isArray(res)) return res;
+  if (Array.isArray(res?.data)) return res.data;
+  if (Array.isArray(res?.rows)) return res.rows;
+  if (Array.isArray(res?.data?.rows)) return res.data.rows;
+  return [];
+}
+
+/** 后端 TreeSelect：id(string)、label、children */
+function convertTreeselect(nodes: any[]): MenuTreeOption[] {
+  if (!Array.isArray(nodes)) return [];
+  return nodes
+    .map((n) => {
+      const val = Number(n?.id);
+      if (!Number.isFinite(val)) {
+        return null;
+      }
+      const rawChildren = n.children;
+      const children =
+        Array.isArray(rawChildren) && rawChildren.length > 0 ? convertTreeselect(rawChildren) : undefined;
+      return {
+        label: String(n.label ?? ''),
+        value: val,
+        key: val,
+        ...(children && children.length > 0 ? { children } : {}),
+      };
+    })
+    .filter((x): x is MenuTreeOption => x != null);
+}
+
+function pruneTreeByOmit(nodes: MenuTreeOption[], omit: Set<number>): MenuTreeOption[] {
+  return nodes
+    .filter((n) => !omit.has(n.value))
+    .map((n) => {
+      const nextChildren =
+        n.children && n.children.length > 0 ? pruneTreeByOmit(n.children, omit) : undefined;
+      return {
+        label: n.label,
+        value: n.value,
+        key: n.key,
+        ...(nextChildren && nextChildren.length > 0 ? { children: nextChildren } : {}),
+      };
+    });
 }
 
 async function loadMenuTree() {
-  const res = (await getMenuList()) as any;
-  let list: MenuItem[] = [];
-  if (Array.isArray(res?.rows)) {
-    list = res.rows;
-  } else if (Array.isArray(res?.data)) {
-    list = res.data;
-  } else if (Array.isArray(res)) {
-    list = res;
+  const [treeRes, listRes] = await Promise.all([getMenuTreeselect(), getMenuList()]);
+  let children = convertTreeselect(extractTreeselectList(treeRes));
+  const editingId = isEdit.value ? data.value?.menuId : undefined;
+  if (editingId != null) {
+    const flat = extractMenuListFromResponse(listRes).filter((item) => item.menuType !== 'F');
+    const omit = collectSelfAndDescendantIds(flat, Number(editingId));
+    children = pruneTreeByOmit(children, omit);
   }
-  const children = buildMenuTree(list);
   menuTreeOptions.value = [
-    { title: '主类目', value: 0, children },
+    { label: '根目录（无上级）', value: 0, key: 0, children },
   ];
+  parentTreeSelectKey.value += 1;
 }
 
 const [Modal, modalApi] = useVbenModal({
@@ -161,8 +228,11 @@ const [Modal, modalApi] = useVbenModal({
 async function handleSubmit() {
   loading.value = true;
   try {
+    const rawPid = form.parentId;
+    const parentNum =
+      rawPid === '' || rawPid === null || rawPid === undefined ? NaN : Number(rawPid);
     const payload: Record<string, any> = {
-      parentId: form.parentId,
+      parentId: Number.isFinite(parentNum) ? parentNum : 0,
       menuName: form.menuName,
       orderNum: form.orderNum,
       menuType: form.menuType,
@@ -216,9 +286,13 @@ defineExpose({ modalApi });
         <!-- 上级菜单 -->
         <Form.Item label="上级菜单" class="col-span-2">
           <TreeSelect
+            :key="parentTreeSelectKey"
             v-model:value="form.parentId"
             :tree-data="menuTreeOptions"
-            tree-default-expand-all
+            :field-names="{ label: 'label', value: 'value', children: 'children' }"
+            show-search
+            tree-node-filter-prop="label"
+            :tree-default-expand-all="true"
             allow-clear
             placeholder="选择上级菜单"
             class="w-full"

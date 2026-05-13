@@ -1,10 +1,10 @@
 <template>
   <LowcodePage
     ref="lowcodePageRef"
-    table-code="inv_purchase_order"
+    table-code="io_purchase_order"
     page-title="采购订单"
     page-desc="查询和管理采购订单信息"
-    crud-prefix="/api/wms/crud/inv_purchase_order"
+    crud-prefix="/api/wms/crud/io_purchase_order"
     @form-success="handleFormSuccess"
   />
 </template>

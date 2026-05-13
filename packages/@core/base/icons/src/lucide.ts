@@ -53,6 +53,7 @@ export {
   Pin,
   PinOff,
   Plus,
+  RefreshCw,
   RotateCw,
   Search,
   SearchX,

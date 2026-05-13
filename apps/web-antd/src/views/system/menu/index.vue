@@ -7,8 +7,8 @@
                 <Input v-model:value="queryParams.menuName" placeholder="请输入菜单名称" allow-clear class="w-[220px]" />
             </div>
             <div class="flex items-center gap-2">
-                <span class="search-label">状态</span>
-                <Select v-model:value="queryParams.status" placeholder="菜单状态" allow-clear class="w-[160px]"
+                <span class="search-label">菜单状态</span>
+                <Select v-model:value="queryParams.status" placeholder="请选择" allow-clear class="w-[160px]"
                     :options="statusOptions" />
             </div>
             <Button type="primary" class="btn-search" @click="handleSearch">
@@ -28,7 +28,7 @@
             </Button>
             <Button class="btn-expand" @click="toggleExpandAll">
                 <IconifyIcon icon="mingcute:align-justify-fill" class="mr-1" />
-                展开/折叠
+                {{ expandAll ? '折叠' : '展开' }}
             </Button>
         </div>
         <!-- 菜单表格（树形） -->
@@ -47,6 +47,16 @@
                 <template v-else-if="column.key === 'status'">
                     <Tag :color="record.status === '0' ? 'processing' : 'default'">
                         {{ record.status === '0' ? '正常' : '停用' }}
+                    </Tag>
+                </template>
+                <template v-else-if="column.key === 'visible'">
+                    <Tag :color="(record.visible ?? '0') === '0' ? 'success' : 'default'">
+                        {{ (record.visible ?? '0') === '0' ? '显示' : '隐藏' }}
+                    </Tag>
+                </template>
+                <template v-else-if="column.key === 'isFrame'">
+                    <Tag :color="(record.isFrame ?? '1') === '0' ? 'orange' : 'default'">
+                        {{ (record.isFrame ?? '1') === '0' ? '是' : '否' }}
                     </Tag>
                 </template>
                 <template v-else-if="column.key === 'action'">
@@ -104,8 +114,10 @@ const columns = [
     { title: '排序', dataIndex: 'orderNum', key: 'orderNum', width: 80, align: 'center' as const },
     { title: '权限标识', dataIndex: 'perms', key: 'perms', width: 200 },
     { title: '组件路径', dataIndex: 'component', key: 'component', width: 260 },
-    { title: '状态', dataIndex: 'status', key: 'status', width: 100, align: 'center' as const },
-    { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
+    { title: '主键id', dataIndex: 'menuId', key: 'menuId', width: 96, align: 'center' as const },
+    { title: '菜单状态', dataIndex: 'status', key: 'status', width: 100, align: 'center' as const },
+    { title: '显示状态', dataIndex: 'visible', key: 'visible', width: 100, align: 'center' as const },
+    { title: '是否外链', dataIndex: 'isFrame', key: 'isFrame', width: 100, align: 'center' as const },
     { title: '操作', key: 'action', width: 160, align: 'center' as const },
 ];
 

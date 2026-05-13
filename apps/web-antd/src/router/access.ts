@@ -72,6 +72,29 @@ function normalizeMenuTreeForRouter(nodes: unknown): any[] {
     });
 }
 
+/**
+ * 若依后端在路由上使用 `hidden`（由 sys_menu.visible 推导），Vben 侧边栏只认 `meta.hideInMenu`。
+ * 将二者对齐，否则菜单管理里设为「隐藏」后侧边栏仍会显示。
+ */
+function applyBackendHiddenToHideInMenu(routeList: unknown): any[] {
+  if (!Array.isArray(routeList)) return [];
+  return routeList.map((raw) => {
+    const route = { ...(raw as Record<string, unknown>) };
+    const h = route.hidden;
+    const isHidden =
+      h === true || h === 'true' || h === 1 || h === '1';
+    if (isHidden) {
+      const meta = (route.meta as Record<string, unknown> | undefined) ?? {};
+      route.meta = { ...meta, hideInMenu: true };
+    }
+    const children = route.children;
+    if (Array.isArray(children) && children.length > 0) {
+      route.children = applyBackendHiddenToHideInMenu(children);
+    }
+    return route;
+  });
+}
+
 function normalizePath(path: string): string {
   if (!path) return '/';
   const withSlash = path.startsWith('/') ? path : `/${path}`;
@@ -96,6 +119,13 @@ function shouldForceKeepAlive(
 
   if (path === '/sys' || path.startsWith('/sys/')) return true;
   if (path === '/system' || path.startsWith('/system/')) return true;
+  if (
+    path.includes('/qc/evaluate')
+    || path.includes('/qc/in-stock-care')
+    || path.includes('/qc/standard')
+  ) {
+    return true;
+  }
 
   if (
     [
@@ -107,6 +137,7 @@ function shouldForceKeepAlive(
       '/log',
       '/log/oper',
       '/log/login',
+      '/log/sync-log',
       '/lowcode',
       '/lowcode/table',
       '/lowcode/column',
@@ -200,7 +231,9 @@ async function generateAccess(options: GenerateAccessOptions) {
           duration: 1.5,
         });
 
-        let routes = normalizeMenuTreeForRouter(await getAllMenusApi());
+        let routes = applyBackendHiddenToHideInMenu(
+          normalizeMenuTreeForRouter(await getAllMenusApi()),
+        );
         console.log('[Router] Raw routes from API:', routes?.length || 0);
 
         const mapComponent = (component: any) => {
@@ -299,7 +332,9 @@ async function generateAccess(options: GenerateAccessOptions) {
         const rawRoutes = accessStore.getCachedMenuRoutes?.() || [];
         if (!rawRoutes.length && routes.length) {
           const rawFromApi = fixRouteNameConflictsForVueRouter(
-            normalizeMenuTreeForRouter(await getAllMenusApi()),
+            applyBackendHiddenToHideInMenu(
+              normalizeMenuTreeForRouter(await getAllMenusApi()),
+            ),
           );
           accessStore.setCachedMenuRoutes?.(rawFromApi);
         }

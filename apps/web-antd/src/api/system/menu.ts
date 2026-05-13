@@ -34,6 +34,17 @@ async function getMenuList(params?: Record<string, any>) {
 }
 
 /**
+ * 菜单下拉树（若依 TreeSelect：id / label / children）
+ */
+async function getMenuTreeselect(params?: Record<string, any>) {
+  return requestClient.get<any>('/api/menu/treeselect', {
+    params,
+    // 与拦截器配合：成功时直接返回 R.data（菜单树数组），避免 body 形态漏解析
+    responseReturn: 'data',
+  });
+}
+
+/**
  * 菜单详情（回显）
  * GET /api/menu/:id
  */
@@ -85,7 +96,7 @@ async function getButtonList(parentId: number | string) {
   );
 }
 
-export { getMenuList, getMenuDetail, addMenu, updateMenu, deleteMenu, getButtonList };
+export { getMenuList, getMenuDetail, getMenuTreeselect, addMenu, updateMenu, deleteMenu, getButtonList };
 export const getMenuById = getMenuDetail;
 export const editMenu = updateMenu;
 

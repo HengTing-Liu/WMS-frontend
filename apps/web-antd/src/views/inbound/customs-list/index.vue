@@ -1,10 +1,10 @@
 <template>
   <LowcodePage
     ref="lowcodePageRef"
-    table-code="qc_standard"
-    page-title="质量标准"
-    page-desc="基于低代码配置，查询与维护 qc_standard 表数据"
-    crud-prefix="/api/wms/crud/qc_standard"
+    table-code="inv_customs_list"
+    page-title="鎶ュ叧鍒楄〃"
+    page-desc="鎶ュ叧鐩稿叧鍗曟嵁鍒楄〃"
+    crud-prefix="/api/wms/crud/inv_customs_list"
     @form-success="handleFormSuccess"
   />
 </template>

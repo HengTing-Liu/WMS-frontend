@@ -24,6 +24,18 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/inbound/purchase-order/index.vue'),
       },
       {
+        meta: { title: '进口待处理' },
+        name: 'InboundImportPending',
+        path: 'import-pending',
+        component: () => import('#/views/inbound/import-pending/index.vue'),
+      },
+      {
+        meta: { title: '报关列表' },
+        name: 'InboundCustomsList',
+        path: 'customs-list',
+        component: () => import('#/views/inbound/customs-list/index.vue'),
+      },
+      {
         meta: { title: '采购入库' },
         name: 'InboundPurchase',
         path: 'purchase',

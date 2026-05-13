@@ -1,34 +1,23 @@
 <template>
-  <Page auto-content-height>
-    <div class="page-content">
-      <div class="toolbar-tools">
-        <Button v-access:code="'wms:qc:evaluate:query'" type="primary" class="mr-2" @click="handleQuery">
-          <IconifyIcon icon="material-symbols:search" class="size-5" /> 查询
-        </Button>
-        <Button v-access:code="'wms:qc:evaluate:add'" type="primary" class="mr-2" @click="handleAdd">
-          <IconifyIcon icon="material-symbols:add" class="size-5" /> 新增
-        </Button>
-        <Button v-access:code="'wms:qc:evaluate:export'" @click="handleExport">
-          <IconifyIcon icon="material-symbols:download" class="size-5" /> 导出
-        </Button>
-      </div>
-    </div>
-  </Page>`r`n</template>`r`n`r`n<script setup lang="ts">
-import { Page } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
-import { Button } from 'ant-design-vue';
+  <LowcodePage
+    ref="lowcodePageRef"
+    table-code="qc_record"
+    page-title="质量评价"
+    page-desc="质检记录（qc_record）"
+    crud-prefix="/api/wms/crud/qc_record"
+    permission-prefix="wms:qc:evaluate"
+    @form-success="handleFormSuccess"
+  />
+</template>
 
+<script setup lang="ts">
+import { ref } from 'vue';
 
-function handleQuery() {
-  console.log('查询质量评价');
-}
+import LowcodePage from '#/lowcode/LowcodePage.vue';
 
-function handleAdd() {
-  console.log('新增质量评价');
-}
+const lowcodePageRef = ref<InstanceType<typeof LowcodePage> | null>(null);
 
-function handleExport() {
-  console.log('导出质量评价');
+function handleFormSuccess() {
+  lowcodePageRef.value?.reload();
 }
 </script>
-

@@ -91,6 +91,24 @@ const buttonNameToSuffix: Record<string, string> = {
   导入: 'import',
 };
 
+/** 与后端一致：同父下同名且同权限串只保留一条（最小 menuId） */
+function dedupeButtonRows(items: MenuItem[]): MenuItem[] {
+  const byId = new Map<number, MenuItem>();
+  for (const row of items) {
+    const id = row.menuId;
+    if (id != null && !byId.has(id)) byId.set(id, row);
+  }
+  const sortedById = [...byId.values()].sort((a, b) => (a.menuId ?? 0) - (b.menuId ?? 0));
+  const logical = new Map<string, MenuItem>();
+  for (const row of sortedById) {
+    const key = `${row.menuName ?? ''}\0${row.perms ?? ''}`;
+    if (!logical.has(key)) logical.set(key, row);
+  }
+  return [...logical.values()].sort(
+    (a, b) => (a.orderNum ?? 0) - (b.orderNum ?? 0) || (a.menuId ?? 0) - (b.menuId ?? 0),
+  );
+}
+
 function getPermPrefix(perms?: string) {
   if (!perms) return '';
   return perms.split(':').slice(0, 2).join(':');
@@ -121,7 +139,7 @@ async function loadButtons() {
           : Array.isArray(res)
             ? res
             : [];
-    buttonList.value = list ?? [];
+    buttonList.value = dedupeButtonRows(list ?? []);
   } catch (e: any) {
     message.error(e?.message ?? '加载失败');
   } finally {

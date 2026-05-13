@@ -2,7 +2,7 @@
 import { computed, useSlots } from 'vue';
 
 import { useRefresh } from '@vben/hooks';
-import { RotateCw } from '@vben/icons';
+import { RefreshCw } from '@vben/icons';
 import { preferences, usePreferences } from '@vben/preferences';
 import { useAccessStore } from '@vben/stores';
 
@@ -130,7 +130,7 @@ function clearPreferencesAndLogout() {
           class="header-icon-btn my-0 mr-1"
           @click="refresh"
         >
-          <RotateCw class="header-icon-icon size-4" />
+          <RefreshCw class="header-icon-icon size-4" />
         </VbenIconButton>
       </template>
     </slot>

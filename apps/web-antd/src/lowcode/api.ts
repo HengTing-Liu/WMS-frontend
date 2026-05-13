@@ -152,7 +152,7 @@ export async function fetchPageMeta(tableCode: string) {
 // ==================== 闁氨鏁?CRUD 閹恒儱褰?====================
 
 /** 列表数据 CRUD 接口前缀推断 */
-export function inferCrudPrefix(tableCode: string): string {
+export function inferCrudPrefix(tableCode: string, _tableMeta?: TableMeta | null): string {
   const entityMap: Record<string, string> = {
     // WMS基础表
     WMS0010: '/api/base/warehouse',
@@ -167,12 +167,20 @@ export function inferCrudPrefix(tableCode: string): string {
     inv_material: '/api/wms/crud/inv_material',
     inv_inventory: '/api/wms/crud/inv_inventory',
     inv_inventory_change: '/api/wms/crud/inv_inventory_change',
-    inv_purchase_order: '/api/wms/crud/inv_purchase_order',
     io_inventory: '/api/wms/crud/io_inventory',
+    inv_import_pending: '/api/wms/crud/inv_import_pending',
+    inv_customs_list: '/api/wms/crud/inv_customs_list',
+    inv_adj_location: '/api/wms/crud/inv_adj_location',
+    inv_stocktake: '/api/wms/crud/inv_stocktake',
+    sync_log: '/api/wms/crud/sync_log',
+    qc_record: '/api/wms/crud/qc_record',
     // 系统表（树形）
     sys_dept: '/api/wms/crud/sys_dept',
   };
   if (entityMap[tableCode]) return entityMap[tableCode];
+  if (tableCode.startsWith('io_purchase_order')) {
+    return `/api/wms/crud/${tableCode}`;
+  }
   // 系统表兜底
   if (tableCode.startsWith('sys_')) {
     return `/api/wms/crud/${tableCode}`;
