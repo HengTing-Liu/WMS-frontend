@@ -24,7 +24,7 @@ const tableCode = computed(() => {
 
 /** 从 URL query 读取 pageType，未配置时默认 default */
 const pageType = computed(() => {
-  const fromQuery = route.query.pageType as string | undefined;
+  const fromQuery = (route.query.pageType ?? route.query.pagetype) as string | undefined;
   const fromMeta = route.meta.pageType as string | undefined;
   return fromQuery || fromMeta || 'default';
 });

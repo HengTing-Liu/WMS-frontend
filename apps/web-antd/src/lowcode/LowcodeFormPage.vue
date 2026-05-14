@@ -158,7 +158,7 @@ const allFields = ref<ColumnMeta[]>([]);
 const currentTableMeta = ref<TableMeta | null>(null);
 
 const tableCode = computed(() => String(route.params.tableCode ?? ''));
-const pageType = computed(() => String(route.query.pageType ?? route.params.pageType ?? 'default'));
+const pageType = computed(() => String(route.query.pageType ?? route.query.pagetype ?? route.params.pageType ?? 'default'));
 const mode = computed(() => String(route.params.mode ?? 'create'));
 const recordId = computed(() => route.params.id as string | undefined);
 const crudPrefix = computed(() => {

@@ -301,7 +301,7 @@ const route = useRoute();
 
 /** 实际使用的 pageType：props 优先级最高，其次从 URL query 读取，最后默认 default */
 const effectivePageType = computed(() =>
-  props.pageType ?? (route.query.pageType as string) ?? 'default'
+  props.pageType ?? (route.query.pageType as string) ?? (route.query.pagetype as string) ?? 'default'
 );
 
 // 表格滚动高度（固定表头）
