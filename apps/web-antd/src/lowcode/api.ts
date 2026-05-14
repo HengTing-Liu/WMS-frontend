@@ -178,6 +178,7 @@ export function inferCrudPrefix(tableCode: string, _tableMeta?: TableMeta | null
     inv_customs_list: '/api/wms/crud/inv_customs_list',
     inv_adj_location: '/api/wms/crud/inv_adj_location',
     inv_stocktake: '/api/wms/crud/inv_stocktake',
+    sys_table_meta: '/api/wms/crud/sys_table_meta',
     sync_log: '/api/wms/crud/sync_log',
     qc_record: '/api/wms/crud/qc_record',
     // 系统表（树形）

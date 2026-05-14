@@ -1139,6 +1139,8 @@ async function loadDetail(id: number) {
     loading.value = true;
     const detail = await getColumnMetaById(id);
     if (!detail) return;
+    // 先清空再写入，避免 Object.assign 残留上一条字段的值（与列表/详情不一致）
+    resetForm();
     Object.assign(formData, detail, {
       tableCode: props.tableCode || detail.tableCode,
     });

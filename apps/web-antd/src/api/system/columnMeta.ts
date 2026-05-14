@@ -113,57 +113,80 @@ function normalizeColSpan(item: Record<string, unknown>): number | undefined {
   return Math.min(24, Math.max(1, r));
 }
 
+/** 0/1：兼容接口 Boolean / 数字 / 字符串 */
+function toIntFlag(val: unknown, defaultVal: number): number {
+  if (val === true) return 1;
+  if (val === false) return 0;
+  if (val === null || val === undefined || val === '') return defaultVal;
+  const n = Number(val);
+  if (!Number.isFinite(n)) return defaultVal;
+  return n !== 0 ? 1 : 0;
+}
+
 function normalizeColumn(item: any): ColumnMetaApi.ColumnMeta {
+  const field = item.field ?? item.columnCode ?? '';
   return {
     ...item,
-    field: item.field ?? item.columnCode ?? '',
-    title: item.title ?? item.columnName ?? '',
+    field,
+    title: item.title ?? item.label ?? '',
+    columnName: item.columnName ?? item.column_name ?? '',
     formType: item.formType ?? item.fieldType ?? 'text',
-    required: Number(item.required ?? item.isRequired ?? 0),
-    showInList: Number(item.showInList ?? item.isShowInList ?? 1),
-    showInForm: Number(item.showInForm ?? item.isShowInForm ?? 1),
-    showInExport: Number(item.showInExport ?? item.isShowInExport ?? 0),
-    showInImport: Number(item.showInImport ?? item.isShowInImport ?? 1),
-    searchable: Number(item.searchable ?? item.isSearchable ?? 0),
-    sortable: Number(item.sortable ?? item.isSortable ?? 0),
-    isUnique: Number(item.isUnique ?? item.unique ?? 0),
+    required: toIntFlag(item.required ?? item.isRequired, 0),
+    showInList: toIntFlag(
+      item.showInList ??
+        item.isShowInList ??
+        (item.isVisible === true ? 1 : item.isVisible === false ? 0 : undefined),
+      1,
+    ),
+    showInForm: toIntFlag(item.showInForm ?? item.isShowInForm, 1),
+    showInExport: toIntFlag(item.showInExport ?? item.isShowInExport, 0),
+    showInImport: toIntFlag(item.showInImport ?? item.isShowInImport, 1),
+    searchable: toIntFlag(item.searchable ?? item.isSearchable, 0),
+    sortable: toIntFlag(item.sortable ?? item.isSortable, 0),
+    isUnique: toIntFlag(item.isUnique ?? item.unique, 0),
     width: Number(item.width ?? item.listWidth ?? 120),
     colSpan: normalizeColSpan(item),
-    readonly: Number(item.readonly ?? item.isReadonly ?? 0),
-    editReadonly: Number(item.editReadonly ?? item.isEditReadonly ?? 0),
+    readonly: toIntFlag(item.readonly ?? item.isReadonly, 0),
+    editReadonly: toIntFlag(item.editReadonly ?? item.isEditReadonly, 0),
     rulesJson: item.rulesJson ?? item.validRules ?? '',
-    status: Number(item.status ?? item.isEnabled ?? 1),
+    status: toIntFlag(item.status ?? item.isEnabled, 1),
   };
 }
 
 function normalizeSchemaColumn(item: any): ColumnMetaApi.ColumnMeta {
   return {
-    id: item.id,
+    id: item.id ?? item.columnId,
+    tableMetaId: item.tableMetaId,
     tableCode: item.tableCode ?? '',
+    columnName: item.columnName ?? item.column_name ?? '',
     field: item.field ?? item.code ?? '',
     title: item.title ?? item.label ?? item.code ?? '',
     dataType: item.dataType ?? item.type ?? 'string',
     formType: item.formType ?? 'text',
     dictType: item.dictType ?? '',
     linkageJson: item.linkageJson ?? '',
-    required: Number(item.required ?? item.isRequired ?? 0),
-    // isUnique 在下面定义
-    showInList: Number(item.showInList ?? item.isShowInList ?? item.isVisible ?? 1),
-    showInForm: Number(item.showInForm ?? item.isShowInForm ?? 1),
-    showInExport: Number(item.showInExport ?? 0),
-    showInImport: Number(item.showInImport ?? item.isShowInImport ?? 1),
-    searchable: Number(item.searchable ?? item.isSearchable ?? 0),
-    sortable: Number(item.sortable ?? item.isSortable ?? 0),
-    isUnique: Number(item.isUnique ?? item.unique ?? 0),
+    required: toIntFlag(item.required ?? item.isRequired, 0),
+    showInList: toIntFlag(
+      item.showInList ??
+        item.isShowInList ??
+        (item.isVisible === true ? 1 : item.isVisible === false ? 0 : undefined),
+      1,
+    ),
+    showInForm: toIntFlag(item.showInForm ?? item.isShowInForm, 1),
+    showInExport: toIntFlag(item.showInExport ?? item.isShowInExport, 0),
+    showInImport: toIntFlag(item.showInImport ?? item.isShowInImport, 1),
+    searchable: toIntFlag(item.searchable ?? item.isSearchable, 0),
+    sortable: toIntFlag(item.sortable ?? item.isSortable, 0),
+    isUnique: toIntFlag(item.isUnique ?? item.unique, 0),
     width: Number(item.width ?? 120),
     colSpan: normalizeColSpan(item),
-    readonly: Number(item.readonly ?? item.isReadonly ?? 0),
-    editReadonly: Number(item.editReadonly ?? item.isEditReadonly ?? 0),
+    readonly: toIntFlag(item.readonly ?? item.isReadonly, 0),
+    editReadonly: toIntFlag(item.editReadonly ?? item.isEditReadonly, 0),
     defaultValue: item.defaultValue ?? '',
     placeholder: item.placeholder ?? '',
     rulesJson: item.rulesJson ?? '',
     sortOrder: Number(item.sortOrder ?? 0),
-    status: Number(item.status ?? 1),
+    status: toIntFlag(item.status ?? item.isEnabled, 1),
     remarks: item.remarks ?? '',
     componentProps: item.componentProps ?? '',
     dataSource: item.dataSource ?? '',
@@ -177,6 +200,7 @@ function normalizeSchemaColumn(item: any): ColumnMetaApi.ColumnMeta {
     sectionOpen: Number(item.sectionOpen ?? 1),
     i18nKey: item.i18nKey ?? '',
     visibleCondition: item.visibleCondition ?? '',
+    refTableCode: item.refTableCode ?? '',
     refMatchField: item.refMatchField ?? '',
     refTargetField: item.refTargetField ?? '',
     refLocalField: item.refLocalField ?? '',
@@ -272,7 +296,11 @@ export async function addColumnMeta(data: Partial<ColumnMetaApi.ColumnMeta>) {
 }
 
 export async function updateColumnMeta(data: Partial<ColumnMetaApi.ColumnMeta>) {
-  return requestClient.put(`/api/system/meta/column/${data.id}`, data, {
+  const id = data.id;
+  if (id === undefined || id === null || id === '' || Number.isNaN(Number(id))) {
+    return Promise.reject(new Error('列元数据缺少 id，请刷新页面后重试'));
+  }
+  return requestClient.put(`/api/system/meta/column/${id}`, data, {
     responseReturn: 'body',
   });
 }
