@@ -2,8 +2,8 @@
   <LowcodePage
     ref="lowcodePageRef"
     table-code="qc_record"
-    page-title="ÖÊÁ¿ÆÀ¼Û"
-    page-desc="ÖÊ¼ì¼ÇÂ¼£¨qc_record£©"
+    page-title="ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"
+    page-desc="ï¿½Ê¼ï¿½ï¿½Â¼ï¿½ï¿½qc_recordï¿½ï¿½"
     crud-prefix="/api/wms/crud/qc_record"
     permission-prefix="wms:qc:evaluate"
     @form-success="handleFormSuccess"

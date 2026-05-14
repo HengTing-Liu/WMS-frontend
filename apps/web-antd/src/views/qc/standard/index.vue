@@ -2,8 +2,8 @@
   <LowcodePage
     ref="lowcodePageRef"
     table-code="qc_standard"
-    page-title="ÖÊÁ¿±ê×¼"
-    page-desc="»ùÓÚµÍ´úÂëÅäÖÃ£¬²éÑ¯ÓëÎ¬»¤ qc_standard ±íÊý¾Ý"
+    page-title="ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¼"
+    page-desc="ï¿½ï¿½ï¿½ÚµÍ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½Ñ¯ï¿½ï¿½Î¬ï¿½ï¿½ qc_standard ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"
     crud-prefix="/api/wms/crud/qc_standard"
     @form-success="handleFormSuccess"
   />
