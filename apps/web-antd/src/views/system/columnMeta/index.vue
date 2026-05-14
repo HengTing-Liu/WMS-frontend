@@ -315,6 +315,7 @@ import {
   getColumnMetaList,
   deleteColumnMeta,
   updateColumnMeta,
+  updateColumnMetaSelective,
   batchUpdateSortOrder,
   getTableMetaListForSelect,
   type ColumnMetaApi,
@@ -466,8 +467,8 @@ async function handleBatchToggle(field: SwitchField, checked: boolean) {
   try {
     const results = await Promise.allSettled(
       tableData.value.map((record) =>
-        updateColumnMeta({
-          ...record,
+        updateColumnMetaSelective({
+          id: record.id,
           [recordField]: checked ? 1 : 0,
         }),
       ),
@@ -650,8 +651,8 @@ function handleModalSuccess() {
 // ========== 状态切换 ==========
 async function handleToggleStatus(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
-    await updateColumnMeta({
-      ...record,
+    await updateColumnMetaSelective({
+      id: record.id,
       status: checked ? 1 : 0,
     });
     message.success(checked ? '已启用' : '已停用');
@@ -664,8 +665,8 @@ async function handleToggleStatus(record: ColumnMetaApi.ColumnMeta, checked: boo
 
 async function handleToggleRequired(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
-    await updateColumnMeta({
-      ...record,
+    await updateColumnMetaSelective({
+      id: record.id,
       required: checked ? 1 : 0,
     });
     message.success(checked ? '已设为必填' : '已取消必填');
@@ -678,8 +679,8 @@ async function handleToggleRequired(record: ColumnMetaApi.ColumnMeta, checked: b
 
 async function handleToggleSearchable(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
-    await updateColumnMeta({
-      ...record,
+    await updateColumnMetaSelective({
+      id: record.id,
       searchable: checked ? 1 : 0,
     });
     message.success(checked ? '已设为可搜索' : '已取消可搜索');
@@ -692,8 +693,8 @@ async function handleToggleSearchable(record: ColumnMetaApi.ColumnMeta, checked:
 
 async function handleToggleSortable(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
-    await updateColumnMeta({
-      ...record,
+    await updateColumnMetaSelective({
+      id: record.id,
       sortable: checked ? 1 : 0,
     });
     message.success(checked ? '已设为可排序' : '已取消可排序');
@@ -706,8 +707,8 @@ async function handleToggleSortable(record: ColumnMetaApi.ColumnMeta, checked: b
 
 async function handleToggleUnique(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
-    await updateColumnMeta({
-      ...record,
+    await updateColumnMetaSelective({
+      id: record.id,
       isUnique: checked ? 1 : 0,
     });
     message.success(checked ? '已设为唯一' : '已取消唯一');
@@ -720,8 +721,8 @@ async function handleToggleUnique(record: ColumnMetaApi.ColumnMeta, checked: boo
 
 async function handleToggleReadonly(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
-    await updateColumnMeta({
-      ...record,
+    await updateColumnMetaSelective({
+      id: record.id,
       readonly: checked ? 1 : 0,
     });
     message.success(checked ? '已设为只读' : '已取消只读');
@@ -734,8 +735,8 @@ async function handleToggleReadonly(record: ColumnMetaApi.ColumnMeta, checked: b
 
 async function handleToggleEditReadonly(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
-    await updateColumnMeta({
-      ...record,
+    await updateColumnMetaSelective({
+      id: record.id,
       editReadonly: checked ? 1 : 0,
     });
     message.success(checked ? '已设为编辑时只读' : '已取消编辑时只读');
@@ -748,8 +749,8 @@ async function handleToggleEditReadonly(record: ColumnMetaApi.ColumnMeta, checke
 
 async function handleToggleShowInList(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
-    await updateColumnMeta({
-      ...record,
+    await updateColumnMetaSelective({
+      id: record.id,
       showInList: checked ? 1 : 0,
     });
     message.success(checked ? '列表显示已开启' : '列表显示已关闭');
@@ -762,8 +763,8 @@ async function handleToggleShowInList(record: ColumnMetaApi.ColumnMeta, checked:
 
 async function handleToggleShowInForm(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
-    await updateColumnMeta({
-      ...record,
+    await updateColumnMetaSelective({
+      id: record.id,
       showInForm: checked ? 1 : 0,
     });
     message.success(checked ? '表单显示已开启' : '表单显示已关闭');
@@ -776,8 +777,8 @@ async function handleToggleShowInForm(record: ColumnMetaApi.ColumnMeta, checked:
 
 async function handleToggleShowInExport(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
-    await updateColumnMeta({
-      ...record,
+    await updateColumnMetaSelective({
+      id: record.id,
       showInExport: checked ? 1 : 0,
     });
     message.success(checked ? '导出显示已开启' : '导出显示已关闭');
@@ -790,8 +791,8 @@ async function handleToggleShowInExport(record: ColumnMetaApi.ColumnMeta, checke
 
 async function handleToggleShowInImport(record: ColumnMetaApi.ColumnMeta, checked: boolean) {
   try {
-    await updateColumnMeta({
-      ...record,
+    await updateColumnMetaSelective({
+      id: record.id,
       showInImport: checked ? 1 : 0,
     });
     message.success(checked ? '导入显示已开启' : '导入显示已关闭');

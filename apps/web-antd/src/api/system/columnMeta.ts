@@ -145,9 +145,9 @@ function normalizeSchemaColumn(item: any): ColumnMetaApi.ColumnMeta {
     dataType: item.dataType ?? item.type ?? 'string',
     formType: item.formType ?? 'text',
     dictType: item.dictType ?? '',
-    linkageJson: '',
+    linkageJson: item.linkageJson ?? '',
     required: Number(item.required ?? item.isRequired ?? 0),
-    isUnique: 0,
+    // isUnique 在下面定义
     showInList: Number(item.showInList ?? item.isShowInList ?? item.isVisible ?? 1),
     showInForm: Number(item.showInForm ?? item.isShowInForm ?? 1),
     showInExport: Number(item.showInExport ?? 0),
@@ -164,15 +164,23 @@ function normalizeSchemaColumn(item: any): ColumnMetaApi.ColumnMeta {
     rulesJson: item.rulesJson ?? '',
     sortOrder: Number(item.sortOrder ?? 0),
     status: Number(item.status ?? 1),
-    remarks: '',
+    remarks: item.remarks ?? '',
     componentProps: item.componentProps ?? '',
     dataSource: item.dataSource ?? '',
     apiUrl: item.apiUrl ?? '',
     labelField: item.labelField ?? '',
     valueField: item.valueField ?? '',
     sectionKey: item.sectionKey ?? '',
+    sectionTitle: item.sectionTitle ?? '',
+    sectionOrder: Number(item.sectionOrder ?? 0),
+    sectionType: item.sectionType ?? 'card',
+    sectionOpen: Number(item.sectionOpen ?? 1),
     i18nKey: item.i18nKey ?? '',
     visibleCondition: item.visibleCondition ?? '',
+    refMatchField: item.refMatchField ?? '',
+    refTargetField: item.refTargetField ?? '',
+    refLocalField: item.refLocalField ?? '',
+    refSeparator: item.refSeparator ?? '',
     serialNumberRule: item.serialNumberRule ?? '',
   };
 }
@@ -183,7 +191,7 @@ export async function getColumnMetaList(params?: ColumnMetaQuery) {
 
   if (tableId) {
     const res = await requestClient.get<any>(
-      `/api/system/meta/column/schemaByMetaId/${tableId}`,
+      `/api/system/meta/column/listByMetaId/${tableId}`,
     );
     const rows = Array.isArray(res)
       ? res
@@ -196,7 +204,7 @@ export async function getColumnMetaList(params?: ColumnMetaQuery) {
             : [];
     return {
       total: rows.length,
-      rows: rows.map((item) => normalizeSchemaColumn(item)),
+      rows: rows.map((item) => normalizeColumn(item)),
     };
   }
 
@@ -265,6 +273,15 @@ export async function addColumnMeta(data: Partial<ColumnMetaApi.ColumnMeta>) {
 
 export async function updateColumnMeta(data: Partial<ColumnMetaApi.ColumnMeta>) {
   return requestClient.put(`/api/system/meta/column/${data.id}`, data, {
+    responseReturn: 'body',
+  });
+}
+
+/**
+ * 选择性更新字段元数据（前端 switch 切换等局部更新，只更新非 null 字段）
+ */
+export async function updateColumnMetaSelective(data: Partial<ColumnMetaApi.ColumnMeta>) {
+  return requestClient.patch(`/api/system/meta/column/${data.id}`, data, {
     responseReturn: 'body',
   });
 }
