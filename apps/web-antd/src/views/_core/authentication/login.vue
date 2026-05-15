@@ -2,12 +2,13 @@
 import type { VbenFormSchema } from '@vben/common-ui';
 import type { BasicOption } from '@vben/types';
 
-import { computed, markRaw } from 'vue';
+import { computed, h, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { AuthenticationLogin, SliderCaptcha, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 
+import { getCaptchaApi } from '#/api';
 import { useAuthStore } from '#/store';
 
 defineOptions({ name: 'Login' });
@@ -57,6 +58,26 @@ const loginKey = computed(() => {
     password: route.query.password ?? '',
     fromChangePwd: route.query.fromChangePwd ?? '',
   });
+});
+
+const captchaImg = ref('');
+const captchaUuid = ref('');
+
+async function getCaptcha() {
+  try {
+    const res = await getCaptchaApi();
+    const data = res.data || res;
+    if (data?.uuid && data?.img) {
+      captchaUuid.value = data.uuid;
+      captchaImg.value = data.img;
+    }
+  } catch (error) {
+    console.error('获取验证码失败', error);
+  }
+}
+
+onMounted(() => {
+  getCaptcha();
 });
 
 const formSchema = computed((): VbenFormSchema[] => {
@@ -112,6 +133,26 @@ const formSchema = computed((): VbenFormSchema[] => {
       defaultValue: passwordDefault.value,
 
     },
+    {
+      component: 'VbenInput',
+      componentProps: {
+        placeholder: '请输入验证码',
+        maxlength: 4,
+      },
+      fieldName: 'code',
+      label: '验证码',
+      defaultValue: '',
+      rules: z.string().min(1, { message: '验证码不能为空' }),
+      suffix: () =>
+        h('img', {
+          alt: '验证码',
+          class:
+            'ml-2 h-[36px] w-[111px] cursor-pointer rounded border border-gray-300',
+          onClick: getCaptcha,
+          src: captchaImg.value || '',
+          style: 'object-fit: cover;',
+        }),
+    },
     // {
     //   component: markRaw(SliderCaptcha),
     //   fieldName: 'captcha',
@@ -121,6 +162,18 @@ const formSchema = computed((): VbenFormSchema[] => {
     // },
   ];
 });
+
+async function handleLogin(values: Record<string, any>) {
+  try {
+    await authStore.authLogin({
+      ...values,
+      uuid: captchaUuid.value,
+    });
+  } catch {
+    // 登录失败时刷新验证码
+    getCaptcha();
+  }
+}
 </script>
 
 <template>
@@ -128,7 +181,7 @@ const formSchema = computed((): VbenFormSchema[] => {
     :key="loginKey"
     :form-schema="formSchema"
     :loading="authStore.loginLoading"
-    @submit="authStore.authLogin"
+    @submit="handleLogin"
     :showCodeLogin="false"
     :showForgetPassword="false"
     :showRegister="false"

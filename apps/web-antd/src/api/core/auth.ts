@@ -1,11 +1,12 @@
-import { baseRequestClient, requestClient } from '#/api/request';
-import { useAccessStore } from '@vben/stores';
+import { requestClient } from '#/api/request';
 
 export namespace AuthApi {
   /** 登录接口参数 */
   export interface LoginParams {
     password?: string;
     username?: string;
+    code?: string;
+    uuid?: string;
   }
 
   /** 登录接口返回值 */
@@ -18,6 +19,14 @@ export namespace AuthApi {
     data: string;
     status: number;
   }
+}
+
+/**
+ * 获取验证码
+ */
+export async function getCaptchaApi() {
+  const result = await requestClient.get<any>('/api/captcha/image');
+  return result;
 }
 
 /**
