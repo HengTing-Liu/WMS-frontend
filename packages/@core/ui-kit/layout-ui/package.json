@@ -12,7 +12,8 @@
   "type": "module",
   "scripts": {
     "build": "pnpm unbuild",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "stub": "pnpm unbuild --stub"
   },
   "files": [
     "dist"
