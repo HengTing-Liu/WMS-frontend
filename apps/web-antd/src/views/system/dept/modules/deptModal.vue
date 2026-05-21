@@ -4,7 +4,7 @@ import { useVbenModal } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 import { useVbenForm } from '#/adapter/form';
 import { addDept, editDept } from '#/api';
-import { getDeptTree } from '#/api/system/dept';
+import { fetchTreeAll } from '#/lowcode/api';
 import type { DeptApi, DeptSaveBody } from '#/api';
 
 type DeptTreeNode = DeptApi.DeptTreeNode;
@@ -18,10 +18,10 @@ const deptTreeOptions = ref<DeptTreeNode[]>([]);
 
 const isEdit = computed(() => !!data.value?.record);
 
-/** 转为 TreeSelect 所需格式：兼容若依 treeselect {id,label} 与低代码 {deptId,deptName} */
+/** 转为 TreeSelect 所需格式：低代码 CRUD 返回 {deptId,deptName,children} */
 function toTreeSelectData(nodes: any[]): { title: string; value: number; children?: any[] }[] {
   return nodes.map((node: any) => ({
-    title: node.deptName ?? node.label ?? '',
+    title: node.deptName ?? node.title ?? '',
     value: node.deptId ?? node.id ?? 0,
     children: node.children?.length ? toTreeSelectData(node.children) : undefined,
   }));
@@ -50,14 +50,10 @@ const [Modal, modalApi] = useVbenModal({
     title.value = isEdit.value ? '修改部门' : '新增部门';
     const record = data.value?.record;
 
-    // 自获取部门树，用于上级部门下拉
-    getDeptTree()
-      .then((treeRes: any) => {
-        deptTreeOptions.value = Array.isArray(treeRes)
-          ? treeRes
-          : Array.isArray(treeRes?.data)
-            ? treeRes.data
-            : [];
+    // 自获取部门树，用于上级部门下拉（走低代码 CRUD 接口，数据格式一致且走代理）
+    fetchTreeAll({ tableCode: 'sys_dept', prefix: '/api/wms/crud/sys_dept' })
+      .then((rows: any[]) => {
+        deptTreeOptions.value = Array.isArray(rows) ? rows : [];
       })
       .catch(() => {
         deptTreeOptions.value = [];
