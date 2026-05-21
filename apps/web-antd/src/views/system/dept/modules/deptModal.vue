@@ -18,11 +18,11 @@ const deptTreeOptions = ref<DeptTreeNode[]>([]);
 
 const isEdit = computed(() => !!data.value?.record);
 
-/** 转为 TreeSelect 所需格式：ant-design-vue 默认使用 title / value / children */
-function toTreeSelectData(nodes: DeptTreeNode[]): { title: string; value: number; children?: any[] }[] {
-  return nodes.map((node) => ({
-    title: node.deptName,
-    value: node.deptId,
+/** 转为 TreeSelect 所需格式：兼容若依 treeselect {id,label} 与低代码 {deptId,deptName} */
+function toTreeSelectData(nodes: any[]): { title: string; value: number; children?: any[] }[] {
+  return nodes.map((node: any) => ({
+    title: node.deptName ?? node.label ?? '',
+    value: node.deptId ?? node.id ?? 0,
     children: node.children?.length ? toTreeSelectData(node.children) : undefined,
   }));
 }
@@ -43,22 +43,27 @@ const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
     await formApi.validateAndSubmitForm();
   },
-  async onOpenChange(isOpen: boolean) {
-    if (isOpen) {
-      const payload = modalApi.getData<{ record?: DeptTreeNode; onSuccess?: () => void }>();
-      data.value = payload ?? undefined;
-      title.value = isEdit.value ? '修改部门' : '新增部门';
-      const record = data.value?.record;
+  onOpenChange(isOpen: boolean) {
+    if (!isOpen) return;
+    const payload = modalApi.getData<{ record?: DeptTreeNode; onSuccess?: () => void }>();
+    data.value = payload ?? undefined;
+    title.value = isEdit.value ? '修改部门' : '新增部门';
+    const record = data.value?.record;
 
-      // 自获取部门树，用于上级部门下拉
-      try {
-        const treeRes = await getDeptTree() as any;
-        deptTreeOptions.value = treeRes?.data ?? treeRes ?? [];
-      } catch {
+    // 自获取部门树，用于上级部门下拉
+    getDeptTree()
+      .then((treeRes: any) => {
+        deptTreeOptions.value = Array.isArray(treeRes)
+          ? treeRes
+          : Array.isArray(treeRes?.data)
+            ? treeRes.data
+            : [];
+      })
+      .catch(() => {
         deptTreeOptions.value = [];
-      }
-
-      formApi.resetForm();
+      })
+      .finally(() => {
+        formApi.resetForm();
       if (record) {
         formApi.setValues({
           parentId: record.parentId ?? 0,
@@ -125,7 +130,7 @@ const [Modal, modalApi] = useVbenModal({
           },
         },
       ]);
-    }
+    });
   },
 });
 
