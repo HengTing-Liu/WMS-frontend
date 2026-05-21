@@ -4,22 +4,19 @@ import { useVbenModal } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 import { useVbenForm } from '#/adapter/form';
 import { addDept, editDept } from '#/api';
+import { getDeptTree } from '#/api/system/dept';
 import type { DeptApi, DeptSaveBody } from '#/api';
 
 type DeptTreeNode = DeptApi.DeptTreeNode;
 
 const data = ref<{
-  record?: DeptTreeNode;       // 编辑时的当前部门
-  parent?: DeptTreeNode;       // 行内“新增”时的上级部门
-  addType?: 'top' | 'row';     // 顶部新增 / 行内新增，用于区分上级部门下拉禁用与否
-  deptTreeOptions?: DeptTreeNode[]; // 部门树，弹框内上级部门树形下拉
+  record?: DeptTreeNode;
   onSuccess?: () => void;
 }>();
 const title = ref('');
+const deptTreeOptions = ref<DeptTreeNode[]>([]);
 
 const isEdit = computed(() => !!data.value?.record);
-/** 顶部新增：上级部门为可操作下拉；行内新增/编辑：上级部门为禁用下拉 */
-const isTopLevelAdd = computed(() => data.value?.addType === 'top');
 
 /** 转为 TreeSelect 所需格式：ant-design-vue 默认使用 title / value / children */
 function toTreeSelectData(nodes: DeptTreeNode[]): { title: string; value: number; children?: any[] }[] {
@@ -31,7 +28,7 @@ function toTreeSelectData(nodes: DeptTreeNode[]): { title: string; value: number
 }
 
 /** 上级部门树形下拉数据 */
-const parentDeptTreeData = computed(() => toTreeSelectData(data.value?.deptTreeOptions ?? []));
+const parentDeptTreeData = computed(() => toTreeSelectData(deptTreeOptions.value));
 
 const [Modal, modalApi] = useVbenModal({
   footerClass: 'justify-center',
@@ -46,13 +43,21 @@ const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
     await formApi.validateAndSubmitForm();
   },
-  onOpenChange(isOpen: boolean) {
+  async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const payload = modalApi.getData<{ record?: DeptTreeNode; parent?: DeptTreeNode; addType?: 'top' | 'row'; deptTreeOptions?: DeptTreeNode[]; onSuccess?: () => void }>();
+      const payload = modalApi.getData<{ record?: DeptTreeNode; onSuccess?: () => void }>();
       data.value = payload ?? undefined;
       title.value = isEdit.value ? '修改部门' : '新增部门';
       const record = data.value?.record;
-      const parent = data.value?.parent;
+
+      // 自获取部门树，用于上级部门下拉
+      try {
+        const treeRes = await getDeptTree() as any;
+        deptTreeOptions.value = treeRes?.data ?? treeRes ?? [];
+      } catch {
+        deptTreeOptions.value = [];
+      }
+
       formApi.resetForm();
       if (record) {
         formApi.setValues({
@@ -66,29 +71,25 @@ const [Modal, modalApi] = useVbenModal({
           status: record.status ?? '0',
           remarks: record.remarks ?? '',
         });
-      } else if (parent) {
-        formApi.setValues({ parentId: parent.deptId, orderNum: 0, status: '0' });
       } else {
         formApi.setValues({ parentId: undefined, orderNum: 0, status: '0' });
       }
-      // 统一为“上级部门”树形可搜索下拉：顶部新增可操作，行内新增/编辑禁用
-      const parentField = {
-        component: 'TreeSelect' as const,
-        fieldName: 'parentId',
-        label: '上级部门',
-        componentProps: {
-          treeData: parentDeptTreeData.value,
-          placeholder: isTopLevelAdd.value ? '请选择上级部门' : '请选择',
-          class: 'w-full',
-          disabled: !isTopLevelAdd.value,
-          showSearch: true,
-          treeNodeFilterProp: 'title',
-          allowClear: true,
-          treeDefaultExpandAll: true,
-        },
-      };
+
       formApi.updateSchema?.([
-        parentField,
+        {
+          component: 'TreeSelect' as const,
+          fieldName: 'parentId',
+          label: '上级部门',
+          componentProps: {
+            treeData: parentDeptTreeData.value,
+            placeholder: '请选择上级部门',
+            class: 'w-full',
+            showSearch: true,
+            treeNodeFilterProp: 'title',
+            allowClear: true,
+            treeDefaultExpandAll: true,
+          },
+        },
         {
           component: 'Input',
           fieldName: 'deptName',
@@ -123,13 +124,6 @@ const [Modal, modalApi] = useVbenModal({
             placeholder: '请选择',
           },
         },
-        // {
-        //   component: 'Textarea',
-        //   fieldName: 'remark',
-        //   label: '备注',
-        //   formItemClass: 'col-span-2',
-        //   componentProps: { placeholder: '请输入备注', rows: 3 },
-        // },
       ]);
     }
   },
@@ -140,9 +134,7 @@ const onSubmit = async (values: Record<string, any>) => {
   try {
     const parentId = isEdit.value
       ? (data.value?.record?.parentId ?? 0)
-      : data.value?.parent
-        ? data.value.parent.deptId
-        : Number(values.parentId) ?? 0;
+      : Number(values.parentId) ?? 0;
     const body: DeptSaveBody = {
       parentId: Number(parentId) || 0,
       deptName: values.deptName,
@@ -172,6 +164,8 @@ const onSubmit = async (values: Record<string, any>) => {
     modalApi.unlock();
   }
 };
+
+defineExpose({ modalApi });
 
 const [Form, formApi] = useVbenForm({
   handleSubmit: onSubmit,
@@ -226,13 +220,6 @@ const [Form, formApi] = useVbenForm({
         placeholder: '请选择',
       },
     },
-    // {
-    //   component: 'Textarea',
-    //   fieldName: 'remark',
-    //   label: '备注',
-    //   formItemClass: 'col-span-2',
-    //   componentProps: { placeholder: '请输入备注', rows: 3 },
-    // },
   ],
 });
 </script>

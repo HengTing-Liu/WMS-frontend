@@ -1,78 +1,79 @@
 <template>
-  <LowcodeTreePage
-    ref="treePageRef"
+  <LowcodePage
+    ref="lowcodePageRef"
     table-code="sys_dept"
     page-title="部门管理"
-    :hide-tree-expand-icon="true"
-    :crud-prefix="'/api/wms/crud/sys_dept'"
-    :tree-config="{
-      idField: 'deptId',
-      parentIdField: 'parentId',
-      rootValue: 0,
-      titleField: 'deptName',
-      defaultExpandAll: true,
-    }"
-    @add-child="handleAddChild"
-    @create="handleCreate"
-    @edit="handleEdit"
+    :crud-prefix="crudPrefix"
+    :static-operations="[]"
+    @form-success="handleModalSuccess"
   >
-    <!-- 使用原有的 DeptModal 处理新增/编辑/新增子部门 -->
-    <DeptModal ref="deptModalRef" @success="handleModalSuccess" />
-  </LowcodeTreePage>
+    <template #toolbarLeft>
+      <Button type="primary" @click="handleCreate">
+        <Plus class="mr-1" :size="16" />
+        新增部门
+      </Button>
+    </template>
+
+    <template #appendAction="{ record }">
+      <Tooltip title="编辑">
+        <Button type="link" size="small" class="p-0" @click="handleEdit(record)">
+          <Pencil class="text-lg" />
+        </Button>
+      </Tooltip>
+      <Popconfirm title="是否确认删除?" ok-text="确认" cancel-text="取消" @confirm="handleDelete(record)">
+        <Button type="link" size="small" danger class="p-0">
+          <Trash2 class="text-lg" />
+        </Button>
+      </Popconfirm>
+    </template>
+  </LowcodePage>
+
+  <DeptModal ref="deptModalRef" @success="handleModalSuccess" />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { LowcodeTreePage } from '#/lowcode';
-import type { LowcodeTreePageExposed } from '#/lowcode';
-import type { DeptApi } from '#/api';
+import { Button, Popconfirm, Tooltip, message } from 'ant-design-vue';
+import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import LowcodePage from '#/lowcode/LowcodePage.vue';
 import DeptModal from './modules/deptModal.vue';
 
-type DeptTreeNode = DeptApi.DeptTreeNode;
+const crudPrefix = '/api/wms/crud/sys_dept';
 
-const treePageRef = ref<LowcodeTreePageExposed | null>(null);
+const lowcodePageRef = ref<InstanceType<typeof LowcodePage> | null>(null);
 const deptModalRef = ref<InstanceType<typeof DeptModal> | null>(null);
 
-// ==================== 表单弹框处理 ====================
-/** 新增顶级部门 */
+function reloadList() {
+  lowcodePageRef.value?.reload();
+}
+
 function handleCreate() {
-  const treeData = treePageRef.value?.treeData ?? [];
   deptModalRef.value?.modalApi.setData({
-    addType: 'top',
-    deptTreeOptions: treeData,
-    onSuccess: () => treePageRef.value?.reload(),
+    onSuccess: reloadList,
   });
   deptModalRef.value?.modalApi.open();
 }
 
-/** 编辑部门 */
-function handleEdit(record: DeptTreeNode) {
-  const treeData = treePageRef.value?.treeData ?? [];
+function handleEdit(record: Record<string, any>) {
   deptModalRef.value?.modalApi.setData({
     record,
-    deptTreeOptions: treeData,
-    onSuccess: () => treePageRef.value?.reload(),
+    onSuccess: reloadList,
   });
   deptModalRef.value?.modalApi.open();
 }
 
-/** 新增子部门（树形特有） */
-function handleAddChild(parentRecord: DeptTreeNode) {
-  const treeData = treePageRef.value?.treeData ?? [];
-  deptModalRef.value?.modalApi.setData({
-    addType: 'row',
-    parent: parentRecord,
-    deptTreeOptions: treeData,
-    onSuccess: () => treePageRef.value?.reload(),
-  });
-  deptModalRef.value?.modalApi.open();
+async function handleDelete(record: Record<string, any>) {
+  try {
+    const { deleteDept } = await import('#/api/system/dept');
+    await deleteDept(record.deptId ?? record.dept_id ?? record.id);
+    message.success('删除成功');
+    reloadList();
+  } catch (e: any) {
+    message.error(e?.message ?? '删除失败');
+  }
 }
 
 function handleModalSuccess() {
-  treePageRef.value?.reload();
+  reloadList();
 }
 </script>
-
-<style scoped>
-/* LowcodeTreePage 已在全局样式中处理 */
-</style>

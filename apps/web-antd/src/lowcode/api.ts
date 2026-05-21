@@ -203,11 +203,20 @@ export async function fetchTreeAll(params: {
   tableMeta?: TableMeta | null;
   query?: Record<string, any>;
   queryModes?: Record<string, 'eq' | 'like'>;
+  orderByColumn?: string;
+  isAsc?: string;
 }) {
-  const { tableCode, prefix, tableMeta, query = {}, queryModes = {} } = params;
+  const { tableCode, prefix, tableMeta, query = {}, queryModes = {}, orderByColumn, isAsc } = params;
   const basePrefix = prefix ?? inferCrudPrefix(tableCode, tableMeta);
+  const sortParams: Record<string, string> = {};
+  if (orderByColumn) {
+    sortParams.orderByColumn = orderByColumn;
+  }
+  if (isAsc) {
+    sortParams.isAsc = isAsc;
+  }
   const res = await requestClient.get<any>(`${basePrefix}/listAll`, {
-    params: { ...query, queryModes: JSON.stringify(queryModes) },
+    params: { ...query, queryModes: JSON.stringify(queryModes), ...sortParams },
     paramsSerializer: 'brackets',
   });
   const rows = res?.rows ?? res?.data?.rows ?? res?.data ?? res ?? [];

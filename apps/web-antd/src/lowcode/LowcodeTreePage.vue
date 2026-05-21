@@ -641,6 +641,8 @@ async function loadData() {
       tableMeta: currentTableMeta.value,
       query,
       queryModes,
+      orderByColumn: sortState.orderByColumn || undefined,
+      isAsc: sortState.isAsc || undefined,
     });
 
     rawDataList.value = Array.isArray(rows) ? rows : [];
