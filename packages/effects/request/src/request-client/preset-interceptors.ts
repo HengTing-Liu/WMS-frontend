@@ -27,13 +27,14 @@ export const defaultResponseInterceptor = ({
       }
       // 判断成功并再做业务码判定
       if (status >= 200 && status < 400) {
+        const isSuccessCode = isFunction(successCode)
+          ? successCode(responseData[codeField])
+          : responseData[codeField] === successCode;
         if (config.responseReturn === 'body') {
-          return responseData;
-        } else if (
-          isFunction(successCode)
-            ? successCode(responseData[codeField])
-            : responseData[codeField] === successCode
-        ) {
+          if (isSuccessCode) {
+            return responseData;
+          }
+        } else if (isSuccessCode) {
           return isFunction(dataField)
             ? dataField(responseData)
             : responseData[dataField];
